@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: a5373e7a4216aa3409f9e01706d1f035
+labels:
+- AllCreature
+AssetOrigin:
+  serializedVersion: 1
+  productId: 148877
+  packageName: Animal Controller (Malbers Character Controller)
+  packageVersion: 1.4.4a
+  assetPath: Assets/Malbers Animations/Common/Shaders/Color3x3.shader
+  uploadId: 650579
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

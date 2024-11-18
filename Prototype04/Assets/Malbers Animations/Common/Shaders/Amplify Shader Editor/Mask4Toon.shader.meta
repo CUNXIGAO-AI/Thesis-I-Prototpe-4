@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 632fc863e2898d74c93397f01c132e39
+labels:
+- AllCreature
+AssetOrigin:
+  serializedVersion: 1
+  productId: 148877
+  packageName: Animal Controller (Malbers Character Controller)
+  packageVersion: 1.4.4a
+  assetPath: Assets/Malbers Animations/Common/Shaders/Mask4Toon.shader
+  uploadId: 650579
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
