@@ -85,3 +85,4 @@ fmod.log
 **/.cache/*
 **/.restore/*
 **/.user/*
+*.bundle text eol=lf
