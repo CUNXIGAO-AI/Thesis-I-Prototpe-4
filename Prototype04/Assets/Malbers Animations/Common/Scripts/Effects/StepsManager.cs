@@ -1,8 +1,8 @@
-﻿using MalbersAnimations.Scriptables;
+using MalbersAnimations.Scriptables;
 using UnityEngine;
+using MalbersAnimations;
+using Audio;
 
-namespace MalbersAnimations
-{
     /// <summary> This will manage the steps sounds and tracks for each animal, on each feet there's a Script StepTriger (Basic)  </summary>
     [AddComponentMenu("Malbers/Utilities/Effects - Audio/Step Manager")]
     public class StepsManager : MonoBehaviour, IAnimatorListener
@@ -30,8 +30,6 @@ namespace MalbersAnimations
         public AudioClipReference sounds;
         [Tooltip("Distance to Instantiate the tracks on a terrain")]
         public float trackOffset = 0.0085f;
-
-
 
         void Awake()
         {
@@ -63,7 +61,8 @@ namespace MalbersAnimations
 
             if (foot.StepAudio && foot.StepAudio.enabled && !sounds.NullOrEmpty())    //If the track has an AudioSource Component and whe have some audio to play
             {
-                sounds.Play(foot.StepAudio);
+                AudioManager.instance.PlayOneShot(FMODEvents.instance.footstepsSFX, foot.transform.position);
+                Debug.Log("Play Step Sound");
             }
 
 
@@ -131,4 +130,4 @@ namespace MalbersAnimations
 
         public virtual bool OnAnimatorBehaviourMessage(string message, object value) => this.InvokeWithParams(message, value);
     }
-}
+

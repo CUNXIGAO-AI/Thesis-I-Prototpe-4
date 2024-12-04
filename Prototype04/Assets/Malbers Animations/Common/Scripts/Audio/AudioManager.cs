@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using FMODUnity;
 using System.Numerics;
+using MalbersAnimations.Scriptables;
 
+namespace Audio{
 public class AudioManager : MonoBehaviour
 {
     // Start is called before the first frame update
@@ -26,4 +28,7 @@ public class AudioManager : MonoBehaviour
     {
         RuntimeManager.PlayOneShot(sound, worldPos);
     }
+    
 }
+}
+

@@ -1,14 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Audio;
 
-public class collisionEvent : MonoBehaviour
+public class StepAudio : MonoBehaviour
 {
     // Start is called before the first frame update
-
     void Start()
     {
-        AudioManager.instance.PlayOneShot(FMODEvents.instance.windSFX, this.transform.position);
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
     }
 }
