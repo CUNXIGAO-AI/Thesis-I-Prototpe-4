@@ -12,6 +12,13 @@ public class FMODEvents : MonoBehaviour
     [field: Header("WindSFX")]
     [field: SerializeField] public EventReference windSFX { get; private set; }
 
+    [field: Header("StealthMusic")]
+    [field: SerializeField] public EventReference stealthMusic { get; private set; }
+    
+    [field: Header("PatrolBass")]
+    [field: SerializeField] public EventReference patrolbassSFX { get; private set; }
+    
+
     public static FMODEvents instance { get; private set; }
 
     private void Awake()
@@ -23,7 +30,7 @@ public class FMODEvents : MonoBehaviour
         else
         {
             instance = this;
-            DontDestroyOnLoad(gameObject);
+            //DontDestroyOnLoad(gameObject);
         }
     }
 }
