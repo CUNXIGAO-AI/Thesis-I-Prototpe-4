@@ -15,10 +15,10 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 638689456679428973
+  lastModified: 638690363271271276
   FileSizes: []
   Exists: 1
---- !u!114 &-6389458123226258756
+--- !u!114 &-5563956621369525623
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -28,9 +28,36 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
-  m_Name: event:/Test
+  m_Name: event:/EnemyBass
   m_EditorClassIdentifier: 
-  Path: event:/Test
+  Path: event:/EnemyBass
+  Guid:
+    Data1: -677674331
+    Data2: 1094535378
+    Data3: 493824695
+    Data4: 992132362
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 0
+  Is3D: 1
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 1379
+--- !u!114 &-3335096623498380798
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Wind_Test
+  m_EditorClassIdentifier: 
+  Path: event:/Wind_Test
   Guid:
     Data1: -1347723704
     Data2: 1198045457
@@ -45,7 +72,7 @@ MonoBehaviour:
   MinDistance: 1
   MaxDistance: 20
   Length: 40000
---- !u!114 &-3099703932950479749
+--- !u!114 &-1472744838215832474
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -54,24 +81,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
-  m_Name: event:/Footstep_old
+  m_Script: {fileID: 11500000, guid: fecb8ef7f94ca804a8ab72049b86782e, type: 3}
+  m_Name: parameter:/Stealth/EnemyState
   m_EditorClassIdentifier: 
-  Path: event:/Footstep_old
-  Guid:
-    Data1: 1423991873
-    Data2: 1104097419
-    Data3: -1173303143
-    Data4: -954860246
-  Banks:
-  - {fileID: -7751678157321775205}
-  IsStream: 0
-  Is3D: 1
-  IsOneShot: 1
-  Parameters: []
-  MinDistance: 1
-  MaxDistance: 20
-  Length: 400
+  Name: EnemyState
+  StudioPath: 
+  Min: 0
+  Max: 2
+  Default: 0
+  ID:
+    data1: 1958884186
+    data2: 4276321378
+  Type: 1
+  IsGlobal: 0
+  Labels: []
+  Exists: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -88,15 +112,16 @@ MonoBehaviour:
   - {fileID: 2062079929173913841}
   - {fileID: -7751678157321775205}
   EditorEvents:
-  - {fileID: -6389458123226258756}
-  - {fileID: -3099703932950479749}
   - {fileID: 8879766255087980300}
+  - {fileID: -3335096623498380798}
+  - {fileID: 6549487712508230127}
+  - {fileID: -5563956621369525623}
   EditorParameters: []
   MasterBanks:
   - {fileID: -7751678157321775205}
   StringsBanks:
   - {fileID: 2062079929173913841}
-  cacheTime: 638689456679428973
+  cacheTime: 638690363271281329
   cacheVersion: 131621
 --- !u!114 &2062079929173913841
 MonoBehaviour:
@@ -113,11 +138,39 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 638689456679428973
+  lastModified: 638690363271281329
   FileSizes:
   - Name: 
-    Value: 854
+    Value: 944
   Exists: 1
+--- !u!114 &6549487712508230127
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Stealth
+  m_EditorClassIdentifier: 
+  Path: event:/Stealth
+  Guid:
+    Data1: 898802590
+    Data2: 1142040662
+    Data3: -540549723
+    Data4: 1946174445
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 0
+  Parameters:
+  - {fileID: -1472744838215832474}
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 6913
 --- !u!114 &8879766255087980300
 MonoBehaviour:
   m_ObjectHideFlags: 0

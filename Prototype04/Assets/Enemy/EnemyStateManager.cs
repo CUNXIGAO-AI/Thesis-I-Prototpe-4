@@ -1,9 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
-using MalbersAnimations;
+using Audio;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.UI;
+using FMOD.Studio;
+using FMODUnity;
 
 
 [RequireComponent(typeof(LineRenderer))]
@@ -95,6 +94,10 @@ public class EnemyStateManager : MonoBehaviour
     private bool hasSwitchedToPatrolState = false; // 确保切换只执行一次
     private bool hasSwitchedToAlertState = false; // 确保切换只执行一次
 
+    //audio
+    private EventInstance stealthMusic;
+    private StudioEventEmitter Emitter;
+
 
     void Start()
     {
@@ -143,6 +146,9 @@ public class EnemyStateManager : MonoBehaviour
         {
             resourceManager.OnResourceDepleted += HandleResourceDepleted; // 订阅资源耗尽事件
         }
+
+        AudioManager.instance.InitializeStealthMusic(FMODEvents.instance.stealthMusic); // 初始化音乐
+        GetComponent<StudioEventEmitter>().Play();
     }
 
     void Update()
@@ -322,21 +328,34 @@ public class EnemyStateManager : MonoBehaviour
         if (alertMeter >= alertThresholds[2] && !hasSwitchedToCombatState && currentState != CombatState)
         {
             SwitchState(CombatState);
+            AudioManager.instance.SetEnemyStateParameter(1);
+            if (Emitter.IsPlaying())
+            {
+                Emitter.Stop();
+            }
             hasSwitchedToCombatState = true;
         }
         else if (alertMeter >= alertThresholds[1] && alertMeter < alertThresholds[2] && currentState == PatrolState && !hasSwitchedToAlertState)
         {
             SwitchState(AlertState);
+            AudioManager.instance.UpdateStealthMusic();
+            
             hasSwitchedToAlertState = true;
         }
         else if(playerLost == true && currentState == CombatState && !hasSwitchedToSearchState)
         {
             SwitchState(SearchState);
+             AudioManager.instance.SetEnemyStateParameter(2);
             hasSwitchedToSearchState = true;
         }
         else if (alertMeter < alertThresholds[0] && currentState == SearchState && !hasSwitchedToPatrolState)
         {
             SwitchState(PatrolState);
+            AudioManager.instance.StopStealthMusic();
+            if (!Emitter.IsPlaying())
+            {
+                Emitter.Play();
+            }
             hasSwitchedToPatrolState = true;
         }
     }
@@ -391,6 +410,7 @@ public class EnemyStateManager : MonoBehaviour
         currentState.EnterState(this); // 进入新状态
 
         currentStateName = currentState.GetType().Name; // 更新状态名称 在Inspector中
+        //SwitchMusicByState(newState); // 切换音乐
 
         hasSwitchedToCombatState = false; // 重置状态切换标志
         hasSwitchedToAlertState = false; // 重置状态切换标志
@@ -425,6 +445,7 @@ public class EnemyStateManager : MonoBehaviour
             }
         }
     }
+
     
 // 敌人警报的传递范围
     void OnDrawGizmosSelected()
@@ -443,6 +464,16 @@ public class EnemyStateManager : MonoBehaviour
         if (currentState != OffState)
         {
             SwitchState(OffState);
+        }
+    }
+
+    private void UpdateSound()
+    {
+        PLAYBACK_STATE playbackState;
+        stealthMusic.getPlaybackState(out playbackState);
+        if (playbackState == PLAYBACK_STATE.STOPPED)
+        {
+            stealthMusic.start();
         }
     }
 

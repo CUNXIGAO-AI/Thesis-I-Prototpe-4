@@ -62,7 +62,7 @@ using Audio;
             if (foot.StepAudio && foot.StepAudio.enabled && !sounds.NullOrEmpty())    //If the track has an AudioSource Component and whe have some audio to play
             {
                 AudioManager.instance.PlayOneShot(FMODEvents.instance.footstepsSFX, foot.transform.position);
-                Debug.Log("Play Step Sound");
+                //Debug.Log("Play Step Sound");
             }
 
 
