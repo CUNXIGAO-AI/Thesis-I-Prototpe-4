@@ -1,5 +1,32 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-8941734964633862323
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/EnemyNoise
+  m_EditorClassIdentifier: 
+  Path: event:/EnemyNoise
+  Guid:
+    Data1: -58718707
+    Data2: 1252885553
+    Data3: -2014107989
+    Data4: -1298420134
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 0
+  Is3D: 1
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 1500
 --- !u!114 &-7751678157321775205
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15,36 +42,9 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 638690363271271276
+  lastModified: 638691974336801790
   FileSizes: []
   Exists: 1
---- !u!114 &-5563956621369525623
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
-  m_Name: event:/EnemyBass
-  m_EditorClassIdentifier: 
-  Path: event:/EnemyBass
-  Guid:
-    Data1: -677674331
-    Data2: 1094535378
-    Data3: 493824695
-    Data4: 992132362
-  Banks:
-  - {fileID: -7751678157321775205}
-  IsStream: 0
-  Is3D: 1
-  IsOneShot: 0
-  Parameters: []
-  MinDistance: 1
-  MaxDistance: 20
-  Length: 1379
 --- !u!114 &-3335096623498380798
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -115,13 +115,13 @@ MonoBehaviour:
   - {fileID: 8879766255087980300}
   - {fileID: -3335096623498380798}
   - {fileID: 6549487712508230127}
-  - {fileID: -5563956621369525623}
+  - {fileID: -8941734964633862323}
   EditorParameters: []
   MasterBanks:
   - {fileID: -7751678157321775205}
   StringsBanks:
   - {fileID: 2062079929173913841}
-  cacheTime: 638690363271281329
+  cacheTime: 638691974336821173
   cacheVersion: 131621
 --- !u!114 &2062079929173913841
 MonoBehaviour:
@@ -138,7 +138,7 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 638690363271281329
+  lastModified: 638691974336821173
   FileSizes:
   - Name: 
     Value: 944

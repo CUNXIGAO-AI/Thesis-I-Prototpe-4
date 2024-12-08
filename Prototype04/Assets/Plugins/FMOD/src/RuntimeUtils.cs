@@ -571,7 +571,7 @@ namespace FMODUnity
             }
         }
 
-        public static void DebugLogWarning(string message)
+        public static void DebugLogWarning(string message) //DSP  Error
         {
             if (!Settings.IsInitialized() || Settings.Instance.LoggingLevel >= FMOD.DEBUG_FLAGS.WARNING)
             {

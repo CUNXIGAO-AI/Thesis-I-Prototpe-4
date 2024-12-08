@@ -3,9 +3,11 @@ using UnityEngine;
 using UnityEngine.AI;
 using FMOD.Studio;
 using FMODUnity;
+using FMODUnityResonance;
 
 
 [RequireComponent(typeof(LineRenderer))]
+[RequireComponent(typeof(StudioEventEmitter))]
 public class EnemyStateManager : MonoBehaviour
 {
     [Header("Debug")]
@@ -96,7 +98,7 @@ public class EnemyStateManager : MonoBehaviour
 
     //audio
     private EventInstance stealthMusic;
-    private StudioEventEmitter Emitter;
+    private StudioEventEmitter emitter;
 
 
     void Start()
@@ -148,7 +150,8 @@ public class EnemyStateManager : MonoBehaviour
         }
 
         AudioManager.instance.InitializeStealthMusic(FMODEvents.instance.stealthMusic); // 初始化音乐
-        GetComponent<StudioEventEmitter>().Play();
+        emitter = AudioManager.instance.InitializeEventEmitter(FMODEvents.instance.patrolbassSFX, this.gameObject);
+        emitter.Play();
     }
 
     void Update()
@@ -329,17 +332,13 @@ public class EnemyStateManager : MonoBehaviour
         {
             SwitchState(CombatState);
             AudioManager.instance.SetEnemyStateParameter(1);
-            if (Emitter.IsPlaying())
-            {
-                Emitter.Stop();
-            }
             hasSwitchedToCombatState = true;
         }
         else if (alertMeter >= alertThresholds[1] && alertMeter < alertThresholds[2] && currentState == PatrolState && !hasSwitchedToAlertState)
         {
             SwitchState(AlertState);
             AudioManager.instance.UpdateStealthMusic();
-            
+            emitter.Stop();
             hasSwitchedToAlertState = true;
         }
         else if(playerLost == true && currentState == CombatState && !hasSwitchedToSearchState)
@@ -352,10 +351,7 @@ public class EnemyStateManager : MonoBehaviour
         {
             SwitchState(PatrolState);
             AudioManager.instance.StopStealthMusic();
-            if (!Emitter.IsPlaying())
-            {
-                Emitter.Play();
-            }
+            emitter.Play();
             hasSwitchedToPatrolState = true;
         }
     }

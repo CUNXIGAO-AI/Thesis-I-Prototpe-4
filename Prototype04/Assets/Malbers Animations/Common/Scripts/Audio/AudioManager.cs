@@ -11,6 +11,7 @@ public class AudioManager : MonoBehaviour
     public static AudioManager instance { get; private set; }
     private EventInstance stealthMusic;
     private List<EventInstance> eventInstances;
+    private List<StudioEventEmitter> eventEmitters;
 
     private void Awake()
     {
@@ -24,6 +25,7 @@ public class AudioManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
         }
         eventInstances = new List<EventInstance>();
+        eventEmitters = new List<StudioEventEmitter>();
     }
 
 
@@ -36,6 +38,14 @@ public class AudioManager : MonoBehaviour
     {
         stealthMusic = CreateEventInstance(musicEvent);
         eventInstances.Add(stealthMusic);
+    }
+
+    public StudioEventEmitter InitializeEventEmitter(EventReference eventReference, GameObject emitterGameObject)
+    {
+        StudioEventEmitter emitter = emitterGameObject.GetComponent<StudioEventEmitter>();
+        emitter.EventReference = eventReference;
+        eventEmitters.Add(emitter);
+        return emitter;
     }
 
     public void SetEnemyStateParameter(int state)
@@ -85,6 +95,11 @@ public class AudioManager : MonoBehaviour
                 eventInstance.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
                 eventInstance.release();
             }
+        }
+
+        foreach (StudioEventEmitter eventEmitter in eventEmitters)
+        {
+            eventEmitter.Stop();  
         }
     }
 
