@@ -6,17 +6,17 @@ using UnityEngine;
 public class FMODEvents : MonoBehaviour
 {
     // Start is called before the first frame update
-    [field: Header("playerSFX")]
+    [field: Header("Player_sfx")]
     [field: SerializeField] public EventReference footstepsSFX { get; private set; }
-
-    [field: Header("WindSFX")]
-    [field: SerializeField] public EventReference windSFX { get; private set; }
 
     [field: Header("StealthMusic")]
     [field: SerializeField] public EventReference stealthMusic { get; private set; }
     
-    [field: Header("PatrolBass")]
+    [field: Header("Egg_sfx")]
     [field: SerializeField] public EventReference patrolbassSFX { get; private set; }
+
+    [field: Header("Onshot_sfx")]
+    [field: SerializeField] public EventReference onShotSFX { get; private set; }
     
 
     public static FMODEvents instance { get; private set; }

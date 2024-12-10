@@ -10,6 +10,7 @@ public class AudioManager : MonoBehaviour
     // Start is called before the first frame update
     public static AudioManager instance { get; private set; }
     private EventInstance stealthMusic;
+    private EventInstance onShotSFX;
     private List<EventInstance> eventInstances;
     private List<StudioEventEmitter> eventEmitters;
 
@@ -32,12 +33,6 @@ public class AudioManager : MonoBehaviour
     public void PlayOneShot (EventReference sound, UnityEngine.Vector3 worldPos) 
     {
         RuntimeManager.PlayOneShot(sound, worldPos);
-    }
-
-    public void InitializeStealthMusic(EventReference musicEvent)
-    {
-        stealthMusic = CreateEventInstance(musicEvent);
-        eventInstances.Add(stealthMusic);
     }
 
     public StudioEventEmitter InitializeEventEmitter(EventReference eventReference, GameObject emitterGameObject)
@@ -63,6 +58,12 @@ public class AudioManager : MonoBehaviour
         eventInstances.Add(eventInstance);
         return eventInstance;
     }
+
+    public void InitializeStealthMusic(EventReference musicEvent)
+    {
+        stealthMusic = CreateEventInstance(musicEvent);
+        eventInstances.Add(stealthMusic);
+    }
     
     public void UpdateStealthMusic()
     {
@@ -83,6 +84,44 @@ public class AudioManager : MonoBehaviour
         if (stealthMusic.isValid())
         {
             stealthMusic.stop(allowFadeOut ? FMOD.Studio.STOP_MODE.ALLOWFADEOUT : FMOD.Studio.STOP_MODE.IMMEDIATE);
+        }
+    }
+
+    public void InitializeOnShotSFX(EventReference sfxEvent)
+    {
+        onShotSFX = CreateEventInstance(sfxEvent);
+        eventInstances.Add(onShotSFX);
+    }
+
+    // 启动 OnShot SFX
+    public void PlayOnShotSFX()
+    {
+        if (onShotSFX.isValid())
+        {
+            PLAYBACK_STATE playbackState;
+            onShotSFX.getPlaybackState(out playbackState);
+
+            if (playbackState == PLAYBACK_STATE.STOPPED)
+            {
+                onShotSFX.start();
+            }
+        }
+        else
+        {
+            Debug.LogWarning("OnShot SFX is not valid or not initialized.");
+        }
+    }
+
+    // 停止 OnShot SFX
+    public void StopOnShotSFX(bool allowFadeOut = true)
+    {
+        if (onShotSFX.isValid())
+        {
+            onShotSFX.stop(allowFadeOut ? FMOD.Studio.STOP_MODE.ALLOWFADEOUT : FMOD.Studio.STOP_MODE.IMMEDIATE);
+        }
+        else
+        {
+            Debug.LogWarning("OnShot SFX is not valid or not initialized.");
         }
     }
 

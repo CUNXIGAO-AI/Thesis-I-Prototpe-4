@@ -97,7 +97,6 @@ public class EnemyStateManager : MonoBehaviour
     private bool hasSwitchedToAlertState = false; // 确保切换只执行一次
 
     //audio
-    private EventInstance stealthMusic;
     private StudioEventEmitter emitter;
 
 
@@ -150,6 +149,7 @@ public class EnemyStateManager : MonoBehaviour
         }
 
         AudioManager.instance.InitializeStealthMusic(FMODEvents.instance.stealthMusic); // 初始化音乐
+        AudioManager.instance.InitializeOnShotSFX(FMODEvents.instance.onShotSFX); // 初始化音效
         emitter = AudioManager.instance.InitializeEventEmitter(FMODEvents.instance.patrolbassSFX, this.gameObject);
         emitter.Play();
     }
@@ -182,11 +182,13 @@ public class EnemyStateManager : MonoBehaviour
             {
                 //resourceManager.ChangeUIColor(new Color(1f, 0f, 0f, 1f));
                 resourceManager.SetDepletionMultiplier(50f);
+                AudioManager.instance.PlayOnShotSFX(); //播放被发现的音效
             }
             else
             {
                 //resourceManager.ChangeUIColor(new Color(1f, 1f, 1f, 0.5f));
                 resourceManager.SetDepletionMultiplier(1f);
+                AudioManager.instance.StopOnShotSFX(); //播放被发现的音效
             }
             // 更新 previousCanSeeItem 状态
             previousCanSeeItem = canSeeItem;
@@ -194,7 +196,6 @@ public class EnemyStateManager : MonoBehaviour
 
         UpdateAlertMeter();
         UpdateAlertLight();
-
 
         // 更新 LineRenderer 的位置和颜色 先关掉射线
         // Vector3 endPoint = transform.position + rayDirection * viewRadius;
@@ -460,16 +461,6 @@ public class EnemyStateManager : MonoBehaviour
         if (currentState != OffState)
         {
             SwitchState(OffState);
-        }
-    }
-
-    private void UpdateSound()
-    {
-        PLAYBACK_STATE playbackState;
-        stealthMusic.getPlaybackState(out playbackState);
-        if (playbackState == PLAYBACK_STATE.STOPPED)
-        {
-            stealthMusic.start();
         }
     }
 
