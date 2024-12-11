@@ -2,6 +2,7 @@ using UnityEngine;
 using FMODUnity;
 using FMOD.Studio;
 using System.Collections.Generic;
+using System.Collections;
 
 
 namespace Audio{
@@ -13,6 +14,7 @@ public class AudioManager : MonoBehaviour
     private EventInstance onShotSFX;
     private List<EventInstance> eventInstances;
     private List<StudioEventEmitter> eventEmitters;
+    public GameObject girlsroomAmbientTrigger; 
 
     private void Awake()
     {
@@ -140,6 +142,12 @@ public class AudioManager : MonoBehaviour
         {
             eventEmitter.Stop();  
         }
+    }
+
+    public IEnumerator EnableRoomAmbienceWithDelay(float time) // 延迟启用SoundTrigger
+    {
+        yield return new WaitForSeconds(time); // 延迟 1 秒
+        girlsroomAmbientTrigger.SetActive(true); 
     }
 
     private void OnDestroy()

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Audio;
 using UnityEngine;
 
 public class OneTimePlatformMover : MonoBehaviour
@@ -7,9 +8,9 @@ public class OneTimePlatformMover : MonoBehaviour
     public Transform platform; // 需要移动的平台
     public float moveDistance = 5f; // 移动的距离（正数向上，负数向下）
     public float speed = 2f; // 平台移动的速度
-
     private bool playerInRange = false; // 玩家是否在触发器范围内
     private bool hasMoved = false; // 是否已经触发过移动
+    public bool isAudioSource = false; // 当前物体是否负责播放音频
 
     private void Update()
     {
@@ -18,6 +19,10 @@ public class OneTimePlatformMover : MonoBehaviour
         {
             hasMoved = true; // 标记为已触发
             StartCoroutine(MovePlatform()); // 开始移动平台
+        if (isAudioSource && AudioManager.instance != null)
+            {
+                StartCoroutine(AudioManager.instance.EnableRoomAmbienceWithDelay(1.5f));
+            }
         }
     }
 
@@ -51,4 +56,5 @@ public class OneTimePlatformMover : MonoBehaviour
         // 确保平台完全到达目标位置
         platform.position = targetPosition;
     }
+
 }

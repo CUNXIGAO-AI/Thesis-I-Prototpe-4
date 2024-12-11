@@ -15,9 +15,36 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 638694409004675407
+  lastModified: 638694814565097125
   FileSizes: []
   Exists: 1
+--- !u!114 &-7485183525612505070
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Music/Girlsroom_Ambience
+  m_EditorClassIdentifier: 
+  Path: event:/Music/Girlsroom_Ambience
+  Guid:
+    Data1: 647051491
+    Data2: 1300641449
+    Data3: 1819540139
+    Data4: 210750900
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 57770
 --- !u!114 &-3678022932516005326
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -62,12 +89,14 @@ MonoBehaviour:
   - {fileID: 9156684481864442318}
   - {fileID: 1874059395224540563}
   - {fileID: 6575829461291888583}
+  - {fileID: -7485183525612505070}
+  - {fileID: 8731765165698759410}
   EditorParameters: []
   MasterBanks:
   - {fileID: -7751678157321775205}
   StringsBanks:
   - {fileID: 2062079929173913841}
-  cacheTime: 638694409004685646
+  cacheTime: 638694814565107139
   cacheVersion: 131621
 --- !u!114 &612374788702305454
 MonoBehaviour:
@@ -123,7 +152,7 @@ MonoBehaviour:
   - {fileID: -3678022932516005326}
   MinDistance: 1
   MaxDistance: 20
-  Length: 11044
+  Length: 11035
 --- !u!114 &2062079929173913841
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -139,10 +168,10 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 638694409004685646
+  lastModified: 638694814565107139
   FileSizes:
   - Name: 
-    Value: 976
+    Value: 1082
   Exists: 1
 --- !u!114 &6575829461291888583
 MonoBehaviour:
@@ -171,6 +200,33 @@ MonoBehaviour:
   MinDistance: 1
   MaxDistance: 20
   Length: 10000
+--- !u!114 &8731765165698759410
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/3D_sfx/Heartbeat_sfx
+  m_EditorClassIdentifier: 
+  Path: event:/3D_sfx/Heartbeat_sfx
+  Guid:
+    Data1: -386748730
+    Data2: 1076664601
+    Data3: 1778087096
+    Data4: -674954088
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 0
+  Is3D: 1
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 10
+  Length: 14000
 --- !u!114 &9156684481864442318
 MonoBehaviour:
   m_ObjectHideFlags: 0
