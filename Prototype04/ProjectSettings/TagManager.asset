@@ -11,6 +11,7 @@ TagManager:
   - Animal
   - Water
   - Cover
+  - InteractionCollider
   layers:
   - Default
   - TransparentFX
