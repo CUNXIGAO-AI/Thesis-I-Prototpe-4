@@ -12,9 +12,12 @@ public class AudioManager : MonoBehaviour
     public static AudioManager instance { get; private set; }
     private EventInstance stealthMusic;
     private EventInstance onShotSFX;
+    private EventInstance whaleSFX;
     private List<EventInstance> eventInstances;
     private List<StudioEventEmitter> eventEmitters;
     public GameObject girlsroomAmbientTrigger; 
+    public GameObject whaleSFXTrigger; 
+
 
     private void Awake()
     {
@@ -148,6 +151,18 @@ public class AudioManager : MonoBehaviour
     {
         yield return new WaitForSeconds(time); // 延迟 1 秒
         girlsroomAmbientTrigger.SetActive(true); 
+    }
+
+    public IEnumerator EnablewhaleSFXWithDelay(float time) // 延迟启用SoundTrigger
+    {
+        yield return new WaitForSeconds(time); // 延迟 1 秒
+        whaleSFXTrigger.SetActive(true); 
+    }
+
+    public IEnumerator DisablewhaleSFXWithDelay(float time) // 延迟启用SoundTrigger
+    {
+        yield return new WaitForSeconds(time); // 延迟 1 秒
+        whaleSFXTrigger.SetActive(false); 
     }
 
     private void OnDestroy()

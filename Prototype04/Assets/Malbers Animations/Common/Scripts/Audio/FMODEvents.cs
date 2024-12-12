@@ -18,6 +18,9 @@ public class FMODEvents : MonoBehaviour
     [field: Header("Onshot_sfx")]
     [field: SerializeField] public EventReference onShotSFX { get; private set; }
     
+    [field: Header("Whale_sfx")]
+    [field: SerializeField] public EventReference whaleSFX { get; private set; }
+    
 
     public static FMODEvents instance { get; private set; }
 

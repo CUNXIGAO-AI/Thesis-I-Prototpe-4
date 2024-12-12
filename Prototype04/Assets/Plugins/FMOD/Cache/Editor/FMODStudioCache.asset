@@ -15,7 +15,7 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 638695428000033885
+  lastModified: 638695517241407430
   FileSizes: []
   Exists: 1
 --- !u!114 &-7485183525612505070
@@ -45,6 +45,33 @@ MonoBehaviour:
   MinDistance: 1
   MaxDistance: 20
   Length: 57770
+--- !u!114 &-6271085971204161623
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/3D_sfx/Ocean_sfx
+  m_EditorClassIdentifier: 
+  Path: event:/3D_sfx/Ocean_sfx
+  Guid:
+    Data1: 934596241
+    Data2: 1341344403
+    Data3: 1277728389
+    Data4: -1739189554
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 55368
 --- !u!114 &-5377560633542728932
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -120,12 +147,14 @@ MonoBehaviour:
   - {fileID: 8731765165698759410}
   - {fileID: -5377560633542728932}
   - {fileID: 6346559110579297461}
+  - {fileID: -6271085971204161623}
+  - {fileID: 2244288365538930437}
   EditorParameters: []
   MasterBanks:
   - {fileID: -7751678157321775205}
   StringsBanks:
   - {fileID: 2062079929173913841}
-  cacheTime: 638695428000093832
+  cacheTime: 638695517241422515
   cacheVersion: 131621
 --- !u!114 &612374788702305454
 MonoBehaviour:
@@ -197,11 +226,38 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 638695428000093832
+  lastModified: 638695517241422515
   FileSizes:
   - Name: 
-    Value: 1176
+    Value: 1256
   Exists: 1
+--- !u!114 &2244288365538930437
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/3D_sfx/whale_sfx
+  m_EditorClassIdentifier: 
+  Path: event:/3D_sfx/whale_sfx
+  Guid:
+    Data1: 650340557
+    Data2: 1256344645
+    Data3: 807660732
+    Data4: -1698305110
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 55368
 --- !u!114 &6346559110579297461
 MonoBehaviour:
   m_ObjectHideFlags: 0
