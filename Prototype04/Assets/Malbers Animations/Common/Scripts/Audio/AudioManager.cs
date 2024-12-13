@@ -17,6 +17,8 @@ public class AudioManager : MonoBehaviour
     private List<StudioEventEmitter> eventEmitters;
     public GameObject girlsroomAmbientTrigger; 
     public GameObject whaleSFXTrigger; 
+    public GameObject platformSFXTrigger; 
+    public GameObject elevatorSFXTrigger;
 
 
     private void Awake()
@@ -163,6 +165,26 @@ public class AudioManager : MonoBehaviour
     {
         yield return new WaitForSeconds(time); // 延迟 1 秒
         whaleSFXTrigger.SetActive(false); 
+    }
+
+    public void EnablePlatformSFX()
+    {
+        platformSFXTrigger.SetActive(true);
+    }
+
+    public void DisablePlatformSFX()
+    {
+        platformSFXTrigger.SetActive(false);
+    }
+
+    public void EnableElevatorSFX()
+    {
+        elevatorSFXTrigger.SetActive(true);
+    }
+
+    public void DisableElevatorSFX()
+    {
+        elevatorSFXTrigger.SetActive(false);
     }
 
     private void OnDestroy()

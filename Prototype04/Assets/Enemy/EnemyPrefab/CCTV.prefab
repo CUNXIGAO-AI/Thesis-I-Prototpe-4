@@ -155,7 +155,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentStateName: 
-  item: {fileID: 4789127400875236691, guid: c5090782991b97e4eaaa6102efbff739, type: 3}
+  item: {fileID: 9157798788383467608, guid: 78b778cd7274beb408615dfc01269750, type: 3}
   viewRadius: 13
   horizontalViewAngle: 45
   verticalViewAngle: 45

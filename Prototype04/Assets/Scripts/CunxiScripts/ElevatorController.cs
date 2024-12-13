@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Audio;
 
 public class ElevatorController : MonoBehaviour
 {
@@ -19,6 +20,7 @@ public class ElevatorController : MonoBehaviour
         if (playerInRange && Input.GetKeyDown(KeyCode.X) && !isMoving && !isAtEndPoint)
         {
             StartCoroutine(MoveElevator(endPoint.position)); // 开始移动到终点
+            AudioManager.instance.EnableElevatorSFX();
         }
 
         // 当玩家离开范围且电梯在终点时，启动返回起点
@@ -58,6 +60,7 @@ public class ElevatorController : MonoBehaviour
 
         // 确保完全到达目标位置
         elevator.position = targetPosition;
+        AudioManager.instance.DisableElevatorSFX();
 
         // 更新状态
         isMoving = false;

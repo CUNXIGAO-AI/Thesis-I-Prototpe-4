@@ -15,7 +15,7 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 638695973999881812
+  lastModified: 638696358835445601
   FileSizes: []
   Exists: 1
 --- !u!114 &-7485183525612505070
@@ -45,6 +45,33 @@ MonoBehaviour:
   MinDistance: 1
   MaxDistance: 20
   Length: 57770
+--- !u!114 &-7183746455759484675
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/2D_sfx/Platform_sfx
+  m_EditorClassIdentifier: 
+  Path: event:/2D_sfx/Platform_sfx
+  Guid:
+    Data1: 874079466
+    Data2: 1265607213
+    Data3: 1444313785
+    Data4: -1171367634
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 1
+  Is3D: 1
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 21465
 --- !u!114 &-6271085971204161623
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -123,6 +150,33 @@ MonoBehaviour:
   IsGlobal: 0
   Labels: []
   Exists: 1
+--- !u!114 &-513270927164845681
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/3D_sfx/water_sfx
+  m_EditorClassIdentifier: 
+  Path: event:/3D_sfx/water_sfx
+  Guid:
+    Data1: 144464086
+    Data2: 1110797258
+    Data3: -1391944538
+    Data4: -640635392
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 1
+  Is3D: 1
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 12500
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -149,12 +203,15 @@ MonoBehaviour:
   - {fileID: 6346559110579297461}
   - {fileID: -6271085971204161623}
   - {fileID: 2244288365538930437}
+  - {fileID: -513270927164845681}
+  - {fileID: -7183746455759484675}
+  - {fileID: 4922213019863791220}
   EditorParameters: []
   MasterBanks:
   - {fileID: -7751678157321775205}
   StringsBanks:
   - {fileID: 2062079929173913841}
-  cacheTime: 638695973999891803
+  cacheTime: 638696358835461603
   cacheVersion: 131621
 --- !u!114 &612374788702305454
 MonoBehaviour:
@@ -226,10 +283,10 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 638695973999891803
+  lastModified: 638696358835461603
   FileSizes:
   - Name: 
-    Value: 1256
+    Value: 1412
   Exists: 1
 --- !u!114 &2244288365538930437
 MonoBehaviour:
@@ -258,6 +315,33 @@ MonoBehaviour:
   MinDistance: 1
   MaxDistance: 20
   Length: 55368
+--- !u!114 &4922213019863791220
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/2D_sfx/Elavator_sfx
+  m_EditorClassIdentifier: 
+  Path: event:/2D_sfx/Elavator_sfx
+  Guid:
+    Data1: 139664968
+    Data2: 1334535058
+    Data3: -1261689417
+    Data4: -578241837
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 1
+  Is3D: 1
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 21465
 --- !u!114 &6346559110579297461
 MonoBehaviour:
   m_ObjectHideFlags: 0

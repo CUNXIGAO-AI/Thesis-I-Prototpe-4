@@ -22,6 +22,7 @@ public class OneTimePlatformMover : MonoBehaviour
         if (isAudioSource && AudioManager.instance != null)
             {
                 StartCoroutine(AudioManager.instance.EnableRoomAmbienceWithDelay(1.5f));
+                AudioManager.instance.EnablePlatformSFX();
             }
         }
     }
@@ -55,6 +56,7 @@ public class OneTimePlatformMover : MonoBehaviour
 
         // 确保平台完全到达目标位置
         platform.position = targetPosition;
+        AudioManager.instance.DisablePlatformSFX();
     }
 
 }
