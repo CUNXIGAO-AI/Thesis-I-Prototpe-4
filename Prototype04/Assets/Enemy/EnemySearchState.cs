@@ -7,16 +7,18 @@ public class EnemySearchState : EnemyBaseState
     // Start is called before the first frame update
     // Start is called before the first frame update
 public override void EnterState(EnemyStateManager enemy)
+{
+    Debug.Log("Entered Search State");
+
+    // 初始化目标点索引和方向
+    if (enemy.searchTargets.Length > 0)
     {
-        Debug.Log("Entered Search State");
-
-        // 初始化搜索旋转的目标
-        if (enemy.searchRotationPoints.Length > 0)
-        {
-            enemy.searchTargetRotation = Quaternion.Euler(enemy.searchRotationPoints[enemy.searchRotationIndex]);
-        }
+        enemy.searchTargetIndex = 0; // 重置索引
+        Transform firstTarget = enemy.searchTargets[enemy.searchTargetIndex];
+        Vector3 directionToTarget = (firstTarget.position - enemy.transform.position).normalized;
+        enemy.searchTargetRotation = Quaternion.LookRotation(directionToTarget);
     }
-
+}
     public override void UpdateState(EnemyStateManager enemy)
     {
         enemy.canDecreaseAlertMeter = true;
@@ -32,26 +34,37 @@ public override void EnterState(EnemyStateManager enemy)
 
     private static void PerformSearchRotation(EnemyStateManager enemy)
     {
-        if (enemy.searchRotationPoints.Length == 0) return;
+        if (enemy.searchTargets.Length == 0) return;
 
-        // 平滑旋转到目标点
+        // 获取当前目标点和位置
+        Transform target = enemy.searchTargets[enemy.searchTargetIndex];
+        Vector3 directionToTarget = (target.position - enemy.transform.position).normalized;
+
+        // 计算目标旋转
+        Quaternion targetRotation = Quaternion.LookRotation(directionToTarget);
+
+        // 获取当前旋转速度
+        float rotationSpeed = (enemy.searchRotationSpeeds.Length > enemy.searchTargetIndex) 
+                            ? enemy.searchRotationSpeeds[enemy.searchTargetIndex] 
+                            : enemy.defaultSearchRotationSpeed;
+
+        // 平滑旋转到目标方向
         enemy.transform.rotation = Quaternion.RotateTowards(
             enemy.transform.rotation,
-            enemy.searchTargetRotation,
-            enemy.searchRotationSpeed * Time.deltaTime
+            targetRotation,
+            rotationSpeed * Time.deltaTime
         );
 
-        // 检查是否到达目标角度
-        if (Quaternion.Angle(enemy.transform.rotation, enemy.searchTargetRotation) < 0.1f)
+        // 检查是否完成旋转
+        if (Quaternion.Angle(enemy.transform.rotation, targetRotation) < 0.1f)
         {
             enemy.searchWaitTimer += Time.deltaTime;
 
-            // 如果等待时间已达到，更新到下一个点
+            // 如果等待时间完成，切换到下一个目标
             if (enemy.searchWaitTimer >= enemy.searchWaitTimeAtPoint)
             {
                 enemy.searchWaitTimer = 0f;
-                enemy.searchRotationIndex = (enemy.searchRotationIndex + 1) % enemy.searchRotationPoints.Length;
-                enemy.searchTargetRotation = Quaternion.Euler(enemy.searchRotationPoints[enemy.searchRotationIndex]);
+                enemy.searchTargetIndex = (enemy.searchTargetIndex + 1) % enemy.searchTargets.Length;
             }
         }
     }

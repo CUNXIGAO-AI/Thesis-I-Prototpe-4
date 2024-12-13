@@ -164,6 +164,9 @@ MonoBehaviour:
   detectedRayColor: {r: 0.6289307, g: 0.25255108, b: 0, a: 1}
   waypoints: []
   waypointReachThreshold: 0.5
+  waitTimeAtWaypoint: 1
+  rotationSpeeds: []
+  defaultRotationSpeed: 50
   patrolSpeed: 1
   alertMeter: 0
   alertMeterMax: 100
@@ -185,14 +188,11 @@ MonoBehaviour:
   targetRotation: {x: 0, y: 0, z: 0, w: 0}
   waitTimer: 0
   alertSpotLight: {fileID: 0}
-  searchRotationPoints:
-  - {x: 25, y: 0, z: 0}
-  - {x: 35, y: 45, z: 0}
-  - {x: 40, y: 90, z: 0}
-  - {x: 25, y: -40, z: 0}
-  searchRotationSpeed: 50
+  searchTargets: []
+  searchRotationSpeeds: []
+  defaultSearchRotationSpeed: 20
   searchWaitTimeAtPoint: 0
-  searchRotationIndex: 0
+  searchTargetIndex: 0
   searchTargetRotation: {x: 0, y: 0, z: 0, w: 0}
   searchWaitTimer: 0
   lowAlertColor: {r: 1, g: 1, b: 1, a: 1}
