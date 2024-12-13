@@ -5,39 +5,62 @@ using Audio;
 
 public class WhaleSpawner : MonoBehaviour
 {
-    // Start is called before the first frame update、
-    private bool playerInRange = false; // 玩家是否在触发器范围内
+    public GameObject whalePrefab; // 鲸鱼预制体
+    public Transform spawnPoint;  // 起始点
+    public Transform endPoint;    // 终点
+    public float speed = 5f;      // 移动速度
 
-private void Update()
-    {
-        // 玩家在范围内且按下 X 键，并且功能尚未触发过
-        if (playerInRange && Input.GetKeyDown(KeyCode.X))
-        {
-            //spawn whale
-            if (AudioManager.instance != null)
-            {
-                StartCoroutine(AudioManager.instance.EnablewhaleSFXWithDelay(1f)); //播放鲸鱼音效, 1秒后播放, 时间可调整
-            }
-
-            //等whale演出播放完毕后，调用 把下面这行Uncomment掉
-            //StartCoroutine(AudioManager.instance.DisablewhaleSFXWithDelay(.5f));
-
-        }
-    }
+    private bool hasSpawned = false; // 是否已经生成鲸鱼
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Animal")) // 检查是否是玩家
+        if (!hasSpawned && other.CompareTag("Animal"))
         {
-            playerInRange = true;
+            SpawnAndMoveWhale();
+            hasSpawned = true;
+            
+            if (AudioManager.instance != null)
+            {
+                StartCoroutine(AudioManager.instance.EnablewhaleSFXWithDelay(2f)); // 播放鲸鱼音效, 2秒后播放, 时间可调整
+            }
         }
     }
 
-    private void OnTriggerExit(Collider other)
+    private void SpawnAndMoveWhale()
     {
-        if (other.CompareTag("Animal")) // 检查是否是玩家
+        GameObject whale = Instantiate(whalePrefab, spawnPoint.position, Quaternion.identity);
+        StartCoroutine(MoveWhale(whale));
+    }
+
+    private System.Collections.IEnumerator MoveWhale(GameObject whale)
+    {
+        while (whale != null)
         {
-            playerInRange = false;
+            // 计算方向并更新鲸鱼的旋转
+            Vector3 direction = (endPoint.position - whale.transform.position).normalized;
+            whale.transform.rotation = Quaternion.LookRotation(direction);
+
+            // 移动鲸鱼
+            whale.transform.position = Vector3.MoveTowards(whale.transform.position, endPoint.position, speed * Time.deltaTime);
+
+            // 如果鲸鱼到达终点，销毁它
+            if (Vector3.Distance(whale.transform.position, endPoint.position) < 0.1f)
+            {
+                Destroy(whale);
+                StartCoroutine(AudioManager.instance.DisablewhaleSFXWithDelay(1f)); // 关闭鲸鱼音效, 1秒后关闭, 时间可调整
+                yield break;
+            }
+
+            yield return null;
         }
     }
+    
+    /*
+            if (AudioManager.instance != null)
+            {
+                StartCoroutine(AudioManager.instance.EnablewhaleSFXWithDelay(1f)); // 播放鲸鱼音效, 1秒后播放, 时间可调整
+            }
+            */
+    // 等鲸鱼演出播放完毕后，可以调用下面的方法关闭音效
+    // StartCoroutine(AudioManager.instance.DisablewhaleSFXWithDelay(.5f));
 }
