@@ -258,7 +258,7 @@ public class EnemyStateManager : MonoBehaviour
                 {
                     // 检查碰撞物体是否具有 "Cover" 标签
                     if (hit.collider.CompareTag("Cover"))
-                    {
+                    {   
                         return false;  // 被标记为“Cover”的物体阻挡了视线
                     }
                 }
