@@ -19,6 +19,8 @@ public class AudioManager : MonoBehaviour
     public GameObject whaleSFXTrigger; 
     public GameObject platformSFXTrigger; 
     public GameObject elevatorSFXTrigger;
+    public GameObject glassbrokenSFXTrigger;
+
 
 
     private void Awake()
@@ -185,6 +187,12 @@ public class AudioManager : MonoBehaviour
     public void DisableElevatorSFX()
     {
         elevatorSFXTrigger.SetActive(false);
+    }
+
+    public IEnumerator EnableGlassBrokenSFXWithDelay(float time)
+    {
+        yield return new WaitForSeconds(time); // 延迟 1 秒
+        glassbrokenSFXTrigger.SetActive(true);
     }
 
     private void OnDestroy()

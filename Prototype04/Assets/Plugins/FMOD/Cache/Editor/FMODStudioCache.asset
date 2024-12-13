@@ -15,7 +15,7 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 638696388482894877
+  lastModified: 638696475219370920
   FileSizes: []
   Exists: 1
 --- !u!114 &-7485183525612505070
@@ -206,12 +206,13 @@ MonoBehaviour:
   - {fileID: -513270927164845681}
   - {fileID: -7183746455759484675}
   - {fileID: 4922213019863791220}
+  - {fileID: 1857283281754013777}
   EditorParameters: []
   MasterBanks:
   - {fileID: -7751678157321775205}
   StringsBanks:
   - {fileID: 2062079929173913841}
-  cacheTime: 638696388483042203
+  cacheTime: 638696475219391186
   cacheVersion: 131621
 --- !u!114 &612374788702305454
 MonoBehaviour:
@@ -240,6 +241,33 @@ MonoBehaviour:
   MinDistance: 4
   MaxDistance: 25
   Length: 4000
+--- !u!114 &1857283281754013777
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/2D_sfx/Glassbroken_sfx
+  m_EditorClassIdentifier: 
+  Path: event:/2D_sfx/Glassbroken_sfx
+  Guid:
+    Data1: -1258480392
+    Data2: 1221885615
+    Data3: -282899576
+    Data4: -1003110947
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
 --- !u!114 &1874059395224540563
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -283,10 +311,10 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 638696388483042203
+  lastModified: 638696475219391186
   FileSizes:
   - Name: 
-    Value: 1412
+    Value: 1458
   Exists: 1
 --- !u!114 &2244288365538930437
 MonoBehaviour:
