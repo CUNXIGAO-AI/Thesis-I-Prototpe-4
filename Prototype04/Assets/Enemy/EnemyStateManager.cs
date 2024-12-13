@@ -34,6 +34,11 @@ public class EnemyStateManager : MonoBehaviour
     // Waypoints for patrolling
     public Transform[] waypoints;  // 巡逻点数组
     public float waypointReachThreshold = 0.5f;  // 到达巡逻点的距离阈值
+    public float waitTimeAtWaypoint = 2f;  // 每个巡逻点的停留时间
+
+    [Header("Patrol Rotation System")]
+    public float[] rotationSpeeds; // 每个旋转目标的旋转速度，与 waypoints 对应
+    public float defaultRotationSpeed = 10f; // 默认旋转速度
 
     // Speed
     public float patrolSpeed = 2f;  // 巡逻速度
@@ -69,12 +74,13 @@ public class EnemyStateManager : MonoBehaviour
 
     
     [Header("Search State Rotation System")]
-    public Vector3[] searchRotationPoints;  // 自定义的搜索旋转路径
-    public float searchRotationSpeed = 5f;  // 搜索时的旋转速度
-    public float searchWaitTimeAtPoint = 1.5f;  // 搜索状态中每个点的停留时间
-    [HideInInspector] public int searchRotationIndex = 0;  // 搜索旋转的当前索引
-    [HideInInspector] public Quaternion searchTargetRotation;  // 搜索状态中的目标旋转
-    [HideInInspector] public float searchWaitTimer = 0f;  // 搜索状态中的等待计时器
+    public Transform[] searchTargets;         // 搜索目标点数组
+    public float[] searchRotationSpeeds;      // 每个目标的旋转速度数组
+    public float defaultSearchRotationSpeed = 5f; // 默认旋转速度
+    public float searchWaitTimeAtPoint = 1.5f; // 在目标点的停留时间
+    [HideInInspector] public int searchTargetIndex = 0; // 当前目标点的索引
+    [HideInInspector] public Quaternion searchTargetRotation; // 当前目标的旋转
+    [HideInInspector] public float searchWaitTimer = 0f; // 等待计时器
 
     [Header("Light Colors")] // 在 Inspector 窗口中自定义颜色
     public Color lowAlertColor = Color.white;
@@ -95,6 +101,8 @@ public class EnemyStateManager : MonoBehaviour
     private bool hasSwitchedToSearchState = false; // 确保切换只执行一次
     private bool hasSwitchedToPatrolState = false; // 确保切换只执行一次
     private bool hasSwitchedToAlertState = false; // 确保切换只执行一次
+
+    
 
     //audio
     private StudioEventEmitter emitter;

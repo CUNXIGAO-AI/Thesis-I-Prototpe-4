@@ -24,7 +24,7 @@ public class EnemyPatrolState : EnemyBaseState
     public override void UpdateState(EnemyStateManager enemy)
     {
         Patrol(enemy);
-        PerformRotation(enemy);
+        PerformRotationAtWaypoint(enemy);
     
     }
 
@@ -33,28 +33,38 @@ public class EnemyPatrolState : EnemyBaseState
         // 离开巡逻状态时执行的逻辑
     }
 
-    private static void PerformRotation(EnemyStateManager enemy) // 旋转
+    private void PerformRotationAtWaypoint(EnemyStateManager enemy)
     {
-        if (!enemy.shouldRotate || enemy.rotationPoints.Length == 0) return; // 如果不需要旋转或者没有旋转点，直接返回
+        if (enemy.waypoints.Length == 0) return;
 
-        // 平滑旋转到目标点
+        // 获取当前目标点
+        Transform targetWaypoint = enemy.waypoints[currentWaypointIndex];
+
+        // 计算目标旋转
+        Quaternion targetRotation = Quaternion.LookRotation((targetWaypoint.position - enemy.transform.position).normalized);
+
+        // 获取当前旋转速度
+        float rotationSpeed = (enemy.rotationSpeeds.Length > currentWaypointIndex) 
+                            ? enemy.rotationSpeeds[currentWaypointIndex] 
+                            : enemy.defaultRotationSpeed;
+
+        // 平滑旋转到目标方向
         enemy.transform.rotation = Quaternion.RotateTowards(
             enemy.transform.rotation,
-            enemy.targetRotation,
-            enemy.rotationSpeed * Time.deltaTime
+            targetRotation,
+            rotationSpeed * Time.deltaTime
         );
 
-        // 检查是否到达目标角度
-        if (Quaternion.Angle(enemy.transform.rotation, enemy.targetRotation) < 0.1f)
+        // 检查是否完成旋转并开始等待
+        if (Quaternion.Angle(enemy.transform.rotation, targetRotation) < 0.1f)
         {
             enemy.waitTimer += Time.deltaTime;
 
-            // 如果等待时间已达到，更新到下一个点
-            if (enemy.waitTimer >= enemy.waitTimeAtPoint)
+            // 如果等待时间完成，移动到下一个点
+            if (enemy.waitTimer >= enemy.waitTimeAtWaypoint)
             {
                 enemy.waitTimer = 0f;
-                enemy.currentRotationIndex = (enemy.currentRotationIndex + 1) % enemy.rotationPoints.Length;
-                enemy.targetRotation = Quaternion.Euler(enemy.rotationPoints[enemy.currentRotationIndex]);
+                currentWaypointIndex = (currentWaypointIndex + 1) % enemy.waypoints.Length;
             }
         }
     }
@@ -65,14 +75,11 @@ public class EnemyPatrolState : EnemyBaseState
         // 获取当前巡逻点
         Transform targetWaypoint = enemy.waypoints[currentWaypointIndex];
 
-        // 设置 NavMeshAgent 的目标
-        navAgent.SetDestination(targetWaypoint.position);
-
         // 检查是否接近目标巡逻点
-        if (!navAgent.pathPending && navAgent.remainingDistance <= enemy.waypointReachThreshold)
+        if (Vector3.Distance(enemy.transform.position, targetWaypoint.position) <= enemy.waypointReachThreshold)
         {
-            // 切换到下一个巡逻点
-            currentWaypointIndex = (currentWaypointIndex + 1) % enemy.waypoints.Length;
+            // 在到达巡逻点后执行旋转逻辑
+            PerformRotationAtWaypoint(enemy);
         }
     }
 }
