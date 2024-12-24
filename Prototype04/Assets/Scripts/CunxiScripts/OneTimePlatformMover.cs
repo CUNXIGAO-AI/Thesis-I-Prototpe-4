@@ -11,11 +11,13 @@ public class OneTimePlatformMover : MonoBehaviour
     private bool playerInRange = false; // 玩家是否在触发器范围内
     private bool hasMoved = false; // 是否已经触发过移动
     public bool isAudioSource = false; // 当前物体是否负责播放音频
+    
+    private bool hasPadPressed = false; // 是否已经按下了 X 键
 
     private void Update()
     {
         // 玩家在范围内且按下 X 键，并且功能尚未触发过
-        if (playerInRange && Input.GetKeyDown(KeyCode.X) && !hasMoved)
+        if (playerInRange && hasPadPressed && !hasMoved)
         {
             hasMoved = true; // 标记为已触发
             StartCoroutine(MovePlatform()); // 开始移动平台
@@ -27,7 +29,7 @@ public class OneTimePlatformMover : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+    public void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Animal")) // 检查是否是玩家
         {
@@ -57,6 +59,11 @@ public class OneTimePlatformMover : MonoBehaviour
         // 确保平台完全到达目标位置
         platform.position = targetPosition;
         AudioManager.instance.DisablePlatformSFX();
+    }
+    
+    public void PressPad()
+    {
+        hasPadPressed = true;
     }
 
 }

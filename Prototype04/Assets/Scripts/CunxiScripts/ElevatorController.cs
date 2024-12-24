@@ -13,11 +13,16 @@ public class ElevatorController : MonoBehaviour
     private bool playerInRange = false; // 玩家是否在触发器范围内
     private bool isMoving = false; // 电梯是否正在移动
     private bool isAtEndPoint = false; // 电梯是否在终点
+    
+    private bool hasPadPressed = false;
+    public GameObject player;
+    public Transform originalParent; // 保存玩家的原始父对象
+    public Transform elevatorParent; // 电梯的父对象
 
-    private void Update()
+    private void FixedUpdate()
     {
         // 当玩家在范围内按下 X 键时，启动电梯移动到终点
-        if (playerInRange && Input.GetKeyDown(KeyCode.X) && !isMoving && !isAtEndPoint)
+        if (playerInRange && hasPadPressed && !isMoving && !isAtEndPoint)
         {
             StartCoroutine(MoveElevator(endPoint.position)); // 开始移动到终点
             AudioManager.instance.EnableElevatorSFX();
@@ -35,6 +40,10 @@ public class ElevatorController : MonoBehaviour
         if (other.CompareTag("Animal"))
         {
             playerInRange = true;
+            if (player != null)
+            {
+                player.transform.SetParent(elevatorParent.transform);
+            }
         }
     }
 
@@ -43,6 +52,10 @@ public class ElevatorController : MonoBehaviour
         if (other.CompareTag("Animal"))
         {
             playerInRange = false;
+            if (player != null)
+            {
+                player.transform.SetParent(originalParent);
+            }
         }
     }
 
@@ -65,5 +78,10 @@ public class ElevatorController : MonoBehaviour
         // 更新状态
         isMoving = false;
         isAtEndPoint = targetPosition == endPoint.position;
+    }
+    
+    public void PressElevatorPad()
+    {
+        hasPadPressed = true;
     }
 }

@@ -43,6 +43,14 @@
   }
 }</component>
   <component name="RunManager" selected="Attach to Unity Editor.Attach to Unity Editor">
+    <configuration name="Standalone Player" type="RunUnityExe" factoryName="Unity Executable">
+      <option name="EXE_PATH" value="$PROJECT_DIR$/../../../Unity/Builds/1213WinterShowcase/Prototype04.exe" />
+      <option name="PROGRAM_PARAMETERS" value="" />
+      <option name="WORKING_DIRECTORY" value="E:\DesktopE03\Thesis\Unity\Builds\1213WinterShowcase" />
+      <option name="PASS_PARENT_ENVS" value="1" />
+      <option name="USE_EXTERNAL_CONSOLE" value="0" />
+      <method v="2" />
+    </configuration>
     <configuration name="Start Unity" type="RunUnityExe" factoryName="Unity Executable">
       <option name="EXE_PATH" value="D:\Program Files\Unity\2022.3.44f1\Editor\Unity.exe" />
       <option name="PROGRAM_PARAMETERS" value="-projectPath E:\DesktopE03\Thesis\Github\Thesis-I-Prototpe-4\Prototype04 -debugCodeOptimization" />
@@ -94,6 +102,7 @@
       <workItem from="1734060634154" duration="4023000" />
       <workItem from="1734072244500" duration="3000" />
       <workItem from="1734122943685" duration="705000" />
+      <workItem from="1735058733984" duration="6249000" />
     </task>
     <servers />
   </component>
