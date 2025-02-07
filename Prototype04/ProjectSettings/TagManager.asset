@@ -12,6 +12,7 @@ TagManager:
   - Water
   - Cover
   - InteractionCollider
+  - SafeGround
   layers:
   - Default
   - TransparentFX

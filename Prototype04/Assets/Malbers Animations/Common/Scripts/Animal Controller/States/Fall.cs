@@ -482,6 +482,13 @@ namespace MalbersAnimations.Controller
             }
             SetExitStatus(status);  //Set the Landing Status!! IMPORTANT for Multiple Landing Animations
 
+            //If we are on a Safe Ground tag, no fall damage applied, 配合特定表皮使用，参考法环的石堆。 我添加的
+            if (FallRayCast.transform != null && FallRayCast.transform.CompareTag("SafeGround"))
+            {
+                base.ExitState();
+                return;
+            }
+
             if (AffectStat != null && animalStats != null
                 && FallCurrentDistance > FallMinDistance.Value && animal.Grounded) //Meaning if we are on the safe minimun distance we do not get damage from falling
             {
