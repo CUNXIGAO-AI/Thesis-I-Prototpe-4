@@ -99,6 +99,7 @@ namespace MalbersAnimations.Controller
 
         private bool GoingDown;
         private int Hits;
+        private ResourceManager resourceManager;
 
         public override void AwakeState()
         {
@@ -106,6 +107,11 @@ namespace MalbersAnimations.Controller
             animalStats = animal.FindComponent<Stats>(); //Find the Stats
 
             FallHits = new RaycastHit[rayHits];//set the hits
+            resourceManager = FindObjectOfType<ResourceManager>();
+            if (resourceManager == null)
+            {
+                Debug.LogError("No Resource Manager Found in the Scene");
+            }  
         }
 
         public override bool TryActivate()
@@ -489,12 +495,25 @@ namespace MalbersAnimations.Controller
                 return;
             }
 
-            if (AffectStat != null && animalStats != null
-                && FallCurrentDistance > FallMinDistance.Value && animal.Grounded) //Meaning if we are on the safe minimun distance we do not get damage from falling
+            if (AffectStat != null && animalStats != null && FallCurrentDistance > FallMinDistance.Value && animal.Grounded && resourceManager != null && resourceManager.isPickedUp) // 只有被拾取时才会触发伤害
             {
-                var StatFallValue = (FallCurrentDistance) * 100 / FallMaxDistance;
+                var StatFallValue = (FallCurrentDistance - FallMinDistance.Value) * 100 / (FallMaxDistance.Value - FallMinDistance.Value);
                 animalStats.Stat_ModifyValue(AffectStat, StatFallValue, StatOption.ReduceByPercent);
             }
+
+            // 只有被拾取时才会触发伤害
+            if (resourceManager != null && FallCurrentDistance > FallMinDistance.Value && animal.Grounded && resourceManager.isPickedUp) 
+            {
+                float resourceDamage = (FallCurrentDistance - FallMinDistance.Value) / (FallMaxDistance.Value - FallMinDistance.Value) * resourceManager.maxResource;
+                resourceManager.currentResource -= resourceDamage;
+
+                if (resourceManager.currentResource <= 0)
+                {
+                    resourceManager.currentResource = 0;
+                    resourceManager.TriggerResourceDepleted();
+                }
+            }
+
             base.ExitState();
         }
 

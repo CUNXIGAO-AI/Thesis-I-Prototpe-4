@@ -189,13 +189,15 @@ public class EnemyStateManager : MonoBehaviour
             if (canSeeItem) // 检测到物品
             {
                 //resourceManager.ChangeUIColor(new Color(1f, 0f, 0f, 1f));
-                resourceManager.SetDepletionMultiplier(50f);
+                resourceManager.SetDepletionMultiplier(50f); // 设置资源耗尽速度
+                resourceManager.SetDepletionRate(1f); // 设置资源耗尽速率
                 AudioManager.instance.PlayOnShotSFX(); //播放被发现的音效
             }
             else
             {
                 //resourceManager.ChangeUIColor(new Color(1f, 1f, 1f, 0.5f));
-                resourceManager.SetDepletionMultiplier(1f);
+                resourceManager.SetDepletionMultiplier(0f); // 关闭资源耗尽速度
+                resourceManager.SetDepletionRate(0f); // 关闭资源耗尽速率
                 AudioManager.instance.StopOnShotSFX(); //播放被发现的音效
             }
             // 更新 previousCanSeeItem 状态
