@@ -495,10 +495,11 @@ namespace MalbersAnimations.Controller
                 return;
             }
 
-            if (AffectStat != null && animalStats != null && FallCurrentDistance > FallMinDistance.Value && animal.Grounded && resourceManager != null && resourceManager.isPickedUp) // 只有被拾取时才会触发伤害
+            // 总是对生命值造成伤害
+            if (AffectStat != null && animalStats != null && FallCurrentDistance > FallMinDistance.Value && animal.Grounded)
             {
-                var StatFallValue = (FallCurrentDistance - FallMinDistance.Value) * 100 / (FallMaxDistance.Value - FallMinDistance.Value);
-                animalStats.Stat_ModifyValue(AffectStat, StatFallValue, StatOption.ReduceByPercent);
+                float healthDamage = (FallCurrentDistance - FallMinDistance.Value) / (FallMaxDistance.Value - FallMinDistance.Value) * 100;
+                animalStats.Stat_ModifyValue(AffectStat, healthDamage, StatOption.ReduceByPercent);
             }
 
             // 只有被拾取时才会触发伤害
