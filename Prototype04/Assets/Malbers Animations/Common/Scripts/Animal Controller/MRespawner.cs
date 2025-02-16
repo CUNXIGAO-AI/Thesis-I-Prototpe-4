@@ -44,8 +44,10 @@ namespace MalbersAnimations.Controller
 
         private bool Respawned;
 
-        void OnLevelFinishedLoading(Scene scene, LoadSceneMode mode)
+       void OnLevelFinishedLoading(Scene scene, LoadSceneMode mode)
         {
+            // 确保在场景加载完成后重置 Respawned 标志
+            Respawned = false;
             FindMainAnimal();
         }
 
@@ -128,10 +130,13 @@ namespace MalbersAnimations.Controller
         /// <summary>Finds the Main Animal used as Player on the Active Scene</summary>
     public virtual void FindMainAnimal()
     {
-        if (Respawned) return;
+       if (Respawned) return;
 
-        // 保存原始预制体引用
-        originalPrefab = player;
+        // 如果player是预制体，保存原始预制体引用
+        if (player != null && player.IsPrefab())
+        {
+            originalPrefab = player;
+        }
 
         activeAnimal = null;
         InstantiatedPlayer = null;
@@ -169,8 +174,6 @@ namespace MalbersAnimations.Controller
             //}
 
 
-
-
     private void SceneAnimal()
     {
         if (activeAnimal == null || activeAnimal.gameObject == null)
@@ -193,33 +196,44 @@ namespace MalbersAnimations.Controller
 
         /// <summary>Listen to the Animal States</summary>
         public void OnCharacterDead(int StateID)
-{
-    if (!Respawned) return;
-
-    if (StateID == StateEnum.Death)
     {
-        oldPlayer = activeAnimal.gameObject;
-        var currentActiveAnimal = activeAnimal;
-        currentActiveAnimal.OnStateChange.RemoveListener(OnCharacterDead);
+        if (!Respawned) return;
 
-        // 获取原始预制体引用
-        GameObject originalPrefab = player;
-        
-        this.Delay_Action(RespawnTime, () =>
+        if (StateID == StateEnum.Death)
         {
-            if (oldPlayer != null)
+            oldPlayer = activeAnimal.gameObject;
+            var currentActiveAnimal = activeAnimal;
+            currentActiveAnimal.OnStateChange.RemoveListener(OnCharacterDead);
+
+            // 不要创建新的 originalPrefab 变量
+            // 确保我们有有效的预制体引用
+            if (originalPrefab == null || !originalPrefab.IsPrefab())
             {
-                DestroyDeathPlayer();
+                Debug.LogWarning("Missing prefab reference for respawn. Using initial player prefab.");
+                originalPrefab = player;  // 尝试使用初始设置的预制体
             }
-            this.Delay_Action(() => 
+            
+            this.Delay_Action(RespawnTime, () =>
             {
-                activeAnimal = null;
-                // 使用原始预制体进行实例化
-                InstantiateNewPlayer();
+                if (oldPlayer != null)
+                {
+                    DestroyDeathPlayer();
+                }
+                this.Delay_Action(() => 
+                {
+                    activeAnimal = null;
+                    if (originalPrefab != null)
+                    {
+                        InstantiateNewPlayer();
+                    }
+                    else
+                    {
+                        Debug.LogError("Cannot respawn: No valid prefab reference available");
+                    }
+                });
             });
-        });
+        }
     }
-}
 
         void DestroyDeathPlayer()
         {
@@ -235,18 +249,52 @@ namespace MalbersAnimations.Controller
             }
         }
 
-        void InstantiateNewPlayer()
+    void InstantiateNewPlayer()
+    {
+        if (originalPrefab == null)
         {
-            // 使用originalPrefab而不是player
+            Debug.LogError("Cannot instantiate: Missing prefab reference");
+            return;
+        }
+
+        try 
+        {
             InstantiatedPlayer = Instantiate(originalPrefab, transform.position, transform.rotation);
+            if (InstantiatedPlayer == null)
+            {
+                Debug.LogError("Failed to instantiate player");
+                return;
+            }
+
             activeAnimal = InstantiatedPlayer.GetComponent<MAnimal>();
+            if (activeAnimal == null)
+            {
+                Debug.LogError("Instantiated player does not have MAnimal component");
+                Destroy(InstantiatedPlayer);
+                return;
+            }
+
             activeAnimal.OverrideStartState = RespawnState;
             activeAnimal.OnStateChange.AddListener(OnCharacterDead);
             OnRespawned.Invoke(InstantiatedPlayer);
             activeAnimal.SetMainPlayer();
             Respawned = true;
-        }
 
-        /// <summary>Destroy all the components on  Animal and leav
+            var animalStats = InstantiatedPlayer.GetComponent<Stats>();
+            if (animalStats != null)
+            {
+                var healthStat = animalStats.Stat_Get("Health");
+                if (healthStat != null)
+                {
+                    healthStat.Value = healthStat.MaxValue;
+                }
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Error during player instantiation: {e.Message}");
+        }
+    }
+
 }
 }
