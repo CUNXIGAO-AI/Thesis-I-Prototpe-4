@@ -38,6 +38,7 @@ namespace MalbersAnimations.Controller
 
         [FormerlySerializedAs("OnRestartGame")]
         public GameObjectEvent OnRespawned = new();
+        private GameObject originalPrefab;
 
 
 
@@ -125,132 +126,119 @@ namespace MalbersAnimations.Controller
         }
 
         /// <summary>Finds the Main Animal used as Player on the Active Scene</summary>
-        public virtual void FindMainAnimal()
+    public virtual void FindMainAnimal()
+    {
+        if (Respawned) return;
+
+        // 保存原始预制体引用
+        originalPrefab = player;
+
+        activeAnimal = null;
+        InstantiatedPlayer = null;
+        oldPlayer = null;
+
+        activeAnimal = MAnimal.MainAnimal;
+        
+        if (activeAnimal != null && activeAnimal.gameObject != null)
         {
-            if (Respawned) return; //meaning the animal was already respawned.
+            player = activeAnimal.gameObject;
+            SceneAnimal();
+        }
+        else if (originalPrefab != null)
+        {
+            InstantiateNewPlayer();
+        }
 
-            if (player == null)
+        if (activeAnimal != null)
+        {
+            var DeathState = activeAnimal.State_Get<Death>();
+            if (DeathState)
             {
-                activeAnimal = MAnimal.MainAnimal;
-                if (activeAnimal) player = activeAnimal.gameObject;
+                DeathState.disableAnimal = false;
+                DeathState.DisableAllComponents = false;
+                DeathState.DisableInternalColliders = false;
+                DeathState.DisableMainCollider = false;
             }
-
-            if (player != null)
-            {
-                if (player.IsPrefab())
-                {
-                    InstantiateNewPlayer();
-                }
-                else
-                {
-                    if (player.TryGetComponent(out activeAnimal))
-                    {
-                        SceneAnimal();
-                    }
-
-                }
-            }
-
-            if (player != null && activeAnimal != null) //Make sure Death is not disabling stuffs
-            {
-                //make sure the Death does not disable all things... since where reusing the same animal
-
-                var DeathState = activeAnimal.State_Get<Death>();
-
-                if (DeathState)
-                {
-                    DeathState.disableAnimal = false;
-                    DeathState.DisableAllComponents = false;
-                    DeathState.DisableInternalColliders = false;
-                    DeathState.DisableMainCollider = false;
-                }
-            }
+        }
+    }
 
             //else
             //{
             //    Debug.LogWarning("[Respawner Removed]. There's no Character assigned", this);
             //    Destroy(gameObject); //Destroy This GO since is already a Spawner in the scene
             //}
-        }
 
 
 
-        private void SceneAnimal()
-        {
-            activeAnimal.OnStateChange.AddListener(OnCharacterDead);        //Listen to the Animal changes of states
-            activeAnimal.Teleport_Internal(transform.position);             //Move the Animal to is Start Position
-            activeAnimal.transform.rotation = (transform.rotation);         //Move the Animal to is Start Position
-            activeAnimal.OverrideStartState = RespawnState;
-            activeAnimal.InputSource?.Enable(true);         //Enable the Input for the Player
-            if (activeAnimal.MainCollider) activeAnimal.MainCollider.enabled = (true);
-            activeAnimal.SetMainPlayer();
-            Respawned = true;
-        }
+
+    private void SceneAnimal()
+    {
+        if (activeAnimal == null || activeAnimal.gameObject == null)
+            return;
+
+        InstantiatedPlayer = activeAnimal.gameObject;
+        
+        // 确保在添加监听器之前移除已有的监听器
+        activeAnimal.OnStateChange.RemoveListener(OnCharacterDead);
+        activeAnimal.OnStateChange.AddListener(OnCharacterDead);
+        
+        activeAnimal.Teleport_Internal(transform.position);
+        activeAnimal.transform.rotation = transform.rotation;
+        activeAnimal.OverrideStartState = RespawnState;
+        activeAnimal.InputSource?.Enable(true);
+        if (activeAnimal.MainCollider) activeAnimal.MainCollider.enabled = true;
+        activeAnimal.SetMainPlayer();
+        Respawned = true;
+    }
 
         /// <summary>Listen to the Animal States</summary>
         public void OnCharacterDead(int StateID)
+{
+    if (!Respawned) return;
+
+    if (StateID == StateEnum.Death)
+    {
+        oldPlayer = activeAnimal.gameObject;
+        var currentActiveAnimal = activeAnimal;
+        currentActiveAnimal.OnStateChange.RemoveListener(OnCharacterDead);
+
+        // 获取原始预制体引用
+        GameObject originalPrefab = player;
+        
+        this.Delay_Action(RespawnTime, () =>
         {
-            if (!Respawned) return;
-
-            if (StateID == StateEnum.Death)                      //Means Death
+            if (oldPlayer != null)
             {
-                oldPlayer = InstantiatedPlayer;                  //Store the old player IMPORTANT
-
-                activeAnimal.OnStateChange.RemoveListener(OnCharacterDead);        //Remove listener from the Animal
-
-                if (player != null)
-                {
-                    if (player.IsPrefab())         //If the Player is a Prefab then then instantiate it on the created scene
-                    {
-                        this.Delay_Action(RespawnTime, () =>
-                         {
-                             DestroyDeathPlayer();
-                             this.Delay_Action(() => InstantiateNewPlayer()); //Instantiate next frame
-                         }
-                        );
-                    }
-                    else
-                    {
-                        if (RestartScene.Value)
-                        {
-                            this.Delay_Action(RespawnTime, () => ResetScene());
-                        }
-                        else
-                        {
-                            this.Delay_Action(RespawnTime, () =>
-                            {
-
-                                SceneAnimal();
-
-                                if (!activeAnimal.enabled)
-                                    activeAnimal.enabled = true;
-                                else
-                                    activeAnimal.ResetController();
-
-                                //activeAnimal.Anim.Rebind(); //Reset the Animator (THIS BREAK THE MODE BEHAVIOURS)
-                            }
-                            );
-                        }
-                    }
-                }
+                DestroyDeathPlayer();
             }
-        }
+            this.Delay_Action(() => 
+            {
+                activeAnimal = null;
+                // 使用原始预制体进行实例化
+                InstantiateNewPlayer();
+            });
+        });
+    }
+}
 
         void DestroyDeathPlayer()
         {
             if (oldPlayer != null)
             {
-                if (DestroyAfterRespawn)
-                    Destroy(oldPlayer);
-                else
-                    DestroyAllComponents(oldPlayer);
+                // 在销毁之前移除所有监听器
+                if (oldPlayer.TryGetComponent(out MAnimal animal))
+                {
+                    animal.OnStateChange.RemoveListener(OnCharacterDead);
+                }
+                Destroy(oldPlayer);
+                oldPlayer = null; // 清除引用
             }
         }
 
         void InstantiateNewPlayer()
         {
-            // Debug.Log("InstantiateNewPlayer");
-            InstantiatedPlayer = Instantiate(player, transform.position, transform.rotation);
+            // 使用originalPrefab而不是player
+            InstantiatedPlayer = Instantiate(originalPrefab, transform.position, transform.rotation);
             activeAnimal = InstantiatedPlayer.GetComponent<MAnimal>();
             activeAnimal.OverrideStartState = RespawnState;
             activeAnimal.OnStateChange.AddListener(OnCharacterDead);
@@ -259,23 +247,6 @@ namespace MalbersAnimations.Controller
             Respawned = true;
         }
 
-
-        /// <summary>Destroy all the components on  Animal and leaves the mesh and bones</summary>
-        private void DestroyAllComponents(GameObject target)
-        {
-            if (!target) return;
-
-            var components = target.GetComponentsInChildren<MonoBehaviour>();
-            foreach (var comp in components) Destroy(comp);
-            var colliders = target.GetComponentsInChildren<Collider>();
-            if (colliders != null)
-            {
-                foreach (var col in colliders) Destroy(col);
-            }
-            var rb = target.GetComponentInChildren<Rigidbody>();
-            if (rb != null) Destroy(rb);
-            var anim = target.GetComponentInChildren<Animator>();
-            if (anim != null) Destroy(anim);
-        }
-    }
+        /// <summary>Destroy all the components on  Animal and leav
+}
 }
