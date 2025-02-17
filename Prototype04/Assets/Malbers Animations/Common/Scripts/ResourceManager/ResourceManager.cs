@@ -184,10 +184,14 @@ public class ResourceManager : MonoBehaviour
     public void IsPickedUp()
     {
         isPickedUp = true;
+           // Debug.Log("Item Picked Up!");  // 可选：在 Console 输出状态
+
     }
 
     public void IsDroppedBy()
     {
         isPickedUp = false;
+            //Debug.Log("Item Dropped!");  // 可选：在 Console 输出状态
+
     }
 }

@@ -9,7 +9,7 @@ public class TriggerWithCamera : MonoBehaviour
     public TextMeshProUGUI gameText;
     public List<string> messages = new List<string>();
     private int currentMessageIndex = 0;
-    private bool playerInRange = false;
+    public bool playerInRange = false;
 
     public Camera secondaryCamera;
 

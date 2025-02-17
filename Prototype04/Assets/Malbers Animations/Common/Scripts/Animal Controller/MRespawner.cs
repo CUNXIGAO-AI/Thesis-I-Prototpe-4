@@ -39,7 +39,8 @@ namespace MalbersAnimations.Controller
         [FormerlySerializedAs("OnRestartGame")]
         public GameObjectEvent OnRespawned = new();
         private GameObject originalPrefab;
-
+        public Pickable assignedPickableItem;
+        Vector3 lastItemPosition = Vector3.zero;  // 记录物品的最后位置
 
 
         private bool Respawned;
@@ -195,44 +196,37 @@ namespace MalbersAnimations.Controller
     }
 
         /// <summary>Listen to the Animal States</summary>
-        public void OnCharacterDead(int StateID)
+    public void OnCharacterDead(int StateID)
     {
-        if (!Respawned) return;
+        if (!Respawned || StateID != StateEnum.Death) return;
 
-        if (StateID == StateEnum.Death)
+        oldPlayer = activeAnimal.gameObject;
+        activeAnimal.OnStateChange.RemoveListener(OnCharacterDead);
+
+        if (assignedPickableItem != null)
         {
-            oldPlayer = activeAnimal.gameObject;
-            var currentActiveAnimal = activeAnimal;
-            currentActiveAnimal.OnStateChange.RemoveListener(OnCharacterDead);
-
-            // 不要创建新的 originalPrefab 变量
-            // 确保我们有有效的预制体引用
-            if (originalPrefab == null || !originalPrefab.IsPrefab())
-            {
-                Debug.LogWarning("Missing prefab reference for respawn. Using initial player prefab.");
-                originalPrefab = player;  // 尝试使用初始设置的预制体
-            }
+            lastItemPosition = assignedPickableItem.transform.position;  // 记录物品掉落的位置
+            assignedPickableItem.Drop(); 
             
-            this.Delay_Action(RespawnTime, () =>
-            {
-                if (oldPlayer != null)
-                {
-                    DestroyDeathPlayer();
-                }
-                this.Delay_Action(() => 
-                {
-                    activeAnimal = null;
-                    if (originalPrefab != null)
-                    {
-                        InstantiateNewPlayer();
-                    }
-                    else
-                    {
-                        Debug.LogError("Cannot respawn: No valid prefab reference available");
-                    }
-                });
-            });
         }
+        
+
+        this.Delay_Action(RespawnTime, () =>
+        {
+            if (oldPlayer != null) DestroyDeathPlayer();
+            this.Delay_Action(() =>
+            {
+                activeAnimal = null;
+                if (originalPrefab != null && originalPrefab.IsPrefab())
+                {
+                    InstantiateNewPlayer();
+                }
+                else
+                {
+                    Debug.LogError("[Respawner] No valid prefab reference for respawn.");
+                }
+            });
+        });
     }
 
         void DestroyDeathPlayer()
@@ -289,6 +283,13 @@ namespace MalbersAnimations.Controller
                     healthStat.Value = healthStat.MaxValue;
                 }
             }
+
+            // **让物品传送到新玩家的附近**
+            if (assignedPickableItem != null)
+            {
+                assignedPickableItem.transform.position = transform.position + new Vector3(Random.Range(-1f, 1f), 0, Random.Range(-1f, 1f));
+                Debug.Log("Item moved to respawn point");
+            }
         }
         catch (System.Exception e)
         {
@@ -296,5 +297,7 @@ namespace MalbersAnimations.Controller
         }
     }
 
+
 }
+
 }
