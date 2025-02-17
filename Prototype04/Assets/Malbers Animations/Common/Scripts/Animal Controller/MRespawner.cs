@@ -11,6 +11,7 @@ namespace MalbersAnimations.Controller
     public class MRespawner : MonoBehaviour
     {
         public static MRespawner instance;
+        [SerializeField] private TriggerWithCamera triggerWithCamera; // 在 Unity Inspector 中指定
 
         #region Respawn
         [Tooltip("Animal Prefab to Swpawn"), FormerlySerializedAs("playerPrefab")]
@@ -203,6 +204,11 @@ namespace MalbersAnimations.Controller
         oldPlayer = activeAnimal.gameObject;
         activeAnimal.OnStateChange.RemoveListener(OnCharacterDead);
 
+             if (triggerWithCamera != null) // Reset the Death State on the Trigger with Camera
+        {
+            triggerWithCamera.OnPlayerDeath();
+        }
+
         if (assignedPickableItem != null)
         {
             lastItemPosition = assignedPickableItem.transform.position;  // 记录物品掉落的位置
@@ -245,6 +251,12 @@ namespace MalbersAnimations.Controller
 
     void InstantiateNewPlayer()
     {
+
+         if (triggerWithCamera != null) // Reset the Death State on the Trigger with Camera
+        {
+            triggerWithCamera.ResetDeathState();
+        }
+
         if (originalPrefab == null)
         {
             Debug.LogError("Cannot instantiate: Missing prefab reference");
@@ -287,7 +299,7 @@ namespace MalbersAnimations.Controller
             // **让物品传送到新玩家的附近**
             if (assignedPickableItem != null)
             {
-                assignedPickableItem.transform.position = transform.position + new Vector3(Random.Range(-1f, 1f), 0, Random.Range(-1f, 1f));
+                assignedPickableItem.transform.position = transform.position + new Vector3(Random.Range(-5f, 5f), 0, Random.Range(-5f, 5f));
                 Debug.Log("Item moved to respawn point");
             }
         }

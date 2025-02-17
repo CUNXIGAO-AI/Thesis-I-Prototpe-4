@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using MalbersAnimations.Controller;
+using MalbersAnimations;
 
 public class TriggerWithCamera : MonoBehaviour
 {
@@ -21,6 +23,11 @@ public class TriggerWithCamera : MonoBehaviour
     private float fadeDuration = 0.5f;
 
     private bool isFading = false;
+    private bool isPlayerDead = false; // 玩家是否死亡
+    private MRespawner respawner; // 用于重生的引用
+
+
+
 
     private void Start()
     {
@@ -39,7 +46,11 @@ public class TriggerWithCamera : MonoBehaviour
         {
             secondaryCamera.gameObject.SetActive(false);
         }
+
+        respawner = MRespawner.instance;
+
     }
+    
 
     private void Update()
     {
@@ -63,7 +74,7 @@ public class TriggerWithCamera : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Animal"))
+        if (other.CompareTag("Animal") && !isPlayerDead)
         {
             playerInRange = true;
             Debug.Log("进入范围了");
@@ -80,7 +91,7 @@ public class TriggerWithCamera : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Animal"))
+        if (other.CompareTag("Animal") && !isPlayerDead)
         {
             playerInRange = false;
             Debug.Log("离开范围了");
@@ -139,5 +150,25 @@ public class TriggerWithCamera : MonoBehaviour
         Color finalColor = backgroundImage.color;
         finalColor.a = targetAlpha;
         backgroundImage.color = finalColor;
+    }
+
+    public void OnPlayerDeath() // 玩家死亡时调用
+    {
+        isPlayerDead = true; // 设置玩家死亡状态
+        // 确保UI立即隐藏
+        if (playerInRange)
+        {
+            playerInRange = false; // 玩家不在范围内
+            StartCoroutine(FadeText(""));
+            if (backgroundImage != null)
+            {
+                StartCoroutine(FadeBackground(0f));
+            }
+        }
+    }
+
+    public void ResetDeathState()
+    {
+        isPlayerDead = false;
     }
 }

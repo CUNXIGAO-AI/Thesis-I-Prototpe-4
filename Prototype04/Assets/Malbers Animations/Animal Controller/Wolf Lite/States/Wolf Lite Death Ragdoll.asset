@@ -98,7 +98,7 @@ MonoBehaviour:
   ID: {fileID: 11400000, guid: adfa24f62d6db4d40a1d837f4ec1a6e9, type: 2}
   ragdollPrefab: {fileID: 5219862203692974516, guid: 1866b9e9949480b40a71eecb4ea69e03,
     type: 3}
-  Drag: 5
-  AngularDrag: 5
+  Drag: 2
+  AngularDrag: 2
   EnablePreProcessing: 1
   collision: 0
