@@ -2280,8 +2280,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 114529417453805590, guid: 1a99a7531c33cef48bc9c6d6dc1aa009,
         type: 3}
-      propertyPath: Editor_Tabs1
+      propertyPath: DebugColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114529417453805590, guid: 1a99a7531c33cef48bc9c6d6dc1aa009,
+        type: 3}
+      propertyPath: DebugColor.g
+      value: 0.2509804
+      objectReference: {fileID: 0}
+    - target: {fileID: 114529417453805590, guid: 1a99a7531c33cef48bc9c6d6dc1aa009,
+        type: 3}
+      propertyPath: DebugColor.r
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114529417453805590, guid: 1a99a7531c33cef48bc9c6d6dc1aa009,
+        type: 3}
+      propertyPath: Editor_Tabs1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 114529417453805590, guid: 1a99a7531c33cef48bc9c6d6dc1aa009,
         type: 3}

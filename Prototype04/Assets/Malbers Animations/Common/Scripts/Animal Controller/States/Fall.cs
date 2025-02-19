@@ -502,7 +502,7 @@ namespace MalbersAnimations.Controller
                 animalStats.Stat_ModifyValue(AffectStat, healthDamage, StatOption.ReduceByPercent);
             }
 
-            // 只有被拾取时才会触发伤害
+            /* 只有被拾取时才会触发伤害
             if (resourceManager != null && FallCurrentDistance > FallMinDistance.Value && animal.Grounded && resourceManager.isPickedUp) 
             {
                 float resourceDamage = (FallCurrentDistance - FallMinDistance.Value) / (FallMaxDistance.Value - FallMinDistance.Value) * resourceManager.maxResource;
@@ -513,7 +513,7 @@ namespace MalbersAnimations.Controller
                     resourceManager.currentResource = 0;
                     resourceManager.TriggerResourceDepleted();
                 }
-            }
+            }*/
 
             base.ExitState();
         }

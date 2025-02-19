@@ -28,6 +28,7 @@ public class ResourceManager : MonoBehaviour
     private void Awake()
     {
         // Ensure the water drop image starts fully transparent
+
         if (WaterdropImage != null)
         {
             var tempColor = WaterdropImage.color;
@@ -42,6 +43,7 @@ public class ResourceManager : MonoBehaviour
             tempColor.a = 0;
             WaterdropText.color = tempColor;
         }
+
     }
 
     private void Update()
@@ -100,7 +102,7 @@ public class ResourceManager : MonoBehaviour
         }
 
         // Start resource depletion after the transition
-        StartResourceDepletion(maxResource);
+        StartResourceDepletion(currentResource);
 
         // Show WaterdropText after resource depletion starts with fade-in
         if (WaterdropText != null)
@@ -140,8 +142,8 @@ public class ResourceManager : MonoBehaviour
     {
         if (!isInitialized)
         {
-            maxResource = initialMaxResource;
-            currentResource = maxResource;
+            //maxResource = initialMaxResource;
+            //currentResource = maxResource;
             isInitialized = true;
         }
 
@@ -162,7 +164,7 @@ public class ResourceManager : MonoBehaviour
         // Fade out WaterdropText when resource depletion stops
         if (WaterdropText != null)
         {
-            StartCoroutine(FadeText(WaterdropText, 1f, 0f, fadeDuration));
+            //StartCoroutine(FadeText(WaterdropText, 1f, 0f, fadeDuration));
         }
     }
 
@@ -192,6 +194,29 @@ public class ResourceManager : MonoBehaviour
     {
         isPickedUp = false;
             //Debug.Log("Item Dropped!");  // 可选：在 Console 输出状态
+    }
 
+    public void AddResource(float amount)
+    {
+        StartCoroutine(SmoothAddResource(amount));
+    }
+
+    private IEnumerator SmoothAddResource(float amount)
+    {
+        float targetResource = Mathf.Min(currentResource + amount, maxResource);
+        float startResource = currentResource;
+        float elapsedTime = 0f;
+
+        while (elapsedTime < 1f) //在这里调整数字的速度
+        {
+            elapsedTime += Time.deltaTime;
+            float t = elapsedTime / 1f;
+            currentResource = Mathf.Lerp(startResource, targetResource, t);
+            
+            yield return null;
+        }
+
+        // 确保最终值精确
+        currentResource = targetResource;
     }
 }
