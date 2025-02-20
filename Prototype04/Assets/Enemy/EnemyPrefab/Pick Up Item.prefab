@@ -121,6 +121,7 @@ MonoBehaviour:
   gameText: {fileID: 0}
   messages:
   - pick up -> [e]
+  playerInRange: 0
   secondaryCamera: {fileID: 0}
   backgroundImage: {fileID: 0}
   fadeDuration: 0.5
@@ -643,11 +644,6 @@ PrefabInstance:
         type: 3}
       propertyPath: depletionRate
       value: 0.3
-      objectReference: {fileID: 0}
-    - target: {fileID: 7128182972145813447, guid: dc658da316a6f194e8313a6e5065d371,
-        type: 3}
-      propertyPath: currentResource
-      value: 1000
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

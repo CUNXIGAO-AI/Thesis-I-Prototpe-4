@@ -44,9 +44,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63fe358e7a8562f4e82c35ee48718f9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentResource: 100
+  currentResource: 0
   maxResource: 100
   depletionRate: 0.3
   depletionMultiplier: 1
-  resourceCanvas: {fileID: 0}
-  resourceImage: {fileID: 0}
+  WaterdropImage: {fileID: 0}
+  WaterdropText: {fileID: 0}
+  fadeDuration: 0.5
