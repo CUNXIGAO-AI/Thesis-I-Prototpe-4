@@ -11390,7 +11390,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &716318775136016465
 Transform:
   m_ObjectHideFlags: 0
@@ -14565,7 +14565,7 @@ MonoBehaviour:
   - name: Dash
     active:
       UseConstant: 1
-      ConstantValue: 0
+      ConstantValue: 1
       Variable: {fileID: 0}
     ignoreOnPause:
       UseConstant: 1
@@ -15220,7 +15220,7 @@ MonoBehaviour:
       OnInputFloat:
         m_PersistentCalls:
           m_Calls: []
-    selectedIndex: 0
+    selectedIndex: 10
   ActiveMap:
     name:
       UseConstant: 1
@@ -15830,7 +15830,7 @@ MonoBehaviour:
           m_Calls: []
     selectedIndex: 0
   ResetAllInputsOnDisable: 1
-  showInputEvents: 0
+  showInputEvents: 1
   ResetOnFocusLost: 0
   OnInputEnabled:
     m_PersistentCalls:
