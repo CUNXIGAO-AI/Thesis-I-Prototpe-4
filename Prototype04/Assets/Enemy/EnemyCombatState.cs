@@ -9,7 +9,7 @@ public class EnemyCombatState : EnemyBaseState
 
     private Vector3 currentOffset = Vector3.zero; // 当前的偏移量
     private Vector3 targetOffset = Vector3.zero; // 目标偏移量
-    private const float offsetRange = 1f; // 偏移范围大小，如果是10的话感觉有个闪躲的gameplay
+    private const float offsetRange = 0.5f; // 偏移范围大小，如果是10的话感觉有个闪躲的gameplay
     private const float offsetSmoothSpeed = 3.5f; // 偏移更新的平滑速度
 
     public override void EnterState(EnemyStateManager enemy)

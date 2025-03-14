@@ -13,6 +13,8 @@ public class EnemyStateManager : MonoBehaviour
     [Header("Debug")]
     [SerializeField, Tooltip("当前敌人的状态，仅用于调试")]
     private string currentStateName;
+    [SerializeField, Tooltip("当前警戒值，仅用于调试")]
+    private float currentAlertMeter;
     EnemyBaseState currentState;
     public EnemyPatrolState PatrolState = new EnemyPatrolState();
     public EnemyAlertState AlertState = new EnemyAlertState();
@@ -169,6 +171,8 @@ public class EnemyStateManager : MonoBehaviour
             currentStateName = currentState.GetType().Name; // 更新当前状态名称
         }
         currentState.UpdateState(this);
+
+        currentAlertMeter = alertMeter; // 更新当前警戒值
 
         // 手动更新物体朝向
         //UpdateRotation();
