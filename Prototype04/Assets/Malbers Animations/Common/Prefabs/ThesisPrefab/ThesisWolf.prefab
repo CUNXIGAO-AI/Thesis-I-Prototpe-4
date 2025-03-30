@@ -15220,7 +15220,7 @@ MonoBehaviour:
       OnInputFloat:
         m_PersistentCalls:
           m_Calls: []
-    selectedIndex: 10
+    selectedIndex: 1
   ActiveMap:
     name:
       UseConstant: 1
@@ -15893,8 +15893,8 @@ MonoBehaviour:
   SelectedState: 0
   SelectedStance: 0
   ShowStateInInspector: 0
-  Editor_Tabs1: 1
-  Editor_Tabs2: 4
+  Editor_Tabs1: 4
+  Editor_Tabs2: 2
   SelectedMode: 5
   Mode_Tabs1: 1
   Ability_Tabs: 0
@@ -20453,7 +20453,7 @@ MonoBehaviour:
       Variable: {fileID: 0}
     DegenRate:
       UseConstant: 1
-      ConstantValue: 30
+      ConstantValue: 50
       Variable: {fileID: 0}
     ImmuneTime:
       UseConstant: 1
@@ -20926,7 +20926,7 @@ MonoBehaviour:
         m_Calls: []
   elements: []
   profiles: []
-  Editor_Tabs1: 0
+  Editor_Tabs1: 1
   First_Change: 1
   references:
     version: 2
