@@ -262,11 +262,17 @@ public class EnemyStateManager : MonoBehaviour
                 RaycastHit[] hits = Physics.RaycastAll(transform.position, dirToItem, distanceToItem);
                 foreach (RaycastHit hit in hits)
                 {
+                    // 如果射线命中的不是 item 本身，说明被其他物体遮挡了
+                    if (hit.transform != item)
+                    {
+                        return false;  // 有任意物体挡住了视线
+                    }
+
                     // 检查碰撞物体是否具有 "Cover" 标签
-                    if (hit.collider.CompareTag("Cover"))
+                   /* if (hit.collider.CompareTag("Cover"))
                     {   
                         return false;  // 被标记为“Cover”的物体阻挡了视线
-                    }
+                    } */
                 }
                 return true; // 未被阻挡，检测到物品
             }

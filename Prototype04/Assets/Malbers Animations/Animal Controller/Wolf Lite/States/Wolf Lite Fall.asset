@@ -175,7 +175,7 @@ MonoBehaviour:
     Variable: {fileID: 0}
   FallMaxDistance:
     UseConstant: 1
-    ConstantValue: 50
+    ConstantValue: 25
     Variable: {fileID: 0}
   landStatus:
   - {x: 0, y: 0}
