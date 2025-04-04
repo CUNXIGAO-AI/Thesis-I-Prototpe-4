@@ -299,7 +299,7 @@ namespace MalbersAnimations.Controller
             // **让物品传送到新玩家的附近**
             if (assignedPickableItem != null)
             {
-                assignedPickableItem.transform.position = transform.position + new Vector3(Random.Range(-5f, 5f), 0, Random.Range(-5f, 5f));
+                assignedPickableItem.transform.position = transform.position + new Vector3(Random.Range(-2f, 2f), 0, Random.Range(-2f, 2f));
                 Debug.Log("Item moved to respawn point");
             }
         }
