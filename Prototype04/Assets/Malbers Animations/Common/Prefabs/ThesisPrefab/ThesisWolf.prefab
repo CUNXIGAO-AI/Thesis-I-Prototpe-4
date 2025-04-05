@@ -15890,7 +15890,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowOnPlay: 1
   PivotPosDir: 0
-  SelectedState: 0
+  SelectedState: 6
   SelectedStance: 0
   ShowStateInInspector: 0
   Editor_Tabs1: 1
