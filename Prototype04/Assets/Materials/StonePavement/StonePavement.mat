@@ -98,7 +98,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 5c37879b94ab59c4998757e16f3f0f9a, type: 3}
+        m_Texture: {fileID: 2800000, guid: d99cfe5ad7ad7f6419b4ba1db1c08a4a, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MaskMap:
@@ -285,7 +285,7 @@ Material:
     - _UseEmissiveIntensity: 1
     - _UseEmissiveMap: 0
     - _UseMetallicMap: 0
-    - _UseNormalMap: 0
+    - _UseNormalMap: 1
     - _UseRoughnessMap: 1
     - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
