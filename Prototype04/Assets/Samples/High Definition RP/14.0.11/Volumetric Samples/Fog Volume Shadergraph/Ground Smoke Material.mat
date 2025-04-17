@@ -76,7 +76,7 @@ Material:
     - _DoubleSidedNormalMode: 2
     - _DstBlend: 0
     - _EnableFogOnTransparent: 1
-    - _Flatten: 2
+    - _Flatten: 3
     - _Float: 4
     - _Height_Tiling: 1.84
     - _Max_Height: 4
@@ -89,7 +89,7 @@ Material:
     - _SrcBlend: 1
     - _SurfaceType: 0
     - _TIling: 1
-    - _Tiling: 0.1
+    - _Tiling: 0.15
     - _TransparentBackfaceEnable: 0
     - _TransparentCullMode: 2
     - _TransparentDepthPostpassEnable: 0
@@ -115,7 +115,7 @@ Material:
     - _Offset: {r: 0, g: 0, b: 0, a: 0}
     - _Top_Color: {r: 0.86477983, g: 0.93131906, b: 1, a: 1}
     - _Vector3: {r: 1, g: 0, b: 0, a: 0}
-    - _Wind_Direction: {r: 1, g: 0, b: 0, a: 0}
+    - _Wind_Direction: {r: -0.25, g: 0.25, b: 0, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &2064897693191722383
 MonoBehaviour:
