@@ -265,11 +265,15 @@ public class EnemyStateManager : MonoBehaviour
                     // 如果射线命中的不是 item 本身，说明被其他物体遮挡了
                     if (hit.transform != item)
                     {
+                            if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Animal"))
+                            // 即使命中玩家 会忽视掉 这样即使玩家拿着物品也可以被发现
+                            continue;
+
                         return false;  // 有任意物体挡住了视线
                     }
 
                     // 检查碰撞物体是否具有 "Cover" 标签
-                   /* if (hit.collider.CompareTag("Cover"))
+                    /*if (hit.collider.CompareTag("Cover"))
                     {   
                         return false;  // 被标记为“Cover”的物体阻挡了视线
                     } */
@@ -375,6 +379,12 @@ public class EnemyStateManager : MonoBehaviour
             emitter.Play();
             hasSwitchedToPatrolState = true;
         }
+        else if (currentState == AlertState  && !hasSwitchedToSearchState)
+        {
+            SwitchState(SearchState);
+            AudioManager.instance.SetEnemyStateParameter(2);
+            hasSwitchedToSearchState = true;
+        }
     }
 
     void UpdateAlertLight()
@@ -416,7 +426,7 @@ public class EnemyStateManager : MonoBehaviour
         lineRenderer.endWidth = 0.2f;
     }
 
-    public void SwitchState(EnemyBaseState newState)
+    public void SwitchState(EnemyBaseState newState, bool suppressBroadcast = false) // 切换状态
     {
         if (currentState != null)
         {
@@ -434,7 +444,8 @@ public class EnemyStateManager : MonoBehaviour
         hasSwitchedToSearchState = false; // 重置状态切换标志
         hasSwitchedToPatrolState = false; // 重置状态切换标志
 
-        hasBroadcasted = false; // 重置广播标志
+      if (!suppressBroadcast)
+        hasBroadcasted = false;
     }
 
     public void BroadcastCombat() // 在一定范围内和其他敌人共享战斗警报
@@ -457,8 +468,11 @@ public class EnemyStateManager : MonoBehaviour
 
             if (enemy != null && enemy != this) // 确保不是自己
             {
-                Debug.Log($"Broadcasting alert to: {enemy.name}");
-                enemy.SwitchState(enemy.CombatState); // 切换到 CombatState
+                if (enemy.currentState != enemy.CombatState) // 如果敌人当前不是 Combat 状态
+                {
+                    enemy.alertMeter = alertMeter; // 同步警戒值
+                    enemy.SwitchState(enemy.CombatState, true); // 切换到 Combat 状态
+                }
             }
         }
     }
