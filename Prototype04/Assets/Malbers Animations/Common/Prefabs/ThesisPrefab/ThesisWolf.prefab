@@ -20441,7 +20441,7 @@ MonoBehaviour:
       Variable: {fileID: 0}
     RegenWaitTime:
       UseConstant: 1
-      ConstantValue: 1.5
+      ConstantValue: 2
       Variable: {fileID: 0}
     DegenWaitTime:
       UseConstant: 1
@@ -20622,7 +20622,7 @@ MonoBehaviour:
       Variable: {fileID: 0}
     DegenRate:
       UseConstant: 1
-      ConstantValue: 0
+      ConstantValue: 8
       Variable: {fileID: 0}
     ImmuneTime:
       UseConstant: 1
