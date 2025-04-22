@@ -70,7 +70,7 @@ Material:
     - _CullModeForward: 2
     - _DepthOffsetEnable: 0
     - _DetailSpeed: 1
-    - _Detail_Tiling: 0.15
+    - _Detail_Tiling: 0.1
     - _DoubleSidedEnable: 0
     - _DoubleSidedGIMode: 0
     - _DoubleSidedNormalMode: 2
