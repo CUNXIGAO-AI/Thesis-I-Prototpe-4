@@ -28,7 +28,6 @@ public class TriggerWithCamera : MonoBehaviour
 
 
 
-
     private void Start()
     {
         gameText.text = "";
