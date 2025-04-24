@@ -157,11 +157,11 @@ public class AudioManager : MonoBehaviour
         girlsroomAmbientTrigger.SetActive(true); 
     }
 
-    public IEnumerator EnablewhaleSFXWithDelay(float time) // 延迟启用SoundTrigger
+    /*public IEnumerator EnablewhaleSFXWithDelay(float time) // 延迟启用SoundTrigger
     {
         yield return new WaitForSeconds(time); // 延迟 1 秒
         whaleSFXTrigger.SetActive(true); 
-    }
+    }*/
 
     public IEnumerator DisablewhaleSFXWithDelay(float time) // 延迟启用SoundTrigger
     {

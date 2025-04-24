@@ -21,7 +21,7 @@ public class WhaleSpawner : MonoBehaviour
             
             if (AudioManager.instance != null)
             {
-                StartCoroutine(AudioManager.instance.EnablewhaleSFXWithDelay(2f)); // 播放鲸鱼音效, 2秒后播放, 时间可调整
+                //StartCoroutine(AudioManager.instance.EnablewhaleSFXWithDelay(2f)); // 播放鲸鱼音效, 2秒后播放, 时间可调整
             }
         }
     }

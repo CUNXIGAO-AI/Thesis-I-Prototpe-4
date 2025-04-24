@@ -11,7 +11,7 @@ namespace MalbersAnimations.Controller
     public class MRespawner : MonoBehaviour
     {
         public static MRespawner instance;
-        [SerializeField] private TriggerWithCamera triggerWithCamera; // 在 Unity Inspector 中指定
+        [SerializeField] private InteractionTrigger interactionTrigger; // 在 Unity Inspector 中指定
 
         #region Respawn
         [Tooltip("Animal Prefab to Swpawn"), FormerlySerializedAs("playerPrefab")]
@@ -204,10 +204,11 @@ namespace MalbersAnimations.Controller
         oldPlayer = activeAnimal.gameObject;
         activeAnimal.OnStateChange.RemoveListener(OnCharacterDead);
 
-             if (triggerWithCamera != null) // Reset the Death State on the Trigger with Camera
+        if (UIManager.Instance != null)
         {
-            triggerWithCamera.OnPlayerDeath();
+            UIManager.Instance.HandlePlayerDeath();
         }
+
 
         if (assignedPickableItem != null)
         {
@@ -252,11 +253,10 @@ namespace MalbersAnimations.Controller
     void InstantiateNewPlayer()
     {
 
-         if (triggerWithCamera != null) // Reset the Death State on the Trigger with Camera
+        if (UIManager.Instance != null)
         {
-            triggerWithCamera.ResetDeathState();
+            UIManager.Instance.HandlePlayerRespawn();
         }
-
         if (originalPrefab == null)
         {
             Debug.LogError("Cannot instantiate: Missing prefab reference");
