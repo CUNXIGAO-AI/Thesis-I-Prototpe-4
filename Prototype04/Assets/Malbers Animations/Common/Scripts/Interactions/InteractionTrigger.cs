@@ -110,6 +110,9 @@ public class InteractionTrigger : MonoBehaviour
         
         [Tooltip("选择后触发的事件")]
         public UnityEvent onChoiceSelected = new UnityEvent();
+
+        [Tooltip("选择后执行的叙事动作")]
+        public List<NarrativeAction> narrativeActions = new List<NarrativeAction>();
     }
 
     [System.Serializable]
@@ -485,22 +488,36 @@ private IEnumerator CoordinatedExitAnimation()
 
     private void HandleChoice(DialogueChoice choice)
     {
-        // 触发选择事件
+        // 1. 先触发UI/反馈相关事件
         choice.onChoiceSelected.Invoke();
         
-        // 跳转到指定的消息索引
-        if (choice.jumpToMessageIndex >= 0 && choice.jumpToMessageIndex < dialogueSettings.messages.Count)
+        // 2. 然后执行叙事动作(如果有)
+
+        foreach (var action in choice.narrativeActions)
+        {
+            if (action != null)
+            {
+                action.ExecuteAction();
+            }
+        }
+        
+        
+        // 3. 最后处理对话流程
+        if (choice.jumpToMessageIndex >= 0 && 
+            choice.jumpToMessageIndex < dialogueSettings.messages.Count)
         {
             currentMessageIndex = choice.jumpToMessageIndex;
         }
         else
         {
-            // 否则进入下一条消息
-            currentMessageIndex = (currentMessageIndex + 1) % dialogueSettings.messages.Count;
+            currentMessageIndex = (currentMessageIndex + 1) % 
+                                dialogueSettings.messages.Count;
         }
         
-        // 显示下一条消息
         DisplayCurrentMessage();
+
+        //on choiceSelected.Invoke(); // 触发选择事件 角色动画 音效等
+        //Narrative Action 只负责叙事 结局 等等
     }
     
     private void ActivateCamera(bool activate)
