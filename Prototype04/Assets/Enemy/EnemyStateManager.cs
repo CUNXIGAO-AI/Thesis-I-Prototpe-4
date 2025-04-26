@@ -104,6 +104,10 @@ public class EnemyStateManager : MonoBehaviour
     private bool hasSwitchedToPatrolState = false; // 确保切换只执行一次
     private bool hasSwitchedToAlertState = false; // 确保切换只执行一次
 
+    [Header("Resource Depletion Settings")]
+    private float defaultDepletionMultiplier = 1f;  // 默认状态下的消耗倍率
+    private float combatDepletionMultiplier = 5f;  // 战斗状态下的消耗倍率
+
     
 
     //audio
@@ -172,6 +176,11 @@ public class EnemyStateManager : MonoBehaviour
         }
         currentState.UpdateState(this);
 
+        if (currentState == OffState)
+        {
+            return; // 直接返回，跳过所有检测逻辑
+        }
+
         currentAlertMeter = alertMeter; // 更新当前警戒值
 
         // 手动更新物体朝向
@@ -186,37 +195,53 @@ public class EnemyStateManager : MonoBehaviour
 
         lineRenderer.enabled = canSeeItem;
 
-        // 仅在检测状态发生变化时调用更改方法
-        if (canSeeItem != previousCanSeeItem)
+    if (canSeeItem != previousCanSeeItem)
+    {
+        if (canSeeItem) // 检测到物品
         {
-
-            if (canSeeItem) // 检测到物品
+            // 根据当前状态设置适当的消耗倍率
+            if (currentState == CombatState)
             {
-                //resourceManager.ChangeUIColor(new Color(1f, 0f, 0f, 1f));
-                resourceManager.SetDepletionMultiplier(50f); // 设置资源耗尽速度
-                resourceManager.SetDepletionRate(1f); // 设置资源耗尽速率
-                AudioManager.instance.PlayOnShotSFX(); //播放被发现的音效
+                resourceManager.SetDepletionMultiplier(combatDepletionMultiplier);
+                // 设置灯光为战斗状态
+                resourceManager.SetLightState(ResourceManager.LightState.Combat);
             }
             else
             {
-                //resourceManager.ChangeUIColor(new Color(1f, 1f, 1f, 0.5f));
-                resourceManager.SetDepletionMultiplier(0f); // 关闭资源耗尽速度
-                resourceManager.SetDepletionRate(0f); // 关闭资源耗尽速率
-                AudioManager.instance.StopOnShotSFX(); //播放被发现的音效
+                resourceManager.SetDepletionMultiplier(defaultDepletionMultiplier);
+                // 设置灯光为检测状态
+                resourceManager.SetLightState(ResourceManager.LightState.Detected);
             }
-            // 更新 previousCanSeeItem 状态
-            previousCanSeeItem = canSeeItem;
+            
+            resourceManager.SetDepletionRate(2f); // 设置基础消耗速率
+            resourceManager.StartResourceDepletion(resourceManager.currentValue);
+            
+            AudioManager.instance.PlayOnShotSFX();
         }
-
-        UpdateAlertMeter();
-        UpdateAlertLight();
-
-        // 更新 LineRenderer 的位置和颜色 先关掉射线
-        // Vector3 endPoint = transform.position + rayDirection * viewRadius;
-        // UpdateLineRenderer(transform.position, endPoint, canSeeItem ? detectedRayColor : defaultRayColor);
-
-        //Debug.Log("Current State: " + currentState);        
+        else
+        {
+            resourceManager.SetDepletionMultiplier(0f); // 关闭资源消耗
+            resourceManager.SetDepletionRate(0f);
+            resourceManager.StopResourceDepletion(); // 停止资源消耗
+            
+            // 恢复默认灯光状态
+            resourceManager.SetLightState(ResourceManager.LightState.Default);
+            
+            AudioManager.instance.StopOnShotSFX();
+        }
+        
+        previousCanSeeItem = canSeeItem;
     }
+
+            UpdateAlertMeter();
+            UpdateAlertLight();
+
+            // 更新 LineRenderer 的位置和颜色 先关掉射线
+            // Vector3 endPoint = transform.position + rayDirection * viewRadius;
+            // UpdateLineRenderer(transform.position, endPoint, canSeeItem ? detectedRayColor : defaultRayColor);
+
+            //Debug.Log("Current State: " + currentState);        
+        }
 
     // 手动旋转物体朝向 NavMeshAgent 的前进方向
     /*void UpdateRotation()
@@ -336,7 +361,7 @@ public class EnemyStateManager : MonoBehaviour
     void UpdateAlertMeter()
     {
 
-        if (resourceManager.currentResource <= 0) return;
+        if (resourceManager.currentValue <= 0) return;
 
         if (canSeeItem)
         {
@@ -438,6 +463,37 @@ public class EnemyStateManager : MonoBehaviour
 
         currentStateName = currentState.GetType().Name; // 更新状态名称 在Inspector中
         //SwitchMusicByState(newState); // 切换音乐
+
+        if (resourceManager != null)
+        {
+            // 如果是战斗状态，使用高消耗倍率
+            if (newState == CombatState)
+            {
+                resourceManager.SetDepletionMultiplier(combatDepletionMultiplier);
+                // 设置为战斗状态的闪烁效果
+                resourceManager.SetLightState(ResourceManager.LightState.Combat);
+            }
+            // 否则使用默认消耗倍率
+            else
+            {
+                resourceManager.SetDepletionMultiplier(defaultDepletionMultiplier);
+                // 如果能看到物品，设置为检测状态的闪烁效果，否则设置为默认状态
+                if (canSeeItem)
+                {
+                    resourceManager.SetLightState(ResourceManager.LightState.Detected);
+                }
+                else
+                {
+                    resourceManager.SetLightState(ResourceManager.LightState.Default);
+                }
+            }
+            
+            // 如果能看到物品，确保启动资源消耗
+            if (canSeeItem)
+            {
+                resourceManager.StartResourceDepletion(resourceManager.currentValue);
+            }
+    }
 
         hasSwitchedToCombatState = false; // 重置状态切换标志
         hasSwitchedToAlertState = false; // 重置状态切换标志

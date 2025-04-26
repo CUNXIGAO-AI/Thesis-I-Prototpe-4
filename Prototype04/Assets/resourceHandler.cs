@@ -22,7 +22,7 @@ public class ResourceHandler : MonoBehaviour
         {
             zone.hasTriggered = true;
             resourceManager.AddResource(zone.resourceValue);
-             Debug.Log("Resource added: " + zone.resourceValue);
+            Debug.Log("Resource added: " + zone.resourceValue);
         }
     }
 }

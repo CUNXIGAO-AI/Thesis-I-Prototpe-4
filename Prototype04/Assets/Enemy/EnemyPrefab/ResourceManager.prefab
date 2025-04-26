@@ -44,10 +44,108 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63fe358e7a8562f4e82c35ee48718f9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentResource: 0
-  maxResource: 100
-  depletionRate: 0.3
+  currentLightStateDebug: Default
+  currentDisplayValueDebug: 0
+  isDepleting: 0
+  currentValue: 0
+  maxValue: 500
+  depletionRate: 1
   depletionMultiplier: 1
-  WaterdropImage: {fileID: 0}
-  WaterdropText: {fileID: 0}
-  fadeDuration: 0.5
+  resourceLight: {fileID: 0}
+  minIntensity: 0
+  maxIntensity: 30
+  resourceAddDelay: 1
+  brightnessIncreaseSpeed: 0.4
+  brightnessIncreaseCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  brightnessDecreaseSpeed: 0.4
+  brightnessDecreaseCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  enableOvershoot: 1
+  overshootPercent: 100
+  overshootCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1.029955
+      value: 0.49420813
+      inSlope: 0.13713904
+      outSlope: 0.13713904
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.39310342
+    - serializedVersion: 3
+      time: 1.9936523
+      value: 0.0007247925
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  overshootThreshold: 0.9
+  defaultFlickerFrequency: 0
+  defaultFlickerIntensity: 0
+  detectedFlickerFrequency: 5
+  detectedFlickerIntensity: 0.5
+  combatFlickerFrequency: 10
+  combatFlickerIntensity: 1
+  transitionDuration: 4
+  transitionDelay: 1
