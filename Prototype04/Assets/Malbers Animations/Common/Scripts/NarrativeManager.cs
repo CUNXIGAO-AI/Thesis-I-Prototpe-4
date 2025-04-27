@@ -107,4 +107,5 @@ public class NarrativeManager : MonoBehaviour
     {
         return endingTriggered;
     }
+
 }
