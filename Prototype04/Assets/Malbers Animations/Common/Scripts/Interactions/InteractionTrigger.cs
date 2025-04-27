@@ -8,7 +8,7 @@ using Cinemachine; // 添加Cinemachine命名空间
 using UnityEngine.Events; // 添加UnityEvents命名空间
 
 // 添加Icon以便在Inspector中更容易识别
-[AddComponentMenu("Interaction/Dialogue Trigger")]
+[AddComponentMenu("Interaction System")]
 [RequireComponent(typeof(Collider))] // 确保对象有碰撞体
 public class InteractionTrigger : MonoBehaviour
 {
@@ -34,7 +34,29 @@ public class InteractionTrigger : MonoBehaviour
     [Tooltip("当前交互状态")]
     private InteractionState currentState = InteractionState.Ready;
     
+    [System.Serializable]  // Add this attribute to make the class serializable
+    public class InteractionEvents
+    {
+        [Header("交互事件")]
+        [Tooltip("交互开始时触发的事件")]
+        public UnityEvent onInteractionStarted = new UnityEvent();
+        
+        [Tooltip("交互结束时触发的事件")]
+        public UnityEvent onInteractionEnded = new UnityEvent();
+        
+        [Tooltip("玩家进入交互范围时触发的事件")]
+        public UnityEvent onPlayerEnterRange = new UnityEvent();
+        
+        [Tooltip("玩家离开交互范围时触发的事件")]
+        public UnityEvent onPlayerExitRange = new UnityEvent();
+    }
 
+    // 然后在InteractionTrigger类中添加该类的实例
+    [Space(10)]
+    [Header("事件系统")]
+    [SerializeField]
+    [Tooltip("交互事件设置")]
+    public InteractionEvents events = new InteractionEvents();
 
     [Tooltip("可交互的检测半径, 无功能 只是看到的范围 方便调试")] 
     public float interactionRadius = 2f;
@@ -390,6 +412,8 @@ public ExitAnimationDelays exitDelays = new ExitAnimationDelays();
 {
     currentState = InteractionState.Active;
 
+    events.onInteractionStarted.Invoke();
+
     // 启动相机
     if (enableCamera && cameraSettings.virtualCamera != null)
     {
@@ -440,6 +464,8 @@ private void ExitInteraction()
     }
 
     StartCoroutine(CoordinatedExitAnimation());
+        events.onInteractionEnded.Invoke();
+
 }
 
 // 添加一个新方法：检查对话中是否包含资源相关的选择
@@ -769,7 +795,8 @@ private void JumpToResourceFailureMessage(DialogueMessage currentMessage)
         if (other.CompareTag(playerTag) && !isPlayerDead)
         {
             playerInRange = true;
-            
+                    events.onPlayerEnterRange.Invoke();
+
             // 如果是一次性交互且已完成，不做任何事
             if (isOneTimeInteraction && currentState == InteractionState.Completed)
                 return;
@@ -794,7 +821,8 @@ private void OnTriggerExit(Collider other)
     if (other.CompareTag(playerTag) && !isPlayerDead)
     {
         playerInRange = false;
-        
+        events.onPlayerExitRange.Invoke();
+
         // 如果未开始交互，清除提示
         if (currentState == InteractionState.Ready)
         {
