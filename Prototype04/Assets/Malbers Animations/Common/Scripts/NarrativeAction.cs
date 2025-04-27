@@ -16,6 +16,10 @@ public class NarrativeAction : MonoBehaviour
     
     // 可选：自定义动作的UnityEvent
     public UnityEvent customAction;
+
+    [Header("资源检查设置")]
+    [Tooltip("资源不足时跳转的对话索引 (用于GiveWaterToGirl)")]
+    public int noResourceDialogueIndex = -1;
     
     // 执行叙事动作
     public void ExecuteAction()

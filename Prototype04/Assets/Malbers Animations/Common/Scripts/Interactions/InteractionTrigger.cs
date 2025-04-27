@@ -12,21 +12,29 @@ using UnityEngine.Events; // 添加UnityEvents命名空间
 [RequireComponent(typeof(Collider))] // 确保对象有碰撞体
 public class InteractionTrigger : MonoBehaviour
 {
+    public ResourceManager resourceManager;  // 拖到Inspector
+    private bool pendingCompleteAfterExit = false;
+    private enum InteractionState
+    {
+        Ready,       // 准备交互状态
+        Active,      // 正在交互中
+        Cooldown,    // 冷却状态
+        Completed    // 已完成（一次性交互）
+    }
+
     [Header("一次性交互")]
     [Tooltip("是否为一次性交互")]
     public bool isOneTimeInteraction = false;
-
-    [Tooltip("是否已经完成交互")]
-    private bool interactionCompleted = false;
-
-    [Tooltip("是否正在交互中")]
-    private bool isInteracting = false;
 
     [Header("冷却时间设置")]
     [Tooltip("冷却时间 防止交互重叠")]
     [SerializeField]
     private float exitCooldownDuration = 1f; // 可以根据需要调整
-    private bool isExitCooldown = false;
+
+    [Tooltip("当前交互状态")]
+    private InteractionState currentState = InteractionState.Ready;
+    
+
 
     [Tooltip("可交互的检测半径, 无功能 只是看到的范围 方便调试")] 
     public float interactionRadius = 2f;
@@ -44,6 +52,9 @@ public class InteractionTrigger : MonoBehaviour
         [SerializeField]
         [Tooltip("提示文本淡出时间")]
         public float promptFadeOutDuration = 0.3f;
+
+            [Tooltip("只有提示时，是否视为一次性交互")]
+    public bool isPromptOnlyOneTime = false;  // ✅ 新增
 
     }
 
@@ -94,6 +105,12 @@ public class InteractionTrigger : MonoBehaviour
     
     [Tooltip("当这是选择消息时，各个选项")]
     public List<DialogueChoice> choices = new List<DialogueChoice>();
+
+    [Header("资源检查设置")]
+    public bool checkResources = false;
+    
+    [Tooltip("资源不足时跳转的对话索引")]
+    public int noResourceDialogueIndex = -1;
     }
 
     [System.Serializable]
@@ -113,6 +130,10 @@ public class InteractionTrigger : MonoBehaviour
 
         [Tooltip("选择后执行的叙事动作")]
         public List<NarrativeAction> narrativeActions = new List<NarrativeAction>();
+        [Tooltip("选择后是否完成一次性交互（只在给资源这种情况启用）")]
+        public bool completeInteractionOnSuccess = false;
+            [Tooltip("此选择是否消耗资源")]
+    public bool consumeResources = false;  // 新增属性
     }
 
     [System.Serializable]
@@ -289,14 +310,15 @@ public ExitAnimationDelays exitDelays = new ExitAnimationDelays();
 
   private void Update()
 {
-     if (isPlayerDead || isExitCooldown)
+    // 如果玩家死亡或者处于冷却状态，直接返回
+    if (isPlayerDead || currentState == InteractionState.Cooldown)
         return;
         
     if (playerInRange && !isFading)
     {
         // 获取当前消息（如果在交互中）
         DialogueMessage currentMessage = null;
-        if (isInteracting && enableDialogue && currentMessageIndex < dialogueSettings.messages.Count)
+        if (currentState == InteractionState.Active && enableDialogue && currentMessageIndex < dialogueSettings.messages.Count)
         {
             currentMessage = dialogueSettings.messages[currentMessageIndex];
         }
@@ -305,11 +327,11 @@ public ExitAnimationDelays exitDelays = new ExitAnimationDelays();
         if (Input.GetKeyDown(dialogueSettings.interactionKey))
         {
             // 如果是一次性交互且已完成，不再触发
-            if (isOneTimeInteraction && interactionCompleted)
+            if (isOneTimeInteraction && currentState == InteractionState.Completed)
                 return;
                 
             // 如果正在交互中
-            if (isInteracting)
+            if (currentState == InteractionState.Active)
             {
                 // 检查当前消息是否是选择消息
                 if (enableDialogue && currentMessage != null && currentMessage.isChoice)
@@ -337,19 +359,19 @@ public ExitAnimationDelays exitDelays = new ExitAnimationDelays();
                 }
                 else
                 {
-                    // 添加：如果对话功能关闭，直接退出交互
+                    // 如果对话功能关闭，直接退出交互
                     ExitInteraction();
                 }
             }
             // 否则开始交互
-            else
+            else if (currentState == InteractionState.Ready)
             {
                 HandleInteraction();
             }
         }
         
         // 检查选择按键 (如果正在显示选择)
-        if (isInteracting && enableDialogue && currentMessage != null && currentMessage.isChoice)
+        if (currentState == InteractionState.Active && enableDialogue && currentMessage != null && currentMessage.isChoice)
         {
             foreach (var choice in currentMessage.choices)
             {
@@ -362,56 +384,89 @@ public ExitAnimationDelays exitDelays = new ExitAnimationDelays();
         }
     }
 }
+
     
     private void HandleInteraction()
-    {
-        isInteracting = true;
-        
-        // 当玩家按下交互按钮时激活相机
-        if (enableCamera && cameraSettings.virtualCamera != null)
-        {
-            ActivateCamera(true);
-        }
-        
+{
+    currentState = InteractionState.Active;
 
-       if (enableDialogue && dialogueSettings.messages.Count > 0)
+    // 启动相机
+    if (enableCamera && cameraSettings.virtualCamera != null)
+    {
+        ActivateCamera(true);
+    }
+
+    if (enableDialogue && dialogueSettings.messages.Count > 0)
+    {
+        currentMessageIndex = 0;
+        DisplayCurrentMessage();
+    }
+    else
+    {
+        // ✅ 如果只是Prompt
+        if (!string.IsNullOrEmpty(promptSettings.promptMessage))
         {
-            currentMessageIndex = 0;
-            DisplayCurrentMessage();
+            StartCoroutine(FadeText("", TextType.Prompt));
+        }
+
+        if (dialogueSettings.backgroundImage != null)
+        {
+            StartCoroutine(FadeTextBackground(0f));
+        }
+
+        // ✅ 关键逻辑更新：
+        if (promptSettings.isPromptOnlyOneTime)
+        {
+            currentState = InteractionState.Completed;
         }
         else
         {
-            // ✅ 如果只是打开了相机或空对白，也应该淡出提示文字
-            if (!string.IsNullOrEmpty(promptSettings.promptMessage))
-            {
-                StartCoroutine(FadeText("", TextType.Prompt));
-            }
-            {
-                StartCoroutine(FadeText("", TextType.Prompt));
-            }
-
-            if (dialogueSettings.backgroundImage != null)
-            {
-                StartCoroutine(FadeTextBackground(0f));
-            }
+            StartCoroutine(CoordinatedExitAnimation());
         }
     }
+}
 
 
 
-    private void ExitInteraction()
+private void ExitInteraction()
+{
+    // 切换到冷却状态
+    currentState = InteractionState.Cooldown;
+    
+    if (pendingCompleteAfterExit)
     {
-        isInteracting = false;
-        isExitCooldown = true; // 进入冷却状态
-        
-        // 标记交互已完成(对于一次性交互)
-        if (isOneTimeInteraction)
+        currentState = InteractionState.Completed;
+        pendingCompleteAfterExit = false; // 清除标记，避免影响下一次
+    }
+
+    StartCoroutine(CoordinatedExitAnimation());
+}
+
+// 添加一个新方法：检查对话中是否包含资源相关的选择
+    private bool HasChoiceWithResource()
+    {
+        if (!enableDialogue || dialogueSettings.messages == null || dialogueSettings.messages.Count == 0)
+            return false;
+            
+        // 检查所有消息
+        foreach (var message in dialogueSettings.messages)
         {
-            interactionCompleted = true;
+            // 检查是否有资源检查
+            if (message.checkResources)
+                return true;
+                
+            // 检查是否有完成交互的选择
+            if (message.isChoice)
+            {
+                foreach (var choice in message.choices)
+                {
+                    if (choice.completeInteractionOnSuccess)
+                        return true;
+                }
+            }
         }
         
-        StartCoroutine(CoordinatedExitAnimation());
-
+        return false;
     }
 
 
@@ -470,56 +525,156 @@ private IEnumerator CoordinatedExitAnimation()
     // 添加最终冷却延迟
     yield return new WaitForSeconds(exitCooldownDuration);
     
-    // 冷却结束，如果玩家仍在范围内，显示交互提示
-    if (playerInRange && (!isOneTimeInteraction || !interactionCompleted))
+      // 冷却结束，检查状态
+    if (currentState == InteractionState.Cooldown)
+    {
+        currentState = InteractionState.Ready; // 重置为准备状态
+    }
+    
+    // 如果玩家仍在范围内，显示交互提示
+    if (playerInRange && (currentState != InteractionState.Completed))
     {
         // 显示交互提示
         StartCoroutine(FadeText(promptSettings.promptMessage, TextType.Prompt));
         
-// ✅ 只要有提示，就显示背景
-    if (!string.IsNullOrEmpty(promptSettings.promptMessage) && dialogueSettings.backgroundImage != null)
-    {
-        StartCoroutine(FadeTextBackground(1.0f));
+        // 只要有提示，就显示背景
+        if (!string.IsNullOrEmpty(promptSettings.promptMessage) && dialogueSettings.backgroundImage != null)
+        {
+            StartCoroutine(FadeTextBackground(1.0f));
+        }
     }
-    }
-    
-    isExitCooldown = false;
 }
 
-    private void HandleChoice(DialogueChoice choice)
+private void HandleChoice(DialogueChoice choice)
+{
+    DialogueMessage currentMessage = dialogueSettings.messages[currentMessageIndex];
+
+    // 检查当前Message是否需要检查资源
+    if (currentMessage.checkResources)
     {
-        // 1. 先触发UI/反馈相关事件
-        choice.onChoiceSelected.Invoke();
-        
-        // 2. 然后执行叙事动作(如果有)
-
-        foreach (var action in choice.narrativeActions)
-        {
-            if (action != null)
-            {
-                action.ExecuteAction();
-            }
-        }
-        
-        
-        // 3. 最后处理对话流程
-        if (choice.jumpToMessageIndex >= 0 && 
-            choice.jumpToMessageIndex < dialogueSettings.messages.Count)
-        {
-            currentMessageIndex = choice.jumpToMessageIndex;
-        }
-        else
-        {
-            currentMessageIndex = (currentMessageIndex + 1) % 
-                                dialogueSettings.messages.Count;
-        }
-        
-        DisplayCurrentMessage();
-
-        //on choiceSelected.Invoke(); // 触发选择事件 角色动画 音效等
-        //Narrative Action 只负责叙事 结局 等等
+        HandleResourceChoice(choice, currentMessage);
     }
+    else
+    {
+        // 不需要资源检测，正常处理
+        ExecuteChoiceActions(choice);
+        JumpToNextMessage(choice);
+    }
+}
+
+// 辅助方法1 - 处理需要资源检查的选择
+private void HandleResourceChoice(DialogueChoice choice, DialogueMessage currentMessage)
+{
+    // 检查是否有足够的资源
+    if (ShouldConsumeResources(choice) && HasSufficientResources())
+    {
+        // 资源充足，执行选择动作
+        ExecuteChoiceActions(choice);
+        
+        // 消耗资源(只在选择标记为消耗资源时)
+        if (choice.consumeResources)
+        {
+            ConsumeResources();
+        }
+
+        // 检查是否需要完成交互
+        if (choice.completeInteractionOnSuccess)
+        {
+            pendingCompleteAfterExit = true;
+        }
+
+        // 跳转到下一条消息
+        JumpToNextMessage(choice);
+    }
+    else if (ShouldConsumeResources(choice))
+    {
+        // 资源不足，跳到指定的noResourceDialogueIndex
+        JumpToResourceFailureMessage(currentMessage);
+    }
+    else
+    {
+        // 不需要消耗资源的选项，正常处理
+        ExecuteChoiceActions(choice);
+        JumpToNextMessage(choice);
+    }
+}
+
+// 辅助方法2 - 检查是否应该消耗资源
+private bool ShouldConsumeResources(DialogueChoice choice)
+{
+    // 如果我们添加了consumeResources属性到DialogueChoice
+    // return choice.consumeResources;
     
+    // 如果没有添加这个属性，可以根据其他条件判断
+    // 例如，假设completeInteractionOnSuccess的选项都消耗资源
+    return choice.completeInteractionOnSuccess;
+}
+
+// 辅助方法3 - 检查是否有足够的资源
+private bool HasSufficientResources()
+{
+    return resourceManager != null && resourceManager.currentValue > 0;
+}
+
+// 辅助方法4 - 消耗资源
+private void ConsumeResources()
+{
+    if (resourceManager != null)
+    {
+        resourceManager.ConsumeAllResource();
+    }
+}
+
+// 辅助方法5 - 执行选择的动作
+private void ExecuteChoiceActions(DialogueChoice choice)
+{
+    // 触发选择事件
+    choice.onChoiceSelected.Invoke();
+
+    // 执行叙事动作
+    foreach (var action in choice.narrativeActions)
+    {
+        if (action != null)
+        {
+            action.ExecuteAction();
+        }
+    }
+}
+
+// 辅助方法6 - 跳转到下一条消息
+private void JumpToNextMessage(DialogueChoice choice)
+{
+    // 如果有指定的跳转目标
+    if (choice.jumpToMessageIndex >= 0 && 
+        choice.jumpToMessageIndex < dialogueSettings.messages.Count)
+    {
+        currentMessageIndex = choice.jumpToMessageIndex;
+    }
+    else
+    {
+        // 否则简单地前进到下一条消息
+        currentMessageIndex = (currentMessageIndex + 1) % dialogueSettings.messages.Count;
+    }
+
+    // 显示当前消息
+    DisplayCurrentMessage();
+}
+
+// 辅助方法7 - 跳转到资源不足时的消息
+private void JumpToResourceFailureMessage(DialogueMessage currentMessage)
+{
+    if (currentMessage.noResourceDialogueIndex >= 0 &&
+        currentMessage.noResourceDialogueIndex < dialogueSettings.messages.Count)
+    {
+        currentMessageIndex = currentMessage.noResourceDialogueIndex;
+        DisplayCurrentMessage();
+    }
+    else
+    {
+        Debug.LogWarning("资源不足，但未设置 noResourceDialogueIndex");
+        ExitInteraction();
+    }
+}
     private void ActivateCamera(bool activate)
     {
         if (cameraSettings.virtualCamera != null)
@@ -610,38 +765,38 @@ private IEnumerator CoordinatedExitAnimation()
     }
 
     private void OnTriggerEnter(Collider other)
-{
-    if (other.CompareTag(playerTag) && !isPlayerDead)
     {
-        playerInRange = true;
-        
-        // 如果是一次性交互且已完成，不做任何事
-        if (isOneTimeInteraction && interactionCompleted)
-            return;
-                
-        // 如果没有在交互中且不在冷却状态中，显示提示
-        if (!isInteracting && !isExitCooldown)
+        if (other.CompareTag(playerTag) && !isPlayerDead)
         {
-            StartCoroutine(FadeText(promptSettings.promptMessage, TextType.Prompt));
-
-            // ✅ 改成无论是否启用对话，都显示背景（只要有提示就显示）
-            if (dialogueSettings.backgroundImage != null)
+            playerInRange = true;
+            
+            // 如果是一次性交互且已完成，不做任何事
+            if (isOneTimeInteraction && currentState == InteractionState.Completed)
+                return;
+                    
+            // 如果没有在交互中且不在冷却状态中，显示提示
+            if (currentState == InteractionState.Ready)
             {
-                StartCoroutine(FadeTextBackground(1.0f));
+                StartCoroutine(FadeText(promptSettings.promptMessage, TextType.Prompt));
+
+                // 改成无论是否启用对话，都显示背景（只要有提示就显示）
+                if (dialogueSettings.backgroundImage != null)
+                {
+                    StartCoroutine(FadeTextBackground(1.0f));
+                }
             }
         }
     }
-}
 
     // 修改OnTriggerExit方法
-    private void OnTriggerExit(Collider other)
+private void OnTriggerExit(Collider other)
 {
     if (other.CompareTag(playerTag) && !isPlayerDead)
     {
         playerInRange = false;
         
         // 如果未开始交互，清除提示
-        if (!isInteracting)
+        if (currentState == InteractionState.Ready)
         {
             // 淡出文本
             StartCoroutine(FadeText("", TextType.Prompt));
@@ -652,7 +807,7 @@ private IEnumerator CoordinatedExitAnimation()
                 StartCoroutine(FadeTextBackground(0f));
             }
         }
-        else
+        else if (currentState == InteractionState.Active)
         {
             // 如果正在交互中，退出交互
             ExitInteraction();
@@ -665,6 +820,7 @@ private IEnumerator CoordinatedExitAnimation()
         }
     }
 }
+
 
     private enum TextType
     {
@@ -772,6 +928,9 @@ private IEnumerator FadeText(string newText, TextType textType = TextType.Dialog
         // 先设置死亡状态
         isPlayerDead = true;
         playerInRange = false;
+
+        InteractionState previousState = currentState;
+        currentState = InteractionState.Cooldown; // 暂时设置为冷却状态防止交互
         
         // 立即设置文本透明度为0（不使用协程）
         if (enableDialogue && textCanvasGroup != null)
@@ -815,5 +974,9 @@ private IEnumerator FadeText(string newText, TextType textType = TextType.Dialog
     public void ResetDeathState()
     {
         isPlayerDead = false;
+        if (currentState == InteractionState.Cooldown && !isOneTimeInteraction)
+        {
+            currentState = InteractionState.Ready;
+        }
     }
 }

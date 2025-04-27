@@ -424,6 +424,12 @@ public void SetLightState(LightState state)
         }
     }
 
+    public void ConsumeAllResource()
+    {
+        currentValue = 0;
+        Debug.Log("资源已清零");
+    }
+
 }
 
 
