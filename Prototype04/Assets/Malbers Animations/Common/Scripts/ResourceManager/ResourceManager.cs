@@ -393,13 +393,13 @@ public void SetLightState(LightState state)
     public void IsPickedUp()
     {
         isPickedUp = true;
-        // Debug.Log("物品已拾取!");
+         Debug.Log("物品已拾取!");
     }
 
     public void IsDroppedBy()
     {
         isPickedUp = false;
-        // Debug.Log("物品已丢弃!");
+         Debug.Log("物品已丢弃!");
     }
 
     public void AddResource(float amount)

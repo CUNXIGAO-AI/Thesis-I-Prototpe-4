@@ -4,11 +4,14 @@ using UnityEngine.Events;
 public class NarrativeAction : MonoBehaviour
 {
     // Start is called before the first frame update
-    public enum ActionType
+public enum ActionType
     {
-        GiveWaterToGirl,      // 给女孩水
-        TriggerEnding,        // 触发结局（基于当前的礼物计数）
-        CustomAction          // 自定义动作
+        FirstInteractionYes,   // 第一次交互给礼物
+        FirstInteractionNo,    // 第一次交互不给礼物
+        SecondInteractionYes,  // 第二次交互给礼物
+        SecondInteractionNo,   // 第二次交互不给礼物
+        ResetSystem,           // 重置系统
+        CustomAction           // 自定义动作
     }
     
     // 要执行的动作类型
@@ -16,10 +19,6 @@ public class NarrativeAction : MonoBehaviour
     
     // 可选：自定义动作的UnityEvent
     public UnityEvent customAction;
-
-    [Header("资源检查设置")]
-    [Tooltip("资源不足时跳转的对话索引 (用于GiveWaterToGirl)")]
-    public int noResourceDialogueIndex = -1;
     
     // 执行叙事动作
     public void ExecuteAction()
@@ -33,14 +32,29 @@ public class NarrativeAction : MonoBehaviour
         
         switch (actionType)
         {
-            case ActionType.GiveWaterToGirl:
-                Debug.Log("执行动作：给女孩水");
-                NarrativeManager.Instance.GiveWaterToGirl();
+            case ActionType.FirstInteractionYes:
+                Debug.Log("执行动作：第一次交互-给予礼物");
+                NarrativeManager.Instance.HandleFirstInteraction(true);
                 break;
                 
-            case ActionType.TriggerEnding:
-                Debug.Log("执行动作：触发结局（基于当前礼物计数）");
-                NarrativeManager.Instance.TriggerEnding();
+            case ActionType.FirstInteractionNo:
+                Debug.Log("执行动作：第一次交互-不给礼物");
+                NarrativeManager.Instance.HandleFirstInteraction(false);
+                break;
+                
+            case ActionType.SecondInteractionYes:
+                Debug.Log("执行动作：第二次交互-给予礼物");
+                NarrativeManager.Instance.HandleSecondInteraction(true);
+                break;
+                
+            case ActionType.SecondInteractionNo:
+                Debug.Log("执行动作：第二次交互-不给礼物");
+                NarrativeManager.Instance.HandleSecondInteraction(false);
+                break;
+                
+            case ActionType.ResetSystem:
+                Debug.Log("执行动作：重置叙事系统");
+                NarrativeManager.Instance.ResetNarrativeSystem();
                 break;
                 
             case ActionType.CustomAction:
@@ -48,4 +62,5 @@ public class NarrativeAction : MonoBehaviour
                 break;
         }
     }
+    
 }

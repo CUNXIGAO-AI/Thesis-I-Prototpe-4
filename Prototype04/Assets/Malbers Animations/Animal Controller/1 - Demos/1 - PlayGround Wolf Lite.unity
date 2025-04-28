@@ -436,10 +436,40 @@ PrefabInstance:
       propertyPath: m_BoundingSphereOverride.y
       value: 1e-45
       objectReference: {fileID: 0}
+    - target: {fileID: 318291166709751633, guid: aa3adfd5958b2114592cdff1ec26c7de,
+        type: 3}
+      propertyPath: DebugColor.a
+      value: 0.5411765
+      objectReference: {fileID: 0}
+    - target: {fileID: 318441559940771283, guid: aa3adfd5958b2114592cdff1ec26c7de,
+        type: 3}
+      propertyPath: Editor_Tabs1
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 318441559940771283, guid: aa3adfd5958b2114592cdff1ec26c7de,
+        type: 3}
+      propertyPath: m_abilityStatus
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 430635557260663869, guid: aa3adfd5958b2114592cdff1ec26c7de,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 430791662378134851, guid: aa3adfd5958b2114592cdff1ec26c7de,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 725256144533780222, guid: aa3adfd5958b2114592cdff1ec26c7de,
         type: 3}
       propertyPath: m_RootOrder
       value: 36
+      objectReference: {fileID: 0}
+    - target: {fileID: 1047028811808401024, guid: aa3adfd5958b2114592cdff1ec26c7de,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1107663934892766112, guid: aa3adfd5958b2114592cdff1ec26c7de,
         type: 3}
@@ -624,6 +654,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 1107663934892766112, guid: aa3adfd5958b2114592cdff1ec26c7de, type: 3}
+    - {fileID: 22188584965561311, guid: aa3adfd5958b2114592cdff1ec26c7de, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 4871792560986470, guid: aa3adfd5958b2114592cdff1ec26c7de,
@@ -3076,6 +3107,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Cameras CM2
       objectReference: {fileID: 0}
+    - target: {fileID: 4766662923082730060, guid: 8a97fcfc0139bd246b36a72f911339c0,
+        type: 3}
+      propertyPath: CameraDistance
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 6522904946663197592, guid: 8a97fcfc0139bd246b36a72f911339c0,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -5395,12 +5431,6 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1497800557}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1518101962 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1438017827249262, guid: a578de702f2191b4fa9cdcec1ad493c5,
-    type: 3}
-  m_PrefabInstance: {fileID: 2065497533}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1535747100
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6605,7 +6635,8 @@ PrefabInstance:
         type: 3}
       propertyPath: player
       value: 
-      objectReference: {fileID: 1518101962}
+      objectReference: {fileID: 3694108841743899117, guid: fde062191a17ce941a290902a9961d8d,
+        type: 3}
     - target: {fileID: 114776409365645682, guid: 4314a73211c85fd4492c1bd44c74fc62,
         type: 3}
       propertyPath: m_Enabled
@@ -7314,6 +7345,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: 707aa4fba13a13e43b29347893b84d62,
         type: 2}
+    - target: {fileID: 114392047167580918, guid: a578de702f2191b4fa9cdcec1ad493c5,
+        type: 3}
+      propertyPath: inputs.Array.data[6].key
+      value: 120
+      objectReference: {fileID: 0}
     - target: {fileID: 114515738253532648, guid: a578de702f2191b4fa9cdcec1ad493c5,
         type: 3}
       propertyPath: m_Enabled

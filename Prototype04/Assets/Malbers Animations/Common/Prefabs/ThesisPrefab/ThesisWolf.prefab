@@ -14348,7 +14348,7 @@ MonoBehaviour:
   - name: Action
     active:
       UseConstant: 1
-      ConstantValue: 0
+      ConstantValue: 1
       Variable: {fileID: 0}
     ignoreOnPause:
       UseConstant: 1
@@ -14356,7 +14356,7 @@ MonoBehaviour:
       Variable: {fileID: 0}
     type: 1
     input: InputValue
-    key: 101
+    key: 120
     debug: 0
     GetPressed: 0
     ResetOnDisable: 1

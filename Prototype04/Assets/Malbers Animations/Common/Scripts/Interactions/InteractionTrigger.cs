@@ -152,9 +152,7 @@ public class InteractionTrigger : MonoBehaviour
 
         [Tooltip("选择后执行的叙事动作")]
         public List<NarrativeAction> narrativeActions = new List<NarrativeAction>();
-        [Tooltip("选择后是否完成一次性交互（只在给资源这种情况启用）")]
-        public bool completeInteractionOnSuccess = false;
-            [Tooltip("此选择是否消耗资源")]
+        [Tooltip("是否消耗资源")]
     public bool consumeResources = false;  // 新增属性
     }
 
@@ -468,34 +466,6 @@ private void ExitInteraction()
 
 }
 
-// 添加一个新方法：检查对话中是否包含资源相关的选择
-    private bool HasChoiceWithResource()
-    {
-        if (!enableDialogue || dialogueSettings.messages == null || dialogueSettings.messages.Count == 0)
-            return false;
-            
-        // 检查所有消息
-        foreach (var message in dialogueSettings.messages)
-        {
-            // 检查是否有资源检查
-            if (message.checkResources)
-                return true;
-                
-            // 检查是否有完成交互的选择
-            if (message.isChoice)
-            {
-                foreach (var choice in message.choices)
-                {
-                    if (choice.completeInteractionOnSuccess)
-                        return true;
-                }
-            }
-        }
-        
-        return false;
-    }
-
-
 private IEnumerator CoordinatedExitAnimation()
 {
     // 1. 如果启用了对话功能，淡出文本和背景
@@ -585,61 +555,61 @@ private void HandleChoice(DialogueChoice choice)
         // 不需要资源检测，正常处理
         ExecuteChoiceActions(choice);
         JumpToNextMessage(choice);
+
+        // ✅ 正常选择后才设置完成
+        pendingCompleteAfterExit = true;
     }
+    
+    // ✅ 注意：不要在最外层一律写 pendingCompleteAfterExit = true；
+    // HandleResourceChoice 内部已经自己控制了成功/失败的处理
 }
 
-// 辅助方法1 - 处理需要资源检查的选择
 private void HandleResourceChoice(DialogueChoice choice, DialogueMessage currentMessage)
 {
-    // 检查是否有足够的资源
-    if (ShouldConsumeResources(choice) && HasSufficientResources())
+    // 只在消耗资源的选项时进行资源检查
+    if (choice.consumeResources)
     {
-        // 资源充足，执行选择动作
-        ExecuteChoiceActions(choice);
-        
-        // 消耗资源(只在选择标记为消耗资源时)
-        if (choice.consumeResources)
+        // 首先检查物品是否被拾取
+        if (resourceManager != null && !resourceManager.isPickedUp)
         {
+            Debug.Log("物品未被拾取，无法消耗资源");
+            // 跳转到资源不足对话
+            JumpToResourceFailureMessage(currentMessage);
+            
+            // 资源未拾取时，不标记交互为完成
+            return; // 提前返回，不执行pendingCompleteAfterExit = true
+        }
+        // 然后检查资源是否充足
+        else if (resourceManager != null && resourceManager.currentValue > 0)
+        {
+            // 资源充足，执行选择动作
+            ExecuteChoiceActions(choice);
+            
+            // 消耗资源
             ConsumeResources();
-        }
 
-        // 检查是否需要完成交互
-        if (choice.completeInteractionOnSuccess)
+            // 跳转到下一条消息
+            JumpToNextMessage(choice);
+        }
+        else
         {
-            pendingCompleteAfterExit = true;
+            // 资源不足，跳到指定的noResourceDialogueIndex
+            Debug.Log("资源不足，跳转到资源不足对话");
+            JumpToResourceFailureMessage(currentMessage);
+            
+            // 资源不足时，不标记交互为完成
+            return; // 提前返回，不执行pendingCompleteAfterExit = true
         }
-
-        // 跳转到下一条消息
-        JumpToNextMessage(choice);
-    }
-    else if (ShouldConsumeResources(choice))
-    {
-        // 资源不足，跳到指定的noResourceDialogueIndex
-        JumpToResourceFailureMessage(currentMessage);
     }
     else
     {
-        // 不需要消耗资源的选项，正常处理
+        // 不需要消耗资源的选项(比如"No"选项)，直接执行动作不检查资源
         ExecuteChoiceActions(choice);
         JumpToNextMessage(choice);
     }
-}
-
-// 辅助方法2 - 检查是否应该消耗资源
-private bool ShouldConsumeResources(DialogueChoice choice)
-{
-    // 如果我们添加了consumeResources属性到DialogueChoice
-    // return choice.consumeResources;
     
-    // 如果没有添加这个属性，可以根据其他条件判断
-    // 例如，假设completeInteractionOnSuccess的选项都消耗资源
-    return choice.completeInteractionOnSuccess;
-}
-
-// 辅助方法3 - 检查是否有足够的资源
-private bool HasSufficientResources()
-{
-    return resourceManager != null && resourceManager.currentValue > 0;
+    // 只有成功完成交互才标记为一次性
+    pendingCompleteAfterExit = true;
 }
 
 // 辅助方法4 - 消耗资源
@@ -694,13 +664,38 @@ private void JumpToResourceFailureMessage(DialogueMessage currentMessage)
     {
         currentMessageIndex = currentMessage.noResourceDialogueIndex;
         DisplayCurrentMessage();
+        
+        // 添加明确标志，表示这是资源不足的情况
+        pendingCompleteAfterExit = false; // 确保不会标记为完成
     }
     else
     {
         Debug.LogWarning("资源不足，但未设置 noResourceDialogueIndex");
-        ExitInteraction();
+        // 不要调用ExitInteraction()，而是直接结束当前对话，但不标记为完成
+        StartCoroutine(EndDialogueWithoutCompletion());
     }
 }
+
+    private IEnumerator EndDialogueWithoutCompletion()
+    {
+        // 设置为冷却状态，但确保不会标记为完成
+        currentState = InteractionState.Cooldown;
+        pendingCompleteAfterExit = false; // 明确设置为false
+        
+        // 启动退出动画
+        StartCoroutine(CoordinatedExitAnimation());
+        events.onInteractionEnded.Invoke();
+        
+        // 等待足够时间让动画完成
+        yield return new WaitForSeconds(3.0f); // 适当调整时间
+        
+        // 确保状态恢复为Ready而不是Completed
+        if (currentState == InteractionState.Cooldown)
+        {
+            currentState = InteractionState.Ready;
+            Debug.Log("对话已结束但可再次触发（资源不足）");
+        }
+    }
     private void ActivateCamera(bool activate)
     {
         if (cameraSettings.virtualCamera != null)
