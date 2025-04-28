@@ -24,7 +24,7 @@ public class ResourceManager : MonoBehaviour
     public float maxIntensity = 3.0f;    // 最大亮度（资源满时）
     
     [Header("时间延迟类设置")]
-    [SerializeField] private float resourceAddDelay = 0.5f;  // 水瓶丢进去后多久获得资源（开始发光）
+    [SerializeField] public float resourceAddDelay = 0.5f;  // 水瓶丢进去后多久获得资源（开始发光）
     [SerializeField] private float brightnessIncreaseSpeed = 1.0f;  // 亮度增加速度
     public AnimationCurve brightnessIncreaseCurve = AnimationCurve.EaseInOut(0, 0, 1, 1); // 默认曲线
     [SerializeField] private float brightnessDecreaseSpeed = 1.0f;  // 亮度减少速度
@@ -238,6 +238,10 @@ private bool isReadyForOvershoot = false;  // 是否准备好执行过冲效果
     UpdateLightIntensity();
 }
 
+public bool IsDecreasing => isDecreasing;
+public bool IsIncreasing => isIncreasing;
+public bool IsOvershooting => isOvershooting;
+
 private void StartOvershoot()
 {
     isOvershooting = true;
@@ -407,7 +411,7 @@ public void SetLightState(LightState state)
     }
         
     // 延迟添加资源
-    private IEnumerator DelayedAddResource(float amount)
+    public IEnumerator DelayedAddResource(float amount)
     {
         // 添加资源前的延迟
         yield return new WaitForSeconds(resourceAddDelay);

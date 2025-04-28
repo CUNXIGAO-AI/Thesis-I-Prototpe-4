@@ -118,13 +118,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30c05d98391e3c44abe2e9f7d2034cd7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  resourceManager: {fileID: 0}
   isOneTimeInteraction: 0
   exitCooldownDuration: 1
+  events:
+    onInteractionStarted:
+      m_PersistentCalls:
+        m_Calls: []
+    onInteractionEnded:
+      m_PersistentCalls:
+        m_Calls: []
+    onPlayerEnterRange:
+      m_PersistentCalls:
+        m_Calls: []
+    onPlayerExitRange:
+      m_PersistentCalls:
+        m_Calls: []
   interactionRadius: 2
   promptSettings:
     promptMessage: "\u6309 X \u4EA4\u4E92"
     promptFadeInDuration: 0.3
     promptFadeOutDuration: 0.3
+    isPromptOnlyOneTime: 0
   enableDialogue: 1
   dialogueSettings:
     dialogueText: {fileID: 0}
