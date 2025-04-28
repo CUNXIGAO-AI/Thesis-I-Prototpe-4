@@ -7,20 +7,37 @@ public class NarrativeManager : MonoBehaviour
     // Start is called before the first frame update
     public static NarrativeManager Instance { get; private set; }
     
-    // 记录给NPC礼物的次数
-    private int giftCount = 0;
+      // 交互状态追踪
+    private bool firstInteractionGift = false;  // 第一次交互是否给了礼物
+    private bool secondInteractionGift = false; // 第二次交互是否给了礼物
+    private bool firstInteractionCompleted = false; // 第一次交互是否已完成
+    private bool secondInteractionCompleted = false; // 第二次交互是否已完成
     
-    // 结局是否已经触发
-    private bool endingTriggered = false;
+    // Skybox状态
+    private bool skyboxActive = false;
+    
+    // NPC状态
+    public enum NPCState
+    {
+        Normal,  // 初始状态
+        Live,    // 存活
+        Dead     // 死亡
+    }
+    
+    private NPCState currentNPCState = NPCState.Normal;
     
     // 结局类型枚举
     public enum EndingType
     {
-        Good,
-        Bad
+        GoodEnding,    // 好结局 (NPC存活)
+        BadEnding,     // 坏结局 (NPC死亡，第一次给了礼物)
+        WorstEnding    // 最坏结局 (NPC死亡，第一次没给礼物)
     }
     
-    // 结局触发时的事件委托
+    // 结局触发状态
+    private bool endingTriggered = false;
+    
+    // 事件委托声明
     public delegate void EndingTriggeredDelegate(EndingType endingType);
     public event EndingTriggeredDelegate OnEndingTriggered;
     
@@ -38,49 +55,104 @@ public class NarrativeManager : MonoBehaviour
         }
     }
     
-    // 当玩家给NPC礼物时调用
-    public void GiveWaterToGirl()
+    // 处理第一次交互的选择
+    public void HandleFirstInteraction(bool gaveGift)
     {
-        giftCount++;
-        Debug.Log($"给予NPC礼物计数: {giftCount}");
-    }
-    
-    // 判断并触发结局
-    public void TriggerEnding()
-    {
-        // 如果结局已触发，不重复触发
-        if (endingTriggered) return;
-        
-        endingTriggered = true;
-        EndingType currentEnding;
-        
-        // 根据礼物数量决定结局
-        if (giftCount >= 1)
+        if (firstInteractionCompleted) 
         {
-            currentEnding = EndingType.Good;
-            Debug.Log("触发好结局：你成功帮助了NPC，获得了好结局!");
+            Debug.Log("第一次交互已完成，忽略重复处理");
+            return;
+        }
+        
+        firstInteractionGift = gaveGift;
+        firstInteractionCompleted = true;
+        
+        // 如果给了礼物，打开Skybox
+        if (gaveGift)
+        {
+            skyboxActive = true;
+            Debug.Log("第一次交互给予礼物: 打开Skybox");
         }
         else
         {
-            currentEnding = EndingType.Bad;
-            Debug.Log("触发坏结局：你没有足够帮助NPC，获得了坏结局...");
+            Debug.Log("第一次交互未给礼物: Skybox保持关闭");
         }
         
-        // 触发结局事件，让其他系统响应
-        if (OnEndingTriggered != null)
-        {
-            OnEndingTriggered(currentEnding);
-        }
+        Debug.Log($"第一次交互完成: 给予礼物={gaveGift}, Skybox状态={skyboxActive}");
     }
     
-    // 手动设置结局(可用于测试或特殊情况)
-    public void SetEnding(EndingType endingType)
+    // 处理第二次交互的选择
+    public void HandleSecondInteraction(bool gaveGift)
     {
-        if (endingTriggered) return;
+        if (!firstInteractionCompleted)
+        {
+            Debug.Log("错误: 尝试进行第二次交互，但第一次交互尚未完成");
+            return;
+        }
+        
+        if (secondInteractionCompleted)
+        {
+            Debug.Log("第二次交互已完成，忽略重复处理");
+            return;
+        }
+        
+        secondInteractionGift = gaveGift;
+        secondInteractionCompleted = true;
+        
+        Debug.Log($"第二次交互完成: 给予礼物={gaveGift}");
+        
+        // 根据两次交互结果确定NPC状态和结局
+        DetermineOutcome();
+    }
+    
+    // 确定游戏结果
+    private void DetermineOutcome()
+    {
+        EndingType currentEnding;
+        
+        if (firstInteractionGift)
+        {
+            if (secondInteractionGift)
+            {
+                // 第一次给礼物，第二次给礼物 => NPC存活，好结局
+                currentNPCState = NPCState.Live;
+                currentEnding = EndingType.GoodEnding;
+                Debug.Log("结局确定: 好结局 (Skybox开启, NPC存活)");
+            }
+            else
+            {
+                // 第一次给礼物，第二次不给 => NPC死亡，坏结局
+                currentNPCState = NPCState.Dead;
+                currentEnding = EndingType.BadEnding;
+                Debug.Log("结局确定: 坏结局 (Skybox开启, NPC死亡)");
+            }
+        }
+        else
+        {
+            // 第一次不给礼物，第二次无论如何 => NPC死亡，最坏结局
+            currentNPCState = NPCState.Dead;
+            currentEnding = EndingType.WorstEnding;
+            Debug.Log($"结局确定: 最坏结局 (Skybox关闭, NPC死亡, 第二次给予礼物={secondInteractionGift})");
+        }
+        
+        // 触发结局
+        TriggerEnding(currentEnding);
+    }
+    
+    // 触发结局
+    public void TriggerEnding(EndingType endingType)
+    {
+        if (endingTriggered)
+        {
+            Debug.Log("结局已经触发，忽略重复触发");
+            return;
+        }
         
         endingTriggered = true;
-        Debug.Log($"手动设置结局: {endingType}");
         
+        Debug.Log($"触发结局: {endingType}, NPC状态: {currentNPCState}, Skybox状态: {skyboxActive}");
+        
+        // 触发结局事件，让其他系统响应
         if (OnEndingTriggered != null)
         {
             OnEndingTriggered(endingType);
@@ -90,22 +162,25 @@ public class NarrativeManager : MonoBehaviour
     // 重置叙事系统状态
     public void ResetNarrativeSystem()
     {
-        giftCount = 0;
+        firstInteractionGift = false;
+        secondInteractionGift = false;
+        firstInteractionCompleted = false;
+        secondInteractionCompleted = false;
+        skyboxActive = false;
+        currentNPCState = NPCState.Normal;
         endingTriggered = false;
+        
         Debug.Log("叙事系统已重置");
     }
     
-    // 获取当前礼物计数(用于外部查询)
-    public int GetGiftCount()
+    // 获取当前系统状态
+    public string GetSystemStatus()
     {
-        Debug.Log ($"当前礼物计数: {giftCount}");
-        return giftCount;
+        return $"第一次交互: 完成={firstInteractionCompleted}, 给礼物={firstInteractionGift}\n" +
+               $"第二次交互: 完成={secondInteractionCompleted}, 给礼物={secondInteractionGift}\n" +
+               $"Skybox状态: {skyboxActive}\n" +
+               $"NPC状态: {currentNPCState}\n" +
+               $"结局已触发: {endingTriggered}";
     }
-    
-    // 获取当前结局状态
-    public bool IsEndingTriggered()
-    {
-        return endingTriggered;
-    }
-
 }
+
