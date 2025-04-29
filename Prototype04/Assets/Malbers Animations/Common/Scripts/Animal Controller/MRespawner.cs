@@ -340,7 +340,7 @@ public float respawnToFadeOutDelay = 0.5f;
             // **让物品传送到新玩家的附近**
             if (assignedPickableItem != null)
             {
-                assignedPickableItem.transform.position = transform.position + new Vector3(Random.Range(-2f, 2f), 0, Random.Range(-2f, 2f));
+                assignedPickableItem.transform.position = transform.position + new Vector3(Random.Range(-1.5f, 1.5f), 0, Random.Range(-1.5f, 1.5f));
                 Debug.Log("Item moved to respawn point");
             }
         }
