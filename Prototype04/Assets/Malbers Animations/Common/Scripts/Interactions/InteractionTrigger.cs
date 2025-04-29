@@ -249,7 +249,60 @@ public class InteractionTrigger : MonoBehaviour
     }
 
 
+[Header("存档功能")]
+[Tooltip("启用存档功能")]
+public bool enableSaveFunction = false;
+
+[System.Serializable]
+public class SaveSettings
+{
+    [Header("存档设置")]
+        [Tooltip("交互后到黑屏淡入开始的延迟时间")]
+    public float delayBeforeBlackScreen = 0.5f;
+    [Tooltip("黑屏持续时间")]
+    public float blackScreenDuration = 1.5f;
+    
+    
+    [Tooltip("存档时触发的事件")]
+    public UnityEvent onSaveCompleted = new UnityEvent();
+
+        [Tooltip("是否仅在成功存档后激活检查点")]
+    public bool activateCheckpointOnSaveOnly = true;
+
+    [SerializeField]
+    private MCheckPoint checkpointReference;
+
+    // 添加公共访问器
+    public MCheckPoint CheckpointReference { get { return checkpointReference; } }
+
+
+}
+
+[Header("物品检测系统")]
+[Tooltip("SleepZoneHelper 组件，用于检测和处理玩家手中的物品")]
+public SleepZoneHelper sleepZoneHelper;
+
+[SerializeField]
+public SaveSettings saveSettings = new SaveSettings();
+
+
 public ExitAnimationDelays exitDelays = new ExitAnimationDelays();
+
+
+
+
+
+
+[Header("Malbers Zone集成")]
+[Tooltip("用于触发存档动画的Zone")]
+public Zone saveActionZone;
+[Tooltip("Zone动画播放完成后等待多久开始存档流程 (秒)")]
+[Range(0.5f, 3.0f)]
+public float zoneAnimationDelay = 1.5f;
+
+[Tooltip("物品放下后等待多久开始触发Zone (秒)")]
+[Range(0.1f, 1.0f)]
+public float dropItemDelay = 0.3f;
 
     // Unity界面图标，便于在场景中识别
     private void OnDrawGizmos()
@@ -408,6 +461,14 @@ public ExitAnimationDelays exitDelays = new ExitAnimationDelays();
     
     private void HandleInteraction()
 {
+        //如果是存档功能，直接调用存档处理函数
+        if (enableSaveFunction)
+    {
+        HandleSave();
+        return;
+    }
+
+
     currentState = InteractionState.Active;
 
     events.onInteractionStarted.Invoke();
@@ -851,6 +912,156 @@ private void OnTriggerExit(Collider other)
         Dialogue
     }
 
+private IEnumerator DelayedAction(float delay, System.Action action)
+{
+    yield return new WaitForSeconds(delay);
+    action?.Invoke();
+}
+
+private void HandleSave()
+{
+    // 检查玩家是否持有物品
+    if (resourceManager != null && resourceManager.isPickedUp)
+    {
+        // 玩家持有物品，自动放下然后再存档
+        if (sleepZoneHelper != null)
+        {
+            sleepZoneHelper.DropItem();
+            // 短暂延迟后执行存档逻辑，给物品放下动画留出时间
+            StartCoroutine(DelayedAction(dropItemDelay, ActivateZoneAndSave));
+        }
+        else
+        {
+            Debug.LogWarning("未找到SleepZoneHelper组件，无法自动放下物品");
+            return; // 如果没有找到SleepZoneHelper，则不继续执行
+        }
+    }
+    else
+    {
+        // 玩家没有持有物品，直接激活Zone和存档
+        ActivateZoneAndSave();
+    }
+}
+
+private void ActivateZoneAndSave()
+{
+    // 如果设置了saveActionZone，则先激活它
+    if (saveActionZone != null)
+    {
+        // 获取当前的动物
+        var animal = MAnimal.MainAnimal;
+        if (animal != null)
+        {
+            // 激活Zone对指定的动物
+            bool zoneActivated = saveActionZone.ActivateZone(animal);
+            
+            if (zoneActivated)
+            {
+                // Zone成功激活，延迟执行存档逻辑，等待动画播放
+                StartCoroutine(DelayedAction(zoneAnimationDelay, ExecuteSaveLogic));
+            }
+            else
+            {
+                // Zone激活失败，直接执行存档逻辑
+                Debug.LogWarning("Zone激活失败，直接执行存档流程");
+                ExecuteSaveLogic();
+            }
+        }
+        else
+        {
+            // 没有找到动物，直接执行存档逻辑
+            Debug.LogWarning("未找到MainAnimal，直接执行存档流程");
+            ExecuteSaveLogic();
+        }
+    }
+    else
+    {
+        // 没有设置saveActionZone，直接执行存档逻辑
+        ExecuteSaveLogic();
+    }
+}
+
+// 提取存档逻辑到单独的方法
+private void ExecuteSaveLogic()
+{
+    currentState = InteractionState.Active;
+    events.onInteractionStarted.Invoke();
+    
+    StartCoroutine(FadeText("", TextType.Prompt));
+    StartCoroutine(SaveGameCoroutine());
+}
+
+// 存档流程协程
+private IEnumerator SaveGameCoroutine()
+{
+    // 使用淡出效果清除提示文本
+    StartCoroutine(FadeText("", TextType.Prompt));
+    
+    // 等待提示文本完全淡出
+    yield return new WaitForSeconds(promptSettings.promptFadeOutDuration);
+    
+    // 添加延迟，在这段时间内玩家可以看到角色执行某些动画或其他效果
+    yield return new WaitForSeconds(saveSettings.delayBeforeBlackScreen);
+    
+    // 淡入黑屏
+    if (fadeSettings.uiBackgroundImage != null)
+    {
+        StartCoroutine(FadeUIBackground(true));
+        yield return new WaitForSeconds(fadeSettings.uiFadeInDuration);
+    }
+    
+    // 保持黑屏一段时间
+    yield return new WaitForSeconds(saveSettings.blackScreenDuration);
+    
+    SaveGameData();
+    
+    // 触发存档完成事件
+    saveSettings.onSaveCompleted.Invoke();
+    
+    // 淡出黑屏
+    if (fadeSettings.uiBackgroundImage != null)
+    {
+        StartCoroutine(FadeUIBackground(false));
+        yield return new WaitForSeconds(fadeSettings.uiFadeOutDuration);
+    }
+    
+    // 显示存档完成提示（带淡入效果）
+
+    
+    // 切换到冷却状态
+    currentState = InteractionState.Cooldown;
+    
+    // 如果是一次性交互，标记为已完成
+    if (isOneTimeInteraction)
+    {
+        currentState = InteractionState.Completed;
+        pendingCompleteAfterExit = false; // 确保不会重复标记
+    }
+    
+    // 触发交互结束事件
+    events.onInteractionEnded.Invoke();
+    
+    // 使用你脚本中的冷却时间
+    yield return new WaitForSeconds(exitCooldownDuration);
+    
+    // 只有当前状态仍然是冷却状态时才恢复为准备状态
+    if (currentState == InteractionState.Cooldown)
+    {
+        currentState = InteractionState.Ready;
+        
+        // 如果玩家仍在范围内，重新显示交互提示（带淡入效果）
+        if (playerInRange && (currentState != InteractionState.Completed))
+        {
+            StartCoroutine(FadeText(promptSettings.promptMessage, TextType.Prompt));
+            
+            if (!string.IsNullOrEmpty(promptSettings.promptMessage) && dialogueSettings.backgroundImage != null)
+            {
+                StartCoroutine(FadeTextBackground(1.0f));
+            }
+        }
+    }
+}
+
 private IEnumerator FadeText(string newText, TextType textType = TextType.Dialogue)
 {
     // 检查CanvasGroup是否存在
@@ -1002,4 +1213,42 @@ private IEnumerator FadeText(string newText, TextType textType = TextType.Dialog
             currentState = InteractionState.Ready;
         }
     }
+    private void SaveGameData()
+    {
+        Debug.Log("正在保存游戏数据...");
+        
+        // 如果启用了检查点功能，设置检查点
+        if (saveSettings.CheckpointReference != null)
+        {
+            // 设置MRespawner位置为当前交互点位置
+            if (MRespawner.instance != null)
+            {
+                MRespawner.instance.transform.SetPositionAndRotation(transform.position, transform.rotation);
+                
+                // 设置重生状态为玩家当前状态
+                var animal = MAnimal.MainAnimal;
+                if (animal != null)
+                {
+                    MRespawner.instance.RespawnState = animal.ActiveStateID;
+                }
+            }
+            
+            // 手动触发检查点的OnEnter事件
+            saveSettings.CheckpointReference.OnEnter.Invoke();
+            
+            // 设置为LastCheckPoint
+            MCheckPoint.LastCheckPoint = saveSettings.CheckpointReference;
+            
+            // 禁用检查点碰撞体，避免再次触发
+            if (saveSettings.CheckpointReference.Collider)
+            {
+                saveSettings.CheckpointReference.Collider.enabled = false;
+            }
+            
+            Debug.Log("检查点已更新");
+        }
+    
+    // 在这里添加JSON存档逻辑
+    // ...
+}
 }
