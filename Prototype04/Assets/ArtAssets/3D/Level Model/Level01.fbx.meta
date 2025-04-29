@@ -7,6 +7,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: Blue
+    second: {fileID: 2100000, guid: 8c4b8461c201c084e9a5f220abd22155, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: CeramicTiles
     second: {fileID: 2100000, guid: e2172ad64d83e134792a1ec68001bf00, type: 2}
   - first:
@@ -22,8 +27,8 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: LightGlass
-    second: {fileID: 2100000, guid: ebe0f6e8632341d4fbeb75b065956074, type: 2}
+      name: Green
+    second: {fileID: 2100000, guid: 7f752792dc75ebb4abd68f96846d6050, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
@@ -32,13 +37,28 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: Red
+    second: {fileID: 2100000, guid: a2edc5c48bc06f94ab69d3d15d63b2ed, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: Roof
     second: {fileID: 2100000, guid: ced933c8177c61f4e89d4e4563944459, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: RustyMetal
+    second: {fileID: 2100000, guid: f875559f6b2b5d742b6129e54a42f4dd, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: StonePavement
     second: {fileID: 2100000, guid: a38cbb5e5da5c864b96d7ebab0879441, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Yellow
+    second: {fileID: 2100000, guid: 16b0df9e79c3ed04ab40c5531d5a01c0, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

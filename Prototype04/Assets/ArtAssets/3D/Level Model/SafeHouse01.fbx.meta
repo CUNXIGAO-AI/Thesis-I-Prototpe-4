@@ -12,6 +12,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: ConcreteTiles
+    second: {fileID: 2100000, guid: 0a25625231e81814f93534812d1b6d69, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: LightGlass
     second: {fileID: 2100000, guid: ebe0f6e8632341d4fbeb75b065956074, type: 2}
   - first:
@@ -24,6 +29,11 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: Roof
     second: {fileID: 2100000, guid: ced933c8177c61f4e89d4e4563944459, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RustyMetal
+    second: {fileID: 2100000, guid: f875559f6b2b5d742b6129e54a42f4dd, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
