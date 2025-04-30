@@ -14565,7 +14565,7 @@ MonoBehaviour:
   - name: Dash
     active:
       UseConstant: 1
-      ConstantValue: 1
+      ConstantValue: 0
       Variable: {fileID: 0}
     ignoreOnPause:
       UseConstant: 1
@@ -15220,7 +15220,7 @@ MonoBehaviour:
       OnInputFloat:
         m_PersistentCalls:
           m_Calls: []
-    selectedIndex: 1
+    selectedIndex: 10
   ActiveMap:
     name:
       UseConstant: 1

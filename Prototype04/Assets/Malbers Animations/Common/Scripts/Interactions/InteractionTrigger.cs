@@ -5,7 +5,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using MalbersAnimations.Controller;
 using Cinemachine; // 添加Cinemachine命名空间
-using UnityEngine.Events; // 添加UnityEvents命名空间
+using UnityEngine.Events;
+using MalbersAnimations; // 添加UnityEvents命名空间
 
 // 添加Icon以便在Inspector中更容易识别
 [AddComponentMenu("Interaction System")]
@@ -288,6 +289,9 @@ public SaveSettings saveSettings = new SaveSettings();
 
 public ExitAnimationDelays exitDelays = new ExitAnimationDelays();
 
+private MalbersInput playerInput;
+private Stats playerStats;
+
 
 
 
@@ -376,6 +380,37 @@ public float dropItemDelay = 0.3f;
             bgColor.a = 0f;
             fadeSettings.uiBackgroundImage.color = bgColor;
         }
+
+            // 尝试自动获取玩家的MalbersInput组件
+    if (playerInput == null)
+        {
+            // 获取主要动物/玩家
+            var animal = MAnimal.MainAnimal;
+            if (animal != null)
+            {
+                playerInput = animal.GetComponent<MalbersInput>();
+                if (playerInput == null)
+                {
+                    Debug.LogWarning("未能自动找到玩家的MalbersInput组件，可能会影响存档时的输入控制", this);
+                }
+                else
+                {
+                    Debug.Log("成功获取到玩家输入组件: " + playerInput.name);
+                }
+                
+                // 同时获取Stats组件
+                playerStats = animal.GetComponent<Stats>();
+                if (playerStats == null)
+                {
+                    Debug.LogWarning("未能自动找到玩家的Stats组件，无法重置生命值和耐力值", this);
+                }
+                else
+                {
+                    Debug.Log("成功获取到玩家属性组件: " + playerStats.name);
+                }
+            }
+        }
+    
         
         // 获取重生管理器
         respawner = MRespawner.instance;
@@ -986,21 +1021,34 @@ private void ExecuteSaveLogic()
 {
     currentState = InteractionState.Active;
     events.onInteractionStarted.Invoke();
+
+    DisablePlayerInput();
+
     
-    StartCoroutine(FadeText("", TextType.Prompt));
     StartCoroutine(SaveGameCoroutine());
 }
 
 // 存档流程协程
 private IEnumerator SaveGameCoroutine()
 {
-    // 使用淡出效果清除提示文本
-    StartCoroutine(FadeText("", TextType.Prompt));
+
+    yield return StartCoroutine(FadeText("", TextType.Prompt));
     
-    // 等待提示文本完全淡出
-    yield return new WaitForSeconds(promptSettings.promptFadeOutDuration);
+    // 确保文本真的淡出了
+    if (textCanvasGroup != null)
+    {
+        textCanvasGroup.alpha = 0f;
+    }
     
-    // 添加延迟，在这段时间内玩家可以看到角色执行某些动画或其他效果
+    // 确保背景也淡出了
+    if (dialogueSettings.backgroundImage != null)
+    {
+        Color bgColor = dialogueSettings.backgroundImage.color;
+        bgColor.a = 0f;
+        dialogueSettings.backgroundImage.color = bgColor;
+    }
+    
+    // 然后继续存档流程
     yield return new WaitForSeconds(saveSettings.delayBeforeBlackScreen);
     
     // 淡入黑屏
@@ -1024,10 +1072,7 @@ private IEnumerator SaveGameCoroutine()
         StartCoroutine(FadeUIBackground(false));
         yield return new WaitForSeconds(fadeSettings.uiFadeOutDuration);
     }
-    
-    // 显示存档完成提示（带淡入效果）
-
-    
+    EnablePlayerInput();
     // 切换到冷却状态
     currentState = InteractionState.Cooldown;
     
@@ -1035,13 +1080,12 @@ private IEnumerator SaveGameCoroutine()
     if (isOneTimeInteraction)
     {
         currentState = InteractionState.Completed;
-        pendingCompleteAfterExit = false; // 确保不会重复标记
+        pendingCompleteAfterExit = false;
     }
     
     // 触发交互结束事件
     events.onInteractionEnded.Invoke();
     
-    // 使用你脚本中的冷却时间
     yield return new WaitForSeconds(exitCooldownDuration);
     
     // 只有当前状态仍然是冷却状态时才恢复为准备状态
@@ -1049,9 +1093,10 @@ private IEnumerator SaveGameCoroutine()
     {
         currentState = InteractionState.Ready;
         
-        // 如果玩家仍在范围内，重新显示交互提示（带淡入效果）
+        // 玩家仍在范围内且不是完成状态，才显示交互提示
         if (playerInRange && (currentState != InteractionState.Completed))
         {
+            // 同时启动文本和背景淡入，不用yield等待
             StartCoroutine(FadeText(promptSettings.promptMessage, TextType.Prompt));
             
             if (!string.IsNullOrEmpty(promptSettings.promptMessage) && dialogueSettings.backgroundImage != null)
@@ -1216,6 +1261,8 @@ private IEnumerator FadeText(string newText, TextType textType = TextType.Dialog
     private void SaveGameData()
     {
         Debug.Log("正在保存游戏数据...");
+
+            ResetPlayerStats();
         
         // 如果启用了检查点功能，设置检查点
         if (saveSettings.CheckpointReference != null)
@@ -1250,5 +1297,81 @@ private IEnumerator FadeText(string newText, TextType textType = TextType.Dialog
     
     // 在这里添加JSON存档逻辑
     // ...
+}
+
+private void ResetPlayerStats()
+{
+    if (playerStats != null)
+    {
+        // 重置生命值 (ID为1)
+        var healthStat = playerStats.Stat_Get(1);
+        if (healthStat != null)
+        {
+            healthStat.Reset_to_Max();
+            Debug.Log("已重置生命值至最大值");
+        }
+        else
+        {
+            Debug.LogWarning("未找到ID为1的生命值属性");
+        }
+        
+        // 重置耐力值 (ID为2)
+        var staminaStat = playerStats.Stat_Get(2);
+        if (staminaStat != null)
+        {
+            staminaStat.Reset_to_Max();
+            Debug.Log("已重置耐力值至最大值");
+        }
+        else
+        {
+            Debug.LogWarning("未找到ID为2的耐力值属性");
+        }
+    }
+    else
+    {
+        Debug.LogWarning("未找到玩家Stats组件，无法重置生命值和耐力值");
+    }
+}
+
+private void DisablePlayerInput()
+{
+    if (playerInput != null)
+    {
+        // 完全禁用MalbersInput组件
+        playerInput.enabled = false;
+        Debug.Log("已禁用所有玩家输入");
+    }
+    else
+    {
+        // 如果没有找到组件，尝试再次查找
+        var animal = MAnimal.MainAnimal;
+        if (animal != null)
+        {
+            playerInput = animal.GetComponent<MalbersInput>();
+            if (playerInput != null)
+            {
+                playerInput.enabled = false;
+                Debug.Log("重新查找并禁用玩家输入");
+            }
+            else
+            {
+                Debug.LogWarning("未能找到玩家的MalbersInput组件，无法禁用输入");
+            }
+        }
+    }
+}
+
+private void EnablePlayerInput()
+{
+    if (playerInput != null)
+    {
+        // 重新启用MalbersInput组件
+        playerInput.enabled = true;
+        Debug.Log("已重新启用所有玩家输入");
+    }
+    else
+    {
+        Debug.LogWarning("未能找到玩家的MalbersInput组件，无法重新启用输入");
+    }
 }
 }
