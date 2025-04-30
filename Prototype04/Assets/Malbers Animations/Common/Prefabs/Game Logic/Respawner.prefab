@@ -26,12 +26,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1687954435391512}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &114526684257108350
 MonoBehaviour:
@@ -45,7 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e0b5b9d4af0f31439aabd6b5de7b49e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  text: "Respawn the 'Player' Animal when \xEDt dies"
+  text: Respawn the Player Animal when he dies
   reference: {fileID: 0}
   ShowDescription: 0
 --- !u!114 &114776409365645682
@@ -60,7 +61,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0990a10022a06a340902beb0a5c34f6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 0}
+  interactionTrigger: {fileID: 0}
+  player: {fileID: 3694108841743899117, guid: fde062191a17ce941a290902a9961d8d, type: 3}
   RespawnState: {fileID: 11400000, guid: 7370df9c769c2764381ad7c76eb3d949, type: 2}
   RespawnTime:
     UseConstant: 1
@@ -70,9 +72,25 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 1
     Variable: {fileID: 0}
+  m_DontDestroyOnLoad:
+    UseConstant: 1
+    ConstantValue: 0
+    Variable: {fileID: 0}
+  RestartScene:
+    UseConstant: 1
+    ConstantValue: 0
+    Variable: {fileID: 0}
   OnRespawned:
     m_PersistentCalls:
       m_Calls: []
+  assignedPickableItem: {fileID: 0}
+  uiBackgroundImage: {fileID: 0}
+  fadeInDuration: 0.5
+  fadeOutDuration: 1
+  maxAlpha: 1
+  deathToFadeDelay: 2.5
+  blackScreenDuration: 0
+  respawnToFadeOutDelay: 1
 --- !u!114 &114992131066738298
 MonoBehaviour:
   m_ObjectHideFlags: 0

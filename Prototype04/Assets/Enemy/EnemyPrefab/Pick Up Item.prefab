@@ -158,9 +158,22 @@ MonoBehaviour:
     uiFadeInDuration: 0.5
     uiFadeOutDuration: 0.5
     uiMaxAlpha: 1
+  enableSaveFunction: 0
+  sleepZoneHelper: {fileID: 0}
+  saveSettings:
+    delayBeforeBlackScreen: 0.5
+    blackScreenDuration: 1.5
+    onSaveCompleted:
+      m_PersistentCalls:
+        m_Calls: []
+    activateCheckpointOnSaveOnly: 1
+    checkpointReference: {fileID: 0}
   exitDelays:
     textToBlackScreenDelay: 0.3
     blackScreenToFadeOutDelay: 0.2
+  saveActionZone: {fileID: 0}
+  zoneAnimationDelay: 1.5
+  dropItemDelay: 0.3
 --- !u!1 &2296030199182515455
 GameObject:
   m_ObjectHideFlags: 0
@@ -176,6 +189,7 @@ GameObject:
   - component: {fileID: 3131088012138719584}
   - component: {fileID: 1917095936096250719}
   - component: {fileID: 776135580003078947}
+  - component: {fileID: 1112753154499880194}
   m_Layer: 30
   m_Name: Pick Up Item
   m_TagString: Water
@@ -210,9 +224,9 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2296030199182515455}
   serializedVersion: 4
-  m_Mass: 1
+  m_Mass: 2
   m_Drag: 2
-  m_AngularDrag: 2
+  m_AngularDrag: 4
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -244,9 +258,9 @@ SphereCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_Radius: 0.49999997
   m_Center: {x: 0, y: 0, z: 0}
@@ -376,14 +390,14 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 30496451734390883}
-        m_TargetAssemblyTypeName: ResourceManager, Assembly-CSharp
-        m_MethodName: StartUITransition
+        m_TargetAssemblyTypeName: ResourceManager, MalbersAnimations
+        m_MethodName: IsPickedUp
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
-          m_FloatArgument: 1000
+          m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
@@ -394,8 +408,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 30496451734390883}
-        m_TargetAssemblyTypeName: ResourceManager, Assembly-CSharp
-        m_MethodName: StopResourceDepletion
+        m_TargetAssemblyTypeName: ResourceManager, MalbersAnimations
+        m_MethodName: IsDroppedBy
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -494,6 +508,46 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 7647774705513858589, guid: 183d4c7893fd67d4bb07e94a7d0de019, type: 3}
+--- !u!114 &1112753154499880194
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2296030199182515455}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd9f4998786c582429180a1533899750, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isPickableNow: 0
+  bottleObject: {fileID: 2296030199182515455}
+  pickableComponent: {fileID: 1917095936096250719}
+  snapDuration: 0.5
+  snapCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &3093643127099527282
 GameObject:
   m_ObjectHideFlags: 0
@@ -786,6 +840,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9181817740155613070, guid: 1c7a0f3efad6ffd4898f40074ea5bcc2,
         type: 3}
+      propertyPath: onEnable.m_PersistentCalls.m_Calls.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9181817740155613070, guid: 1c7a0f3efad6ffd4898f40074ea5bcc2,
+        type: 3}
       propertyPath: onEnable.m_PersistentCalls.m_Calls.Array.data[2].m_Arguments.m_StringArgument
       value: Pick Up
       objectReference: {fileID: 0}
@@ -898,6 +957,16 @@ PrefabInstance:
         type: 3}
       propertyPath: resourceLight
       value: 
+      objectReference: {fileID: 5155459136276712774}
+    - target: {fileID: 7128182972145813447, guid: dc658da316a6f194e8313a6e5065d371,
+        type: 3}
+      propertyPath: overshootPercent
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 7128182972145813447, guid: dc658da316a6f194e8313a6e5065d371,
+        type: 3}
+      propertyPath: resourceAddDelay
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

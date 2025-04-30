@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_CustomBlends:
   - m_From: CM Third Person Main
-    m_To: BridgeCamera
+    m_To: Final_Bridge
     m_Blend:
       m_Style: 1
       m_Time: 1
@@ -24,7 +24,7 @@ MonoBehaviour:
         m_PreInfinity: 0
         m_PostInfinity: 0
         m_RotationOrder: 0
-  - m_From: BridgeCamera
+  - m_From: Final_Bridge
     m_To: CM Third Person Main
     m_Blend:
       m_Style: 1
