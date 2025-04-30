@@ -1,16 +1,10 @@
 fileFormatVersion: 2
 guid: eb6a586500ed0cd4faa6bbe87f4685d6
-AssetOrigin:
-  serializedVersion: 1
-  productId: 148877
-  packageName: Animal Controller (Malbers Character Controller)
-  packageVersion: 1.4.4a
-  assetPath: Assets/Malbers Animations/Common/Shaders/Gradient4.shader
-  uploadId: 650579
 ShaderImporter:
   externalObjects: {}
   defaultTextures: []
   nonModifiableTextures: []
+  preprocessorOverride: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 

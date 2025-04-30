@@ -9,44 +9,33 @@ namespace MalbersAnimations
 {
     public class MalbersMenu : EditorWindow
     {
-        const string URP14_Shader_Path = "Assets/Malbers Animations/Common/Shaders/Malbers_URP_14.unitypackage";
         const string URP16_Shader_Path = "Assets/Malbers Animations/Common/Shaders/Malbers_URP_16.unitypackage";
-        const string URP17_Shader_Path = "Assets/Malbers Animations/Common/Shaders/Malbers_URP_17.unitypackage";
-
+        const string URP14_Shader_Path = "Assets/Malbers Animations/Common/Shaders/Malbers_URP_14.unitypackage";
         const string HRP15_Shader_Path = "Assets/Malbers Animations/Common/Shaders/Malbers_HDRP_15.unitypackage";
-        const string HRP16_Shader_Path = "Assets/Malbers Animations/Common/Shaders/Malbers_HDRP_16.unitypackage";
-        const string HRP17_Shader_Path = "Assets/Malbers Animations/Common/Shaders/Malbers_HDRP_17.unitypackage";
-
+        const string HRP16_Shader_Path = "Assets/Malbers Animations/Common/Shaders/Malbers_HDRP_15.unitypackage";
         const string D_Shader_Path = "Assets/Malbers Animations/Common/Shaders/Malbers_Standard.unitypackage";
-        const string D_Cinemachine3_Path = "Assets/Malbers Animations/Common/Cinemachine/Cinemachine3 v2.unitypackage";
+        const string D_Cinemachine3_Path = "Assets/Malbers Animations/Common/Cinemachine/Cinemachine3.unitypackage";
 
 
+        [MenuItem("Tools/Malbers Animations/Malbers URP v.16 Shaders", false, 2)]
+        public static void UpgradeMaterialsURP16() => AssetDatabase.ImportPackage(URP16_Shader_Path, true);
 
-        [MenuItem("Tools/Malbers Animations/Malbers URP 17 Shaders", false, 2)]
-        public static void UpgradeMaterialsURP_17() => AssetDatabase.ImportPackage(URP17_Shader_Path, true);
-
-        [MenuItem("Tools/Malbers Animations/Malbers URP 16 Shaders", false, 2)]
-        public static void UpgradeMaterialsURP_16() => AssetDatabase.ImportPackage(URP16_Shader_Path, true);
-
-        [MenuItem("Tools/Malbers Animations/Malbers URP 14 Shaders", false, 2)]
-        public static void UpgradeMaterialsURP_14() => AssetDatabase.ImportPackage(URP14_Shader_Path, true);
+        [MenuItem("Tools/Malbers Animations/Malbers URP v.14 Shaders", false, 1)]
+        public static void UpgradeMaterialsURP14() => AssetDatabase.ImportPackage(URP14_Shader_Path, true);
 
 
-        [MenuItem("Tools/Malbers Animations/Malbers HDRP 14-15 Shaders", false, 3)]
-        public static void UpgradeMaterialsHDRP_15() => AssetDatabase.ImportPackage(HRP15_Shader_Path, true);
+        [MenuItem("Tools/Malbers Animations/Malbers HDRP v.15 Shaders", false, 3)]
+        public static void UpgradeMaterialsHRPL115() => AssetDatabase.ImportPackage(HRP15_Shader_Path, true);
 
-        [MenuItem("Tools/Malbers Animations/Malbers HDRP 16 Shaders", false, 3)]
-        public static void UpgradeMaterialsHDRP_16() => AssetDatabase.ImportPackage(HRP16_Shader_Path, true);
-
-        [MenuItem("Tools/Malbers Animations/Malbers HDRP 17 Shaders", false, 3)]
-        public static void UpgradeMaterialsHDRP_17() => AssetDatabase.ImportPackage(HRP17_Shader_Path, true);
+        [MenuItem("Tools/Malbers Animations/Malbers HDRP v.16 Shaders", false, 3)]
+        public static void UpgradeMaterialsHRPL16() => AssetDatabase.ImportPackage(HRP16_Shader_Path, true);
 
 
         [MenuItem("Tools/Malbers Animations/Malbers Standard Shaders", false, 1)]
         public static void UpgradeMaterialsStandard() => AssetDatabase.ImportPackage(D_Shader_Path, true);
 
 
-        [MenuItem("Tools/Malbers Animations/Upgrade to Cinemachine 3", false, 600)]
+        [MenuItem("Tools/Malbers Animations/Install Cinemachine 3", false, 600)]
         public static void InstallCM3()
         {
             AssetDatabase.ImportPackage(D_Cinemachine3_Path, true);
