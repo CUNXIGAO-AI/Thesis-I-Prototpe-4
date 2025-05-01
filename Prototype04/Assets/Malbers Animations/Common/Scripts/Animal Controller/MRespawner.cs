@@ -13,11 +13,16 @@ namespace MalbersAnimations.Controller
     public class MRespawner : MonoBehaviour
     {
         public static MRespawner instance;
-        [SerializeField] private InteractionTrigger interactionTrigger; // 在 Unity Inspector 中指定
-
         #region Respawn
         [Tooltip("Animal Prefab to Swpawn"), FormerlySerializedAs("playerPrefab")]
         public GameObject player;
+
+        [Header("瓶子控制")]
+[Tooltip("玩家是否已经在游戏中获得过瓶子，一旦设置为true将持续有效")]
+public bool hasObtainedBottleOnce = false;
+
+[Tooltip("资源管理器引用")]
+public ResourceManager resourceManager;
 
         //[ContextMenuItem("Set Default", "SetDefaultRespawnPoint")]
         //public Vector3Reference RespawnPoint;
@@ -235,7 +240,7 @@ public float respawnToFadeOutDelay = 0.5f;
     }
 
         /// <summary>Listen to the Animal States</summary>
-    public void OnCharacterDead(int StateID)
+   public void OnCharacterDead(int StateID)
 {
     if (!Respawned || StateID != StateEnum.Death) return;
 
@@ -247,34 +252,14 @@ public float respawnToFadeOutDelay = 0.5f;
         UIManager.Instance.HandlePlayerDeath();
     }
 
-    if (assignedPickableItem != null)
+    // 如果玩家曾经获得过瓶子，就处理瓶子
+    if (hasObtainedBottleOnce && assignedPickableItem != null)
     {
         lastItemPosition = assignedPickableItem.transform.position;
         assignedPickableItem.Drop(); 
     }
     
-    // 使用协调重生序列替代原有的延迟操作
     StartCoroutine(CoordinatedRespawnSequence());
-    
-    // 注释掉或删除原有的Delay_Action代码
-    /*
-    this.Delay_Action(RespawnTime, () =>
-    {
-        if (oldPlayer != null) DestroyDeathPlayer();
-        this.Delay_Action(() =>
-        {
-            activeAnimal = null;
-            if (originalPrefab != null && originalPrefab.IsPrefab())
-            {
-                InstantiateNewPlayer();
-            }
-            else
-            {
-                Debug.LogError("[Respawner] No valid prefab reference for respawn.");
-            }
-        });
-    });
-    */
 }
 
     void DestroyDeathPlayer()
@@ -292,63 +277,70 @@ public float respawnToFadeOutDelay = 0.5f;
     }
 
     void InstantiateNewPlayer()
+{
+    if (UIManager.Instance != null)
     {
+        UIManager.Instance.HandlePlayerRespawn();
+    }
+    
+    if (originalPrefab == null)
+    {
+        Debug.LogError("Cannot instantiate: Missing prefab reference");
+        return;
+    }
 
-        if (UIManager.Instance != null)
+    try 
+    {
+        InstantiatedPlayer = Instantiate(originalPrefab, transform.position, transform.rotation);
+        if (InstantiatedPlayer == null)
         {
-            UIManager.Instance.HandlePlayerRespawn();
-        }
-        if (originalPrefab == null)
-        {
-            Debug.LogError("Cannot instantiate: Missing prefab reference");
+            Debug.LogError("Failed to instantiate player");
             return;
         }
 
-        try 
+        activeAnimal = InstantiatedPlayer.GetComponent<MAnimal>();
+        if (activeAnimal == null)
         {
-            InstantiatedPlayer = Instantiate(originalPrefab, transform.position, transform.rotation);
-            if (InstantiatedPlayer == null)
-            {
-                Debug.LogError("Failed to instantiate player");
-                return;
-            }
+            Debug.LogError("Instantiated player does not have MAnimal component");
+            Destroy(InstantiatedPlayer);
+            return;
+        }
 
-            activeAnimal = InstantiatedPlayer.GetComponent<MAnimal>();
-            if (activeAnimal == null)
-            {
-                Debug.LogError("Instantiated player does not have MAnimal component");
-                Destroy(InstantiatedPlayer);
-                return;
-            }
+        activeAnimal.OverrideStartState = RespawnState;
+        activeAnimal.OnStateChange.AddListener(OnCharacterDead);
+        OnRespawned.Invoke(InstantiatedPlayer);
+        activeAnimal.SetMainPlayer();
+        Respawned = true;
 
-            activeAnimal.OverrideStartState = RespawnState;
-            activeAnimal.OnStateChange.AddListener(OnCharacterDead);
-            OnRespawned.Invoke(InstantiatedPlayer);
-            activeAnimal.SetMainPlayer();
-            Respawned = true;
-
-            var animalStats = InstantiatedPlayer.GetComponent<Stats>();
-            if (animalStats != null)
+        var animalStats = InstantiatedPlayer.GetComponent<Stats>();
+        if (animalStats != null)
+        {
+            var healthStat = animalStats.Stat_Get("Health");
+            if (healthStat != null)
             {
-                var healthStat = animalStats.Stat_Get("Health");
-                if (healthStat != null)
-                {
-                    healthStat.Value = healthStat.MaxValue;
-                }
-            }
-
-            // **让物品传送到新玩家的附近**
-            if (assignedPickableItem != null)
-            {
-                assignedPickableItem.transform.position = transform.position + new Vector3(Random.Range(-1.5f, 1.5f), 0, Random.Range(-1.5f, 1.5f));
-                Debug.Log("Item moved to respawn point");
+                healthStat.Value = healthStat.MaxValue;
             }
         }
-        catch (System.Exception e)
+
+        // 如果玩家曾经获得过瓶子，就生成瓶子
+        if (hasObtainedBottleOnce && assignedPickableItem != null)
         {
-            Debug.LogError($"Error during player instantiation: {e.Message}");
+            assignedPickableItem.gameObject.SetActive(true);
+            assignedPickableItem.transform.position = transform.position + new Vector3(Random.Range(-1.5f, 1.5f), 0, Random.Range(-1.5f, 1.5f));
+            Debug.Log("Item moved to respawn point - player has obtained bottle before");
+        }
+        else if (assignedPickableItem != null)
+        {
+            // 玩家尚未获得过瓶子，隐藏它
+            //assignedPickableItem.gameObject.SetActive(false);
+            Debug.Log("Bottle hidden - player has not obtained bottle yet");
         }
     }
+    catch (System.Exception e)
+    {
+        Debug.LogError($"Error during player instantiation: {e.Message}");
+    }
+}
 
     private IEnumerator FadeUIBackground(bool fadeIn)
 {
@@ -412,6 +404,15 @@ private IEnumerator CoordinatedRespawnSequence()
     }
 }
 
+public void MarkBottleObtained()
+{
+    // 只有当瓶子尚未被标记为获得时，才设置标志
+    if (!hasObtainedBottleOnce)
+    {
+        hasObtainedBottleOnce = true;
+        Debug.Log("玩家已首次获得瓶子，后续重生将包含瓶子");
+    }
+}
 }
 
 

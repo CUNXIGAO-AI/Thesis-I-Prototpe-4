@@ -53,7 +53,7 @@ MonoBehaviour:
   depletionMultiplier: 1
   resourceLight: {fileID: 0}
   minIntensity: 0
-  maxIntensity: 30
+  maxIntensity: 20
   resourceAddDelay: 1
   brightnessIncreaseSpeed: 0.4
   brightnessIncreaseCurve:
@@ -147,5 +147,6 @@ MonoBehaviour:
   detectedFlickerIntensity: 0.5
   combatFlickerFrequency: 10
   combatFlickerIntensity: 1
+  pickupResourceDelay: 4
   transitionDuration: 4
   transitionDelay: 1

@@ -140,6 +140,8 @@ MonoBehaviour:
     promptFadeInDuration: 0.3
     promptFadeOutDuration: 0.3
     isPromptOnlyOneTime: 0
+    mainInteractionKey: 120
+    alternativeInteractionKey: 0
   enableDialogue: 1
   dialogueSettings:
     dialogueText: {fileID: 0}
@@ -172,7 +174,6 @@ MonoBehaviour:
     textToBlackScreenDelay: 0.3
     blackScreenToFadeOutDelay: 0.2
   saveActionZone: {fileID: 0}
-  zoneAnimationDelay: 1.5
   dropItemDelay: 0.3
 --- !u!1 &2296030199182515455
 GameObject:
@@ -448,7 +449,7 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 1
     Variable: {fileID: 0}
-  EditorTabs: 1
+  EditorTabs: 0
   references:
     version: 2
     RefIds:
@@ -548,6 +549,9 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  triggerEffectsOnPickup: 0
+  pickupEffectZone: {fileID: 0}
+  pickupResourceDelay: 1.5
 --- !u!1 &3093643127099527282
 GameObject:
   m_ObjectHideFlags: 0
@@ -958,11 +962,6 @@ PrefabInstance:
       propertyPath: resourceLight
       value: 
       objectReference: {fileID: 5155459136276712774}
-    - target: {fileID: 7128182972145813447, guid: dc658da316a6f194e8313a6e5065d371,
-        type: 3}
-      propertyPath: overshootPercent
-      value: 200
-      objectReference: {fileID: 0}
     - target: {fileID: 7128182972145813447, guid: dc658da316a6f194e8313a6e5065d371,
         type: 3}
       propertyPath: resourceAddDelay
