@@ -137,33 +137,33 @@ public class ResourceEffectsManager : MonoBehaviour
     }
     
     // 光源淡出效果协程
-    private IEnumerator FadeLight(LightEffect effect, float snapCompletionDelay)
+   private IEnumerator FadeLight(LightEffect effect, float snapCompletionDelay)
+{
+    // 等待snap完成
+    yield return new WaitForSeconds(snapCompletionDelay);
+    
+    // 再等待额外的延迟时间
+    yield return new WaitForSeconds(effect.fadeDelay);
+    
+    // 使用当前亮度作为起始点，而不是初始保存的亮度
+    float currentIntensity = effect.targetLight.intensity;
+    float timer = 0f;
+    
+    while (timer < effect.fadeDuration)
     {
-        // 等待snap完成
-        yield return new WaitForSeconds(snapCompletionDelay);
+        timer += Time.deltaTime;
+        float normalizedTime = timer / effect.fadeDuration;
+        float curveValue = effect.fadeCurve.Evaluate(normalizedTime);
         
-        // 再等待额外的延迟时间
-        yield return new WaitForSeconds(effect.fadeDelay);
+        // 使用曲线控制亮度，从当前亮度淡出到0
+        effect.targetLight.intensity = currentIntensity * (1f - curveValue);
         
-        // 记录初始亮度
-        float initialIntensity = effect.GetInitialIntensity();
-        float timer = 0f;
-        
-        while (timer < effect.fadeDuration)
-        {
-            timer += Time.deltaTime;
-            float normalizedTime = timer / effect.fadeDuration;
-            float curveValue = effect.fadeCurve.Evaluate(normalizedTime);
-            
-            // 使用曲线控制亮度
-            effect.targetLight.intensity = initialIntensity * (1f - curveValue);
-            
-            yield return null;
-        }
-        
-        // 确保最终亮度为0
-        effect.targetLight.intensity = 0f;
+        yield return null;
     }
+    
+    // 确保最终亮度为0
+    effect.targetLight.intensity = 0f;
+}
 
     // 水流缩放效果协程
     private IEnumerator ScaleWaterStream(WaterStreamEffect effect, float snapCompletionDelay)
@@ -221,42 +221,42 @@ public class ResourceEffectsManager : MonoBehaviour
 
     // 镜头光晕淡出效果协程
     private IEnumerator FadeLensFlare(LensFlareEffect effect, float snapCompletionDelay)
+{
+    // 等待snap完成
+    yield return new WaitForSeconds(snapCompletionDelay);
+    
+    // 再等待额外的延迟时间
+    yield return new WaitForSeconds(effect.fadeDelay);
+    
+    // 确保Lens Flare组件存在
+    if (effect.lensFlare == null)
     {
-        // 等待snap完成
-        yield return new WaitForSeconds(snapCompletionDelay);
-        
-        // 再等待额外的延迟时间
-        yield return new WaitForSeconds(effect.fadeDelay);
-        
-        // 确保Lens Flare组件存在
-        if (effect.lensFlare == null)
-        {
-            Debug.LogWarning("Lens Flare组件为空，无法淡出");
-            yield break;
-        }
-        
-        // 记录初始强度值
-        float initialIntensity = effect.GetInitialIntensity();
-        
-        float timer = 0f;
-        
-        while (timer < effect.fadeDuration)
-        {
-            timer += Time.deltaTime;
-            float normalizedTime = Mathf.Clamp01(timer / effect.fadeDuration);
-            
-            // 应用曲线来控制强度
-            float intensityValue = effect.fadeCurve.Evaluate(normalizedTime);
-            
-            // 更新强度
-            effect.lensFlare.intensity = Mathf.Lerp(initialIntensity, 0f, intensityValue);
-            
-            yield return null;
-        }
-        
-        // 确保最终强度为0
-        effect.lensFlare.intensity = 0f;
+        Debug.LogWarning("Lens Flare组件为空，无法淡出");
+        yield break;
     }
+    
+    // 使用当前强度作为起始点，而不是初始保存的强度
+    float currentIntensity = effect.lensFlare.intensity;
+    
+    float timer = 0f;
+    
+    while (timer < effect.fadeDuration)
+    {
+        timer += Time.deltaTime;
+        float normalizedTime = Mathf.Clamp01(timer / effect.fadeDuration);
+        
+        // 应用曲线来控制强度
+        float intensityValue = effect.fadeCurve.Evaluate(normalizedTime);
+        
+        // 更新强度，从当前强度淡出到0
+        effect.lensFlare.intensity = Mathf.Lerp(currentIntensity, 0f, intensityValue);
+        
+        yield return null;
+    }
+    
+    // 确保最终强度为0
+    effect.lensFlare.intensity = 0f;
+}
 
     // 重置所有效果（如果需要重新使用）
     public void ResetAllEffects()

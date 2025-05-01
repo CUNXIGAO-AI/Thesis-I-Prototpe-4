@@ -76,6 +76,11 @@ private bool isReadyForOvershoot = false;  // 是否准备好执行过冲效果
     private float flickerTime = 0.0f;           // 闪烁计时器
     private LightState currentLightState = LightState.Default; // 当前灯光状态
 
+[Header("拾取延迟设置")]
+[SerializeField, Tooltip("拾取瓶子后多久获得资源（开始发光）")]
+public float pickupResourceDelay = 0.3f;  // 默认值可以设置得比普通resourceAddDelay更短
+
+
     [Header("资源归零过渡设置")]
     [Tooltip("当资源归0瓶子到熄灭时的过渡")]
     public float transitionDuration = 3.5f;     // 过渡持续时间（秒）
@@ -434,90 +439,24 @@ public void SetLightState(LightState state)
         Debug.Log("资源已清零");
     }
 
+    public IEnumerator DelayedPickupResource(float amount)
+{
+    // 添加资源前的延迟（使用拾取专用延迟）
+    yield return new WaitForSeconds(pickupResourceDelay);
+    
+    bool wasEmpty = currentValue <= 0;
+    
+    // 直接修改资源值，显示过渡由Update处理
+    currentValue = Mathf.Min(currentValue + amount, maxValue);
+    
+    // 如果之前资源为空，现在有了资源，重置光的状态
+    if (wasEmpty && currentValue > 0)
+    {
+        SetLightState(LightState.Default);
+    }
+    
+    Debug.Log("拾取模式 - 资源已添加: " + amount);
 }
 
+}
 
-#region 
-    // ========================
-    // 以下是原UI相关的注释代码
-    // ========================
-    
-    /*
-    public void StartUITransition()
-    {
-        if (WaterdropImage != null)
-        {
-            StartCoroutine(PlayUITransition());
-        }
-    }
-
-    private IEnumerator PlayUITransition()
-    {
-        float elapsedTime = 0f;
-
-        // 淡入WaterdropImage
-        while (elapsedTime < fadeDuration)
-        {
-            elapsedTime += Time.deltaTime;
-            float alpha = Mathf.Clamp01(elapsedTime / fadeDuration);
-            SetImageAlpha(WaterdropImage, alpha);
-            yield return null;
-        }
-
-        // 图像完全可见的状态持续1秒
-        yield return new WaitForSeconds(1f);
-
-        // 淡出WaterdropImage
-        elapsedTime = 0f;
-        while (elapsedTime < fadeDuration)
-        {
-            elapsedTime += Time.deltaTime;
-            float alpha = Mathf.Clamp01(1 - (elapsedTime / fadeDuration));
-            SetImageAlpha(WaterdropImage, alpha);
-            yield return null;
-        }
-
-        // 过渡后开始资源消耗
-        StartResourceDepletion(currentValue);
-
-        // 资源消耗开始后显示WaterdropText，带有淡入效果
-        if (WaterdropText != null)
-        {
-            StartCoroutine(FadeText(WaterdropText, 0f, 1f, fadeDuration));
-        }
-    }
-
-    private IEnumerator FadeText(TextMeshProUGUI text, float startAlpha, float endAlpha, float duration)
-    {
-        float elapsedTime = 0f;
-        Color tempColor = text.color;
-
-        while (elapsedTime < duration)
-        {
-            elapsedTime += Time.deltaTime;
-            tempColor.a = Mathf.Lerp(startAlpha, endAlpha, elapsedTime / duration);
-            text.color = tempColor;
-            yield return null;
-        }
-
-        tempColor.a = endAlpha;
-        text.color = tempColor;
-    }
-
-    private void SetImageAlpha(Image image, float alpha)
-    {
-        if (image != null)
-        {
-            var tempColor = image.color;
-            tempColor.a = alpha;
-            image.color = tempColor;
-        }
-    }
-    
-    // UI文本更新逻辑
-    // if (WaterdropText.color.a > 0)
-    // {
-    //     WaterdropText.text = currentValue.ToString("F0");
-    // }
-    */
-#endregion

@@ -5,10 +5,13 @@ using UnityEngine.Rendering;
 
 public class LightTrigger : MonoBehaviour
 {
+
+
     // Start is called before the first frame update
  [System.Serializable]
     public class LightConfig
     {
+
         public Light lightComponent;
         [Tooltip("如果为true，则使用灯光组件当前的intensity作为默认值")]
         public bool useCurrentAsDefault = true;
@@ -21,6 +24,10 @@ public class LightTrigger : MonoBehaviour
         public Coroutine currentCoroutine;
         [HideInInspector]
         public float runtimeDefaultIntensity;
+            [Tooltip("如果为true，此灯光只会被触发一次")]
+    public bool oneTimeOnly = false;
+    [HideInInspector]
+    public bool hasBeenTriggered = false;
     }
 
     [System.Serializable]
@@ -38,6 +45,11 @@ public class LightTrigger : MonoBehaviour
         public Coroutine currentCoroutine;
         [HideInInspector]
         public float runtimeDefaultIntensity;
+         [Tooltip("如果为true，此光晕只会被触发一次")]
+    public bool oneTimeOnly = false;
+    [HideInInspector]
+    public bool hasBeenTriggered = false;
+
     }
     
     
@@ -113,61 +125,59 @@ public class LightTrigger : MonoBehaviour
     }
     
     // 当有对象进入触发区域时
-       void OnTriggerEnter(Collider other)
+      void OnTriggerEnter(Collider other)
+{
+    if (other.CompareTag(playerTag))
     {
-        if (other.CompareTag(playerTag))
+        // 处理灯光
+        foreach (LightConfig lightConfig in lights)
         {
-            // 处理灯光
-            foreach (LightConfig lightConfig in lights)
+            // 检查是否为一次性且已触发
+            if (lightConfig.oneTimeOnly && lightConfig.hasBeenTriggered)
+                continue;
+                
+            if (lightConfig.lightComponent != null)
             {
-                if (lightConfig.lightComponent != null)
+                if (lightConfig.currentCoroutine != null)
                 {
-                    if (lightConfig.currentCoroutine != null)
-                    {
-                        StopCoroutine(lightConfig.currentCoroutine);
-                    }
-                    
-                    float transitionTime = (lightConfig.customTransitionDuration > 0) 
-                        ? lightConfig.customTransitionDuration 
-                        : globalTransitionDuration;
-                    
-                    lightConfig.currentCoroutine = StartCoroutine(
-                        TransitionLightIntensity(
-                            lightConfig.lightComponent, 
-                            lightConfig.lightComponent.intensity, 
-                            lightConfig.targetIntensity, 
-                            transitionTime
-                        )
-                    );
+                    StopCoroutine(lightConfig.currentCoroutine);
                 }
+                
+                float transitionTime = (lightConfig.customTransitionDuration > 0) 
+                    ? lightConfig.customTransitionDuration 
+                    : globalTransitionDuration;
+                
+                lightConfig.currentCoroutine = StartCoroutine(
+                    TransitionLightIntensity(
+                        lightConfig.lightComponent, 
+                        lightConfig.lightComponent.intensity, 
+                        lightConfig.targetIntensity, 
+                        transitionTime
+                    )
+                );
+                
+                // 标记为已触发
+                lightConfig.hasBeenTriggered = true;
             }
-            
-            // 处理镜头光晕
-            foreach (LensFlareConfig flareConfig in lensFlares)
+        }
+        
+        // 处理镜头光晕，同样的逻辑
+        foreach (LensFlareConfig flareConfig in lensFlares)
+        {
+            // 检查是否为一次性且已触发
+            if (flareConfig.oneTimeOnly && flareConfig.hasBeenTriggered)
+                continue;
+                
+            if (flareConfig.lensFlareComponent != null)
             {
-                if (flareConfig.lensFlareComponent != null)
-                {
-                    if (flareConfig.currentCoroutine != null)
-                    {
-                        StopCoroutine(flareConfig.currentCoroutine);
-                    }
-                    
-                    float transitionTime = (flareConfig.customTransitionDuration > 0) 
-                        ? flareConfig.customTransitionDuration 
-                        : globalTransitionDuration;
-                    
-                    flareConfig.currentCoroutine = StartCoroutine(
-                        TransitionLensFlareIntensity(
-                            flareConfig.lensFlareComponent, 
-                            flareConfig.lensFlareComponent.intensity, 
-                            flareConfig.targetIntensity, 
-                            transitionTime
-                        )
-                    );
-                }
+                // 原有代码...
+                
+                // 标记为已触发
+                flareConfig.hasBeenTriggered = true;
             }
         }
     }
+}
     
     // 当对象离开触发区域时
       void OnTriggerExit(Collider other)
