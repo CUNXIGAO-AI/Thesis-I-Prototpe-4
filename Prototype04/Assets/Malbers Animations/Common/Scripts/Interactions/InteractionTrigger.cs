@@ -79,6 +79,14 @@ public class InteractionTrigger : MonoBehaviour
             [Tooltip("只有提示时，是否视为一次性交互")]
     public bool isPromptOnlyOneTime = false;  // ✅ 新增
 
+        [Header("交互按键设置")]
+    [Tooltip("主要交互按键")]
+    public KeyCode mainInteractionKey = KeyCode.X;  // 默认使用X键
+    
+    [Tooltip("额外交互按键 (可选)")]
+    public KeyCode alternativeInteractionKey = KeyCode.None;  // 默认不使用
+
+
     }
 
     [Header("交互提示设置 (总是启用)")]
@@ -300,9 +308,6 @@ private Stats playerStats;
 [Header("Malbers Zone集成")]
 [Tooltip("用于触发存档动画的Zone")]
 public Zone saveActionZone;
-[Tooltip("Zone动画播放完成后等待多久开始存档流程 (秒)")]
-[Range(0.5f, 3.0f)]
-public float zoneAnimationDelay = 1.5f;
 
 [Tooltip("物品放下后等待多久开始触发Zone (秒)")]
 [Range(0.1f, 1.0f)]
@@ -391,22 +396,22 @@ public float dropItemDelay = 0.3f;
                 playerInput = animal.GetComponent<MalbersInput>();
                 if (playerInput == null)
                 {
-                    Debug.LogWarning("未能自动找到玩家的MalbersInput组件，可能会影响存档时的输入控制", this);
+                    //Debug.LogWarning("未能自动找到玩家的MalbersInput组件，可能会影响存档时的输入控制", this);
                 }
                 else
                 {
-                    Debug.Log("成功获取到玩家输入组件: " + playerInput.name);
+                   // Debug.Log("成功获取到玩家输入组件: " + playerInput.name);
                 }
                 
                 // 同时获取Stats组件
                 playerStats = animal.GetComponent<Stats>();
                 if (playerStats == null)
                 {
-                    Debug.LogWarning("未能自动找到玩家的Stats组件，无法重置生命值和耐力值", this);
+                    //Debug.LogWarning("未能自动找到玩家的Stats组件，无法重置生命值和耐力值", this);
                 }
                 else
                 {
-                    Debug.Log("成功获取到玩家属性组件: " + playerStats.name);
+                    //Debug.Log("成功获取到玩家属性组件: " + playerStats.name);
                 }
             }
         }
@@ -416,7 +421,7 @@ public float dropItemDelay = 0.3f;
         respawner = MRespawner.instance;
     }
 
-  private void Update()
+ private void Update()
 {
     // 如果玩家死亡或者处于冷却状态，直接返回
     if (isPlayerDead || currentState == InteractionState.Cooldown)
@@ -431,8 +436,14 @@ public float dropItemDelay = 0.3f;
             currentMessage = dialogueSettings.messages[currentMessageIndex];
         }
         
+        // 检查主要交互键或额外交互键
+        bool interactionKeyPressed = Input.GetKeyDown(dialogueSettings.interactionKey) || 
+                                   Input.GetKeyDown(promptSettings.mainInteractionKey) ||
+                                   (promptSettings.alternativeInteractionKey != KeyCode.None && 
+                                    Input.GetKeyDown(promptSettings.alternativeInteractionKey));
+        
         // 交互键逻辑
-        if (Input.GetKeyDown(dialogueSettings.interactionKey))
+        if (interactionKeyPressed)
         {
             // 如果是一次性交互且已完成，不再触发
             if (isOneTimeInteraction && currentState == InteractionState.Completed)
@@ -444,7 +455,7 @@ public float dropItemDelay = 0.3f;
                 // 检查当前消息是否是选择消息
                 if (enableDialogue && currentMessage != null && currentMessage.isChoice)
                 {
-                    // 如果是选择消息，按X键不做任何事
+                    // 如果是选择消息，按交互键不做任何事
                     return;
                 }
                 
@@ -625,17 +636,45 @@ private IEnumerator CoordinatedExitAnimation()
     
     // 如果玩家仍在范围内，显示交互提示
     if (playerInRange && (currentState != InteractionState.Completed))
+{
+    // 使用更新后的提示信息函数
+    
+    // 只要有提示，就显示背景
+    if (!string.IsNullOrEmpty(promptSettings.promptMessage) && dialogueSettings.backgroundImage != null)
     {
-        // 显示交互提示
-        StartCoroutine(FadeText(promptSettings.promptMessage, TextType.Prompt));
-        
-        // 只要有提示，就显示背景
-        if (!string.IsNullOrEmpty(promptSettings.promptMessage) && dialogueSettings.backgroundImage != null)
-        {
-            StartCoroutine(FadeTextBackground(1.0f));
-        }
+    StartCoroutine(FadeText(promptSettings.promptMessage, TextType.Prompt));
     }
 }
+}
+
+private void UpdatePromptMessage()
+{
+    string baseMessage = promptSettings.promptMessage;
+    
+    // 如果有替代按键，添加到提示中
+    if (promptSettings.alternativeInteractionKey != KeyCode.None)
+    {
+        // 替换默认的"按X交互"格式
+        string mainKey = promptSettings.mainInteractionKey.ToString();
+        string altKey = promptSettings.alternativeInteractionKey.ToString();
+        
+        // 如果提示中包含具体的按键，替换它
+        if (baseMessage.Contains("X") && mainKey != "X")
+        {
+            baseMessage = baseMessage.Replace("X", mainKey);
+        }
+        
+        // 添加替代按键信息
+        baseMessage += $" 或 {altKey}";
+    }
+    
+    // 当显示提示时使用这个更新后的信息
+    string updatedPromptMessage = baseMessage;
+    
+    // 显示交互提示
+    StartCoroutine(FadeText(updatedPromptMessage, TextType.Prompt));
+}
+
 
 private void HandleChoice(DialogueChoice choice)
 {
@@ -881,30 +920,31 @@ private void JumpToResourceFailureMessage(DialogueMessage currentMessage)
         StartCoroutine(FadeUIBackground(false));
     }
 
-    private void OnTriggerEnter(Collider other)
+private void OnTriggerEnter(Collider other)
+{
+    if (other.CompareTag(playerTag) && !isPlayerDead)
     {
-        if (other.CompareTag(playerTag) && !isPlayerDead)
+        playerInRange = true;
+        events.onPlayerEnterRange.Invoke();
+
+        // 如果是一次性交互且已完成，不做任何事
+        if (isOneTimeInteraction && currentState == InteractionState.Completed)
+            return;
+                
+        // 如果没有在交互中且不在冷却状态中，显示提示
+        if (currentState == InteractionState.Ready)
         {
-            playerInRange = true;
-                    events.onPlayerEnterRange.Invoke();
-
-            // 如果是一次性交互且已完成，不做任何事
-            if (isOneTimeInteraction && currentState == InteractionState.Completed)
-                return;
-                    
-            // 如果没有在交互中且不在冷却状态中，显示提示
-            if (currentState == InteractionState.Ready)
+            // 使用更新后的提示信息函数
+        StartCoroutine(FadeText(promptSettings.promptMessage, TextType.Prompt));
+            
+            // 改成无论是否启用对话，都显示背景（只要有提示就显示）
+            if (dialogueSettings.backgroundImage != null)
             {
-                StartCoroutine(FadeText(promptSettings.promptMessage, TextType.Prompt));
-
-                // 改成无论是否启用对话，都显示背景（只要有提示就显示）
-                if (dialogueSettings.backgroundImage != null)
-                {
-                    StartCoroutine(FadeTextBackground(1.0f));
-                }
+                StartCoroutine(FadeTextBackground(1.0f));
             }
         }
     }
+}
 
     // 修改OnTriggerExit方法
 private void OnTriggerExit(Collider other)
@@ -987,33 +1027,14 @@ private void ActivateZoneAndSave()
         var animal = MAnimal.MainAnimal;
         if (animal != null)
         {
-            // 激活Zone对指定的动物
-            bool zoneActivated = saveActionZone.ActivateZone(animal);
-            
-            if (zoneActivated)
-            {
-                // Zone成功激活，延迟执行存档逻辑，等待动画播放
-                StartCoroutine(DelayedAction(zoneAnimationDelay, ExecuteSaveLogic));
-            }
-            else
-            {
-                // Zone激活失败，直接执行存档逻辑
-                Debug.LogWarning("Zone激活失败，直接执行存档流程");
-                ExecuteSaveLogic();
-            }
-        }
-        else
-        {
-            // 没有找到动物，直接执行存档逻辑
-            Debug.LogWarning("未找到MainAnimal，直接执行存档流程");
-            ExecuteSaveLogic();
+            // 激活Zone
+            saveActionZone.ActivateZone(animal);
         }
     }
-    else
-    {
-        // 没有设置saveActionZone，直接执行存档逻辑
-        ExecuteSaveLogic();
-    }
+    
+    // 无论Zone是否激活成功，都直接执行存档逻辑
+    // 不再使用DelayedAction和zoneAnimationDelay
+    ExecuteSaveLogic();
 }
 
 // 提取存档逻辑到单独的方法
