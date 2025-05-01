@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class LightTrigger : MonoBehaviour
 {
@@ -21,6 +22,24 @@ public class LightTrigger : MonoBehaviour
         [HideInInspector]
         public float runtimeDefaultIntensity;
     }
+
+    [System.Serializable]
+    public class LensFlareConfig
+    {
+        public LensFlareComponentSRP lensFlareComponent;
+        [Tooltip("如果为true，则使用光晕组件当前的intensity作为默认值")]
+        public bool useCurrentAsDefault = true;
+        [Tooltip("当useCurrentAsDefault为false时使用此值")]
+        public float defaultIntensity = 0.2f;
+        public float targetIntensity = 2.0f;
+        [Tooltip("单独设置此光晕的过渡时间，若为0则使用全局设置")]
+        public float customTransitionDuration = 0f;
+        [HideInInspector]
+        public Coroutine currentCoroutine;
+        [HideInInspector]
+        public float runtimeDefaultIntensity;
+    }
+    
     
     [Tooltip("要控制的灯光列表")]
     public List<LightConfig> lights = new List<LightConfig>();
@@ -30,24 +49,44 @@ public class LightTrigger : MonoBehaviour
     
     [Tooltip("要检测的玩家标签")]
     private string playerTag = "Animal";
+
+        [Tooltip("要控制的镜头光晕列表")]
+    public List<LensFlareConfig> lensFlares = new List<LensFlareConfig>();
+
     
-    void Awake()
+   void Awake()
     {
         // 初始化所有灯光设置
         foreach (LightConfig lightConfig in lights)
         {
             if (lightConfig.lightComponent != null)
             {
-                // 如果设置为使用当前亮度作为默认值，则保存当前亮度
+                // 原有代码保持不变
                 if (lightConfig.useCurrentAsDefault)
                 {
                     lightConfig.runtimeDefaultIntensity = lightConfig.lightComponent.intensity;
                 }
                 else
                 {
-                    // 否则使用指定的默认亮度
                     lightConfig.runtimeDefaultIntensity = lightConfig.defaultIntensity;
                     lightConfig.lightComponent.intensity = lightConfig.defaultIntensity;
+                }
+            }
+        }
+        
+        // 初始化所有镜头光晕设置
+        foreach (LensFlareConfig flareConfig in lensFlares)
+        {
+            if (flareConfig.lensFlareComponent != null)
+            {
+                if (flareConfig.useCurrentAsDefault)
+                {
+                    flareConfig.runtimeDefaultIntensity = flareConfig.lensFlareComponent.intensity;
+                }
+                else
+                {
+                    flareConfig.runtimeDefaultIntensity = flareConfig.defaultIntensity;
+                    flareConfig.lensFlareComponent.intensity = flareConfig.defaultIntensity;
                 }
             }
         }
@@ -74,10 +113,11 @@ public class LightTrigger : MonoBehaviour
     }
     
     // 当有对象进入触发区域时
-    void OnTriggerEnter(Collider other)
+       void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag(playerTag))
         {
+            // 处理灯光
             foreach (LightConfig lightConfig in lights)
             {
                 if (lightConfig.lightComponent != null)
@@ -101,14 +141,40 @@ public class LightTrigger : MonoBehaviour
                     );
                 }
             }
+            
+            // 处理镜头光晕
+            foreach (LensFlareConfig flareConfig in lensFlares)
+            {
+                if (flareConfig.lensFlareComponent != null)
+                {
+                    if (flareConfig.currentCoroutine != null)
+                    {
+                        StopCoroutine(flareConfig.currentCoroutine);
+                    }
+                    
+                    float transitionTime = (flareConfig.customTransitionDuration > 0) 
+                        ? flareConfig.customTransitionDuration 
+                        : globalTransitionDuration;
+                    
+                    flareConfig.currentCoroutine = StartCoroutine(
+                        TransitionLensFlareIntensity(
+                            flareConfig.lensFlareComponent, 
+                            flareConfig.lensFlareComponent.intensity, 
+                            flareConfig.targetIntensity, 
+                            transitionTime
+                        )
+                    );
+                }
+            }
         }
     }
     
     // 当对象离开触发区域时
-    void OnTriggerExit(Collider other)
+      void OnTriggerExit(Collider other)
     {
         if (other.CompareTag(playerTag))
         {
+            // 处理灯光
             foreach (LightConfig lightConfig in lights)
             {
                 if (lightConfig.lightComponent != null)
@@ -132,9 +198,33 @@ public class LightTrigger : MonoBehaviour
                     );
                 }
             }
+            
+            // 处理镜头光晕
+            foreach (LensFlareConfig flareConfig in lensFlares)
+            {
+                if (flareConfig.lensFlareComponent != null)
+                {
+                    if (flareConfig.currentCoroutine != null)
+                    {
+                        StopCoroutine(flareConfig.currentCoroutine);
+                    }
+                    
+                    float transitionTime = (flareConfig.customTransitionDuration > 0) 
+                        ? flareConfig.customTransitionDuration 
+                        : globalTransitionDuration;
+                    
+                    flareConfig.currentCoroutine = StartCoroutine(
+                        TransitionLensFlareIntensity(
+                            flareConfig.lensFlareComponent, 
+                            flareConfig.lensFlareComponent.intensity, 
+                            flareConfig.runtimeDefaultIntensity, 
+                            transitionTime
+                        )
+                    );
+                }
+            }
         }
     }
-    
     // 协程：平滑过渡灯光亮度
     private IEnumerator TransitionLightIntensity(Light light, float startValue, float endValue, float duration)
     {
@@ -150,5 +240,21 @@ public class LightTrigger : MonoBehaviour
         }
         
         light.intensity = endValue;
+    }
+
+     private IEnumerator TransitionLensFlareIntensity(LensFlareComponentSRP lensFlare, float startValue, float endValue, float duration)
+    {
+        float elapsedTime = 0;
+        
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsedTime / duration);
+            t = t * t * (3f - 2f * t); // 使用与灯光相同的平滑曲线
+            lensFlare.intensity = Mathf.Lerp(startValue, endValue, t);
+            yield return null;
+        }
+        
+        lensFlare.intensity = endValue;
     }
 }

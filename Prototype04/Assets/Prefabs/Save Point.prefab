@@ -148,7 +148,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   resourceManager: {fileID: 0}
   isOneTimeInteraction: 0
-  exitCooldownDuration: 15
+  exitCooldownDuration: 16
   events:
     onInteractionStarted:
       m_PersistentCalls:
@@ -189,7 +189,7 @@ MonoBehaviour:
   enableSaveFunction: 1
   sleepZoneHelper: {fileID: 8568244771197120285}
   saveSettings:
-    delayBeforeBlackScreen: 2
+    delayBeforeBlackScreen: 3
     blackScreenDuration: 5
     onSaveCompleted:
       m_PersistentCalls:
@@ -200,7 +200,6 @@ MonoBehaviour:
     textToBlackScreenDelay: 0.3
     blackScreenToFadeOutDelay: 0.2
   saveActionZone: {fileID: 1742422859112187881}
-  zoneAnimationDelay: 2
   dropItemDelay: 0.2
 --- !u!1001 &2037035173312177871
 PrefabInstance:
