@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Fox Jump
   m_EditorClassIdentifier: 
   Active: 1
+  animal: {fileID: 0}
   Input: Jump
   ExitInput:
     UseConstant: 1
@@ -22,8 +23,12 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
+  AlwaysForward:
+    UseConstant: 1
+    ConstantValue: 0
+    Variable: {fileID: 0}
   Priority: 5
-  ResetInputOnFailed: 1
+  resetInputOnFailed: 0
   ResetLastState: 0
   General:
     modify: 2303
@@ -62,12 +67,18 @@ MonoBehaviour:
   UseSendMessage: 0
   IncludeChildren: 1
   AllowExitFromAnim: 0
+  CanTransitionToItself: 0
   IncludeSleepState: 1
   SleepFromState:
   - {fileID: 11400000, guid: 8078fbdb01991b44b9c1351f444b5efe, type: 2}
   SleepFromMode:
   - {fileID: 11400000, guid: 4dc5ca673dc60d346a62529c8a9bd8ff, type: 2}
   - {fileID: 11400000, guid: 1286867ad3c4cdd4baacac3373aff92c, type: 2}
+  DisableModes: []
+  noModes:
+    UseConstant: 1
+    ConstantValue: 0
+    Variable: {fileID: 0}
   QueueFrom: []
   ResetFrom: []
   SleepFromStance: []
@@ -101,8 +112,9 @@ MonoBehaviour:
   StrafeAnimations: 1
   MovementStrafe: 1
   IdleStrafe: 1
-  debug: 1
-  Editor_Tabs1: 3
+  m_debug: 1
+  Editor_Tabs1: 4
+  SpeedSets: []
   ID: {fileID: 11400000, guid: 9ae07cd2f8f4c054687fecf634f8e5b3, type: 2}
   JumpPressed:
     UseConstant: 1
@@ -121,6 +133,13 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 5
     Variable: {fileID: 0}
+  Jumps:
+    UseConstant: 1
+    ConstantValue: 1
+    Variable: {fileID: 0}
+  ResetJump: []
+  lockJumpProfile: -1
+  KeepHeightOnHighSlope: 0
   jumpProfiles:
   - name: In Place
     VerticalSpeed: 0
