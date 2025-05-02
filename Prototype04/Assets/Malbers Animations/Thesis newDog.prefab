@@ -617,7 +617,7 @@ PrefabInstance:
     - target: {fileID: 6154047008028815210, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
       propertyPath: Editor_Tabs1
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6154047008028815210, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
@@ -633,7 +633,7 @@ PrefabInstance:
         type: 3}
       propertyPath: states.Array.data[0]
       value: 
-      objectReference: {fileID: 11400000, guid: dacb260a217607844a48671eecbab8c9,
+      objectReference: {fileID: 11400000, guid: 5b6be247f25f44345984c73e3be97239,
         type: 2}
     - target: {fileID: 6154047008028815210, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
