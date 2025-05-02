@@ -4,10 +4,15 @@ labels:
 - AllCreature
 ShaderImporter:
   externalObjects: {}
-  defaultTextures:
-  - _EmissionMask: {fileID: 2800000, guid: 0e90178a9c0b464408857a81b53fc7ac, type: 3}
+  defaultTextures: []
   nonModifiableTextures: []
-  preprocessorOverride: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 121424
+  packageName: Ravens and Crows
+  packageVersion: 
+  assetPath: Assets/Malbers Animations/Common/Shaders/Golem Shader.shader
+  uploadId: 0

@@ -6,7 +6,13 @@ ShaderImporter:
   externalObjects: {}
   defaultTextures: []
   nonModifiableTextures: []
-  preprocessorOverride: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 121424
+  packageName: Ravens and Crows
+  packageVersion: 
+  assetPath: Assets/Malbers Animations/Common/Shaders/Mask8Toon.shader
+  uploadId: 0
