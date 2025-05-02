@@ -858,6 +858,11 @@ PrefabInstance:
       propertyPath: m_BlendShapeWeights.Array.data[21]
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: DefaultMap.selectedIndex
+      value: 22
+      objectReference: {fileID: 0}
     - target: {fileID: 7917069098184958673, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
       propertyPath: m_LocalScale.x

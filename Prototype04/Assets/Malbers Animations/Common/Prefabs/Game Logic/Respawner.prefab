@@ -61,8 +61,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0990a10022a06a340902beb0a5c34f6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  interactionTrigger: {fileID: 0}
-  player: {fileID: 3694108841743899117, guid: fde062191a17ce941a290902a9961d8d, type: 3}
+  player: {fileID: 1957669058310775089, guid: 4f7e6641e41bb6f47b6e19d40bd7629f, type: 3}
+  hasObtainedBottleOnce: 0
+  resourceManager: {fileID: 0}
   RespawnState: {fileID: 11400000, guid: 7370df9c769c2764381ad7c76eb3d949, type: 2}
   RespawnTime:
     UseConstant: 1

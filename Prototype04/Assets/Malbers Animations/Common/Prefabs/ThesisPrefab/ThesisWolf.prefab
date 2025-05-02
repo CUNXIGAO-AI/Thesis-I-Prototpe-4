@@ -15220,7 +15220,7 @@ MonoBehaviour:
       OnInputFloat:
         m_PersistentCalls:
           m_Calls: []
-    selectedIndex: 10
+    selectedIndex: 6
   ActiveMap:
     name:
       UseConstant: 1
@@ -15890,10 +15890,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowOnPlay: 1
   PivotPosDir: 0
-  SelectedState: 6
+  SelectedState: 0
   SelectedStance: 0
-  ShowStateInInspector: 0
-  Editor_Tabs1: 2
+  ShowStateInInspector: 1
+  Editor_Tabs1: 1
   Editor_Tabs2: 4
   SelectedMode: 4
   Mode_Tabs1: 1
