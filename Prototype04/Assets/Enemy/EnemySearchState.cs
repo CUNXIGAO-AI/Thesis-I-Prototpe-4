@@ -21,6 +21,27 @@ public override void EnterState(EnemyStateManager enemy)
 }
     public override void UpdateState(EnemyStateManager enemy)
     {
+        // 原有逻辑...
+        
+        // 对于搜索状态，可能有特定的目标点
+        if (enemy.searchTargets.Length > 0 && enemy.searchTargetIndex < enemy.searchTargets.Length)
+        {
+            Transform target = enemy.searchTargets[enemy.searchTargetIndex];
+            Vector3 direction = (target.position - enemy.transform.position).normalized;
+            
+            // 基础旋转
+            Quaternion baseRotation = Quaternion.LookRotation(direction);
+            
+            // 应用抖动效果
+            Quaternion targetRotation = enemy.GetJitteredRotation(baseRotation);
+            
+            // 应用旋转
+            float rotationSpeed = enemy.searchRotationSpeeds.Length > enemy.searchTargetIndex ?
+                                  enemy.searchRotationSpeeds[enemy.searchTargetIndex] :
+                                  enemy.defaultSearchRotationSpeed;
+            
+            enemy.transform.rotation = Quaternion.Slerp(enemy.transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
+        }
         enemy.canDecreaseAlertMeter = true;
 
         // 执行旋转逻辑

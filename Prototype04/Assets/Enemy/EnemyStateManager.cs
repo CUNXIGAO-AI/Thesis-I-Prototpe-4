@@ -10,6 +10,7 @@ using FMODUnityResonance;
 [RequireComponent(typeof(StudioEventEmitter))]
 public class EnemyStateManager : MonoBehaviour
 {
+    
     [Header("Debug")]
     [SerializeField, Tooltip("当前敌人的状态，仅用于调试")]
     private string currentStateName;
@@ -44,7 +45,6 @@ public class EnemyStateManager : MonoBehaviour
 
     // Speed
     public float patrolSpeed = 2f;  // 巡逻速度
-    private NavMeshAgent navAgent;
     
     //alert system
     // 警戒参数
@@ -92,6 +92,21 @@ public class EnemyStateManager : MonoBehaviour
 
     private Color targetColor;     // 目标颜色
     public float colorLerpSpeed = 2f;  // 控制 Lerp 速度
+
+    [System.Serializable]
+    public class FlickerSettings
+    {
+        public float frequency = 2f;         // 闪烁频率（Hz）
+        public float intensityMin = 6000000f;    // 最低强度
+        [HideInInspector] public float intensityMax = 1f;  // 初始默认值
+    }
+
+    public FlickerSettings patrolFlicker;
+    public FlickerSettings alertFlicker;
+    public FlickerSettings combatFlicker;
+    public FlickerSettings searchFlicker;
+
+
     private ResourceManager resourceManager;
 
     [Header("Share Alert Among Enemies")] // 
@@ -108,7 +123,45 @@ public class EnemyStateManager : MonoBehaviour
     private float defaultDepletionMultiplier = 1f;  // 默认状态下的消耗倍率
     private float combatDepletionMultiplier = 5f;  // 战斗状态下的消耗倍率
 
-    
+
+
+[Header("Movement Jitter Settings")]
+// 全局抖动设置
+public bool enableJitter = true;                 // 是否启用抖动效果
+
+// 巡逻状态抖动设置
+[Header("Patrol State Jitter")]
+public float patrolJitterRange = 0.2f;           // 巡逻状态抖动范围
+public float patrolJitterSmoothSpeed = 3.0f;     // 巡逻状态抖动平滑速度
+public float patrolJitterUpdateInterval = 0.2f;  // 巡逻状态抖动更新间隔
+
+// 警戒状态抖动设置
+[Header("Alert State Jitter")]
+public float alertJitterRange = 0.5f;            // 警戒状态抖动范围
+public float alertJitterSmoothSpeed = 4.0f;      // 警戒状态抖动平滑速度
+public float alertJitterUpdateInterval = 0.15f;  // 警戒状态抖动更新间隔
+
+// 战斗状态抖动设置
+[Header("Combat State Jitter")]
+public float combatJitterRange = 0.7f;           // 战斗状态抖动范围  
+public float combatJitterSmoothSpeed = 5.0f;     // 战斗状态抖动平滑速度
+public float combatJitterUpdateInterval = 0.1f;  // 战斗状态抖动更新间隔
+
+// 搜索状态抖动设置
+[Header("Search State Jitter")]
+public float searchJitterRange = 0.4f;           // 搜索状态抖动范围
+public float searchJitterSmoothSpeed = 3.5f;     // 搜索状态抖动平滑速度
+public float searchJitterUpdateInterval = 0.15f; // 搜索状态抖动更新间隔
+
+// 当前抖动状态参数
+[HideInInspector] public Vector3 currentJitter = Vector3.zero;  // 当前抖动值
+[HideInInspector] public Vector3 targetJitter = Vector3.zero;   // 目标抖动值
+private float jitterTimer = 0f;                                 // 抖动更新计时器
+
+// 当前使用的抖动参数
+private float currentJitterRange = 0.2f;
+private float currentJitterSmoothSpeed = 3.0f;
+private float currentJitterUpdateInterval = 0.2f;
 
     //audio
     private StudioEventEmitter emitter;
@@ -116,11 +169,6 @@ public class EnemyStateManager : MonoBehaviour
 
     void Start()
     {
-        // 初始化 NavMeshAgent
-        navAgent = GetComponent<NavMeshAgent>();
-        
-        // 禁用 NavMeshAgent 的自动旋转，我们手动管理
-        navAgent.updateRotation = false;
         Debug.Log("Start From Patrol State");
         currentState = PatrolState;
         currentState.EnterState(this);
@@ -146,11 +194,23 @@ public class EnemyStateManager : MonoBehaviour
 
         alertSpotLight = transform.Find("Spot Light").GetComponent<Light>();
 
+        
+
         // 确保找到 SpotLight
         if (alertSpotLight == null)
         {
+            
+            float defaultIntensity = alertSpotLight.intensity;
+
+            patrolFlicker.intensityMax = defaultIntensity;
+            alertFlicker.intensityMax = defaultIntensity;
+            combatFlicker.intensityMax = defaultIntensity;
+            searchFlicker.intensityMax = defaultIntensity;
+
             Debug.LogError("SpotLight not found! Please ensure it is a child of this GameObject.");
         }
+
+        
 
         resourceManager = FindAnyObjectByType<ResourceManager>();
         if (resourceManager == null)
@@ -235,26 +295,10 @@ public class EnemyStateManager : MonoBehaviour
 
             UpdateAlertMeter();
             UpdateAlertLight();
+            ApplyLightFlicker();
+                UpdateJitterEffect();
 
-            // 更新 LineRenderer 的位置和颜色 先关掉射线
-            // Vector3 endPoint = transform.position + rayDirection * viewRadius;
-            // UpdateLineRenderer(transform.position, endPoint, canSeeItem ? detectedRayColor : defaultRayColor);
-
-            //Debug.Log("Current State: " + currentState);        
         }
-
-    // 手动旋转物体朝向 NavMeshAgent 的前进方向
-    /*void UpdateRotation()
-    {
-        if (navAgent.velocity.sqrMagnitude > 0.1f)  // 当有移动时
-        {
-            // 计算旋转方向
-            Quaternion targetRotation = Quaternion.LookRotation(navAgent.velocity.normalized);
-
-            // 使用 RotateTowards 使物体平滑地旋转到前进方向
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, navAgent.angularSpeed * Time.deltaTime);
-        }
-    }*/
 
 
     // 基于物体当前朝向检测物品
@@ -532,6 +576,91 @@ public class EnemyStateManager : MonoBehaviour
             }
         }
     }
+
+    private void ApplyLightFlicker()
+{
+    if (alertSpotLight == null) return;
+
+    FlickerSettings settings = patrolFlicker;
+
+    if (currentState == AlertState)
+        settings = alertFlicker;
+    else if (currentState == CombatState)
+        settings = combatFlicker;
+    else if (currentState == SearchState)
+        settings = searchFlicker;
+
+    float flicker = Mathf.Lerp(settings.intensityMin, settings.intensityMax,
+        Mathf.PerlinNoise(Time.time * settings.frequency, 0f));
+    alertSpotLight.intensity = flicker;
+}
+
+private void UpdateJitterEffect()
+{
+    if (!enableJitter) return;
+    
+    // 根据当前状态设置抖动参数
+    UpdateJitterParameters();
+    
+    // 定时更新目标抖动值
+    jitterTimer += Time.deltaTime;
+    if (jitterTimer >= currentJitterUpdateInterval)
+    {
+        targetJitter = new Vector3(
+            Random.Range(-currentJitterRange, currentJitterRange),
+            Random.Range(-currentJitterRange, currentJitterRange),
+            Random.Range(-currentJitterRange, currentJitterRange)
+        ).normalized * currentJitterRange;
+        jitterTimer = 0f;
+    }
+    
+    // 平滑更新当前抖动值
+    currentJitter = Vector3.Lerp(currentJitter, targetJitter, Time.deltaTime * currentJitterSmoothSpeed);
+}
+private void UpdateJitterParameters()
+{
+    // 根据当前状态设置相应的抖动参数
+    if (currentState == PatrolState)
+    {
+        currentJitterRange = patrolJitterRange;
+        currentJitterSmoothSpeed = patrolJitterSmoothSpeed;
+        currentJitterUpdateInterval = patrolJitterUpdateInterval;
+    }
+    else if (currentState == AlertState)
+    {
+        currentJitterRange = alertJitterRange;
+        currentJitterSmoothSpeed = alertJitterSmoothSpeed;
+        currentJitterUpdateInterval = alertJitterUpdateInterval;
+    }
+    else if (currentState == CombatState)
+    {
+        currentJitterRange = combatJitterRange;
+        currentJitterSmoothSpeed = combatJitterSmoothSpeed;
+        currentJitterUpdateInterval = combatJitterUpdateInterval;
+    }
+    else if (currentState == SearchState)
+    {
+        currentJitterRange = searchJitterRange;
+        currentJitterSmoothSpeed = searchJitterSmoothSpeed;
+        currentJitterUpdateInterval = searchJitterUpdateInterval;
+    }
+}
+
+public Quaternion GetJitteredRotation(Quaternion baseRotation)
+{
+    if (!enableJitter || currentJitter == Vector3.zero)
+        return baseRotation;
+    
+    // 从基础旋转获取前方向
+    Vector3 forward = baseRotation * Vector3.forward;
+    
+    // 应用抖动
+    Vector3 jitteredForward = forward + currentJitter;
+    
+    // 返回新的旋转
+    return Quaternion.LookRotation(jitteredForward);
+}
+
 
     
 // 敌人警报的传递范围

@@ -171,7 +171,7 @@ MonoBehaviour:
   patrolSpeed: 1
   alertMeter: 0
   alertMeterMax: 100
-  alertMeterIncreaseRate: 70
+  alertMeterIncreaseRate: 30
   alertMeterDecreaseRate: 5
   alertThresholds:
   - 20
@@ -201,12 +201,43 @@ MonoBehaviour:
   highAlertColor: {r: 1, g: 0.4, b: 0, a: 1}
   maxAlertColor: {r: 1, g: 0, b: 0, a: 1}
   colorLerpSpeed: 2
+  patrolFlicker:
+    frequency: 5
+    intensityMin: 8000000
+    intensityMax: 1
+  alertFlicker:
+    frequency: 8
+    intensityMin: 8000000
+    intensityMax: 1
+  combatFlicker:
+    frequency: 10
+    intensityMin: 8000000
+    intensityMax: 1
+  searchFlicker:
+    frequency: 7
+    intensityMin: 8000000
+    intensityMax: 1
   alertRadius: 15.6
   enemyLayer:
     serializedVersion: 2
     m_Bits: 8388608
   playerLost: 0
   hasSwitchedToCombatState: 0
+  enableJitter: 1
+  patrolJitterRange: 0.2
+  patrolJitterSmoothSpeed: 3
+  patrolJitterUpdateInterval: 0.2
+  alertJitterRange: 0.5
+  alertJitterSmoothSpeed: 4
+  alertJitterUpdateInterval: 0.15
+  combatJitterRange: 0.7
+  combatJitterSmoothSpeed: 5
+  combatJitterUpdateInterval: 0.1
+  searchJitterRange: 0.4
+  searchJitterSmoothSpeed: 3.5
+  searchJitterUpdateInterval: 0.15
+  currentJitter: {x: 0, y: 0, z: 0}
+  targetJitter: {x: 0, y: 0, z: 0}
 --- !u!195 &4088033362597559791
 NavMeshAgent:
   m_ObjectHideFlags: 0
