@@ -37,30 +37,29 @@ public class EnemyPatrolState : EnemyBaseState
     {
         if (enemy.waypoints.Length == 0) return;
 
-        // 获取当前目标点
         Transform targetWaypoint = enemy.waypoints[currentWaypointIndex];
+        Vector3 directionToWaypoint = (targetWaypoint.position - enemy.transform.position).normalized;
 
-        // 计算目标旋转
-        Quaternion targetRotation = Quaternion.LookRotation((targetWaypoint.position - enemy.transform.position).normalized);
+        // 计算基础旋转和 jittered 旋转
+        Quaternion baseRotation = Quaternion.LookRotation(directionToWaypoint);
+        Quaternion jitteredRotation = enemy.GetJitteredRotation(baseRotation);
 
-        // 获取当前旋转速度
-        float rotationSpeed = (enemy.rotationSpeeds.Length > currentWaypointIndex) 
-                            ? enemy.rotationSpeeds[currentWaypointIndex] 
+        float rotationSpeed = (enemy.rotationSpeeds.Length > currentWaypointIndex)
+                            ? enemy.rotationSpeeds[currentWaypointIndex]
                             : enemy.defaultRotationSpeed;
 
-        // 平滑旋转到目标方向
+        // 应用带 jitter 的旋转
         enemy.transform.rotation = Quaternion.RotateTowards(
             enemy.transform.rotation,
-            targetRotation,
+            jitteredRotation,
             rotationSpeed * Time.deltaTime
         );
 
-        // 检查是否完成旋转并开始等待
-        if (Quaternion.Angle(enemy.transform.rotation, targetRotation) < 0.1f)
+        // ✅ 判断是否已经完成了“真正目标方向”的旋转（用 baseRotation）
+        if (Quaternion.Angle(enemy.transform.rotation, baseRotation) < 1.5f) // 适当放宽角度容忍度
         {
             enemy.waitTimer += Time.deltaTime;
 
-            // 如果等待时间完成，移动到下一个点
             if (enemy.waitTimer >= enemy.waitTimeAtWaypoint)
             {
                 enemy.waitTimer = 0f;
