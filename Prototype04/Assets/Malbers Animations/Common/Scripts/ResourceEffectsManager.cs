@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 public class ResourceEffectsManager : MonoBehaviour
 {
@@ -83,6 +84,27 @@ public class ResourceEffectsManager : MonoBehaviour
             return initialIntensity;
         }
     }
+
+    [System.Serializable]
+public class FogEffect
+{
+    public LocalVolumetricFog fogVolume;
+    public float fadeDelay = 0.0f;
+    public float fadeDuration = 3.0f;
+    public AnimationCurve fadeCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+    private float initialBlendDistance;
+
+    public void Initialize()
+    {
+        if (fogVolume != null)
+            initialBlendDistance = fogVolume.parameters.meanFreePath;
+    }
+
+    public float GetInitialBlendDistance()
+    {
+        return initialBlendDistance;
+    }
+}
     
     [Header("光源效果")]
     public List<LightEffect> lightEffects = new List<LightEffect>();
@@ -92,6 +114,8 @@ public class ResourceEffectsManager : MonoBehaviour
     
     [Header("镜头光晕效果")]
     public List<LensFlareEffect> lensFlareEffects = new List<LensFlareEffect>();
+    [Header("体积雾效果")]
+public List<FogEffect> fogEffects = new List<FogEffect>();
 
     private void Start()
     {
@@ -110,6 +134,11 @@ public class ResourceEffectsManager : MonoBehaviour
         {
             effect.Initialize();
         }
+        foreach (var effect in fogEffects)
+{
+    effect.Initialize();
+}
+
     }
     
     public void TriggerAllEffects(float snapDelay)
@@ -134,6 +163,12 @@ public class ResourceEffectsManager : MonoBehaviour
             if (effect.lensFlare != null)
                 StartCoroutine(FadeLensFlare(effect, snapDelay));
         }
+        foreach (var effect in fogEffects)
+{
+    if (effect.fogVolume != null)
+        StartCoroutine(FadeFog(effect, snapDelay));
+}
+
     }
     
     // 光源淡出效果协程
@@ -258,6 +293,31 @@ public class ResourceEffectsManager : MonoBehaviour
     effect.lensFlare.intensity = 0f;
 }
 
+private IEnumerator FadeFog(FogEffect effect, float snapCompletionDelay)
+{
+    yield return new WaitForSeconds(snapCompletionDelay);
+    yield return new WaitForSeconds(effect.fadeDelay);
+
+    float startDistance = effect.fogVolume.parameters.meanFreePath;
+    float endDistance = 10f;  // 雾变淡的目标距离
+    float timer = 0f;
+
+    while (timer < effect.fadeDuration)
+    {
+        timer += Time.deltaTime;
+        float normalizedTime = Mathf.Clamp01(timer / effect.fadeDuration);
+        float curveValue = effect.fadeCurve.Evaluate(normalizedTime);
+
+        effect.fogVolume.parameters.meanFreePath = Mathf.Lerp(startDistance, endDistance, curveValue);
+
+        yield return null;
+    }
+
+    // 最终设置为10，并立即禁用对象
+    effect.fogVolume.parameters.meanFreePath = endDistance;
+    effect.fogVolume.gameObject.SetActive(false);
+}
+
     // 重置所有效果（如果需要重新使用）
     public void ResetAllEffects()
     {
@@ -281,5 +341,14 @@ public class ResourceEffectsManager : MonoBehaviour
             if (effect.lensFlare != null)
                 effect.lensFlare.intensity = effect.GetInitialIntensity();
         }
+
+        foreach (var effect in fogEffects)
+{
+    if (effect.fogVolume != null)
+    {
+        effect.fogVolume.parameters.meanFreePath = effect.GetInitialBlendDistance();
+        effect.fogVolume.gameObject.SetActive(true);
+    }
+}
     }
 }
