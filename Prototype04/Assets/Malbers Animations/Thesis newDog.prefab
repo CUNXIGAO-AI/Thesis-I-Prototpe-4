@@ -412,7 +412,7 @@ PrefabInstance:
     - target: {fileID: 3455714203031829998, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
       propertyPath: m_BlendShapeWeights.Array.data[15]
-      value: 22
+      value: 23
       objectReference: {fileID: 0}
     - target: {fileID: 3455714203031829998, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
@@ -567,7 +567,7 @@ PrefabInstance:
     - target: {fileID: 5695000961980260719, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
       propertyPath: m_BlendShapeWeights.Array.data[15]
-      value: 22
+      value: 23
       objectReference: {fileID: 0}
     - target: {fileID: 5695000961980260719, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
@@ -955,7 +955,7 @@ PrefabInstance:
     - target: {fileID: 7263044508765120500, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
       propertyPath: m_BlendShapeWeights.Array.data[15]
-      value: 22
+      value: 23
       objectReference: {fileID: 0}
     - target: {fileID: 7263044508765120500, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
@@ -1005,7 +1005,7 @@ PrefabInstance:
     - target: {fileID: 7402728343578994477, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
       propertyPath: m_BlendShapeWeights.Array.data[15]
-      value: 22
+      value: 23
       objectReference: {fileID: 0}
     - target: {fileID: 7402728343578994477, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
@@ -1164,6 +1164,21 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7967742034853664536, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
+      propertyPath: LODs.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7967742034853664536, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: LODs.Array.data[3]
+      value: 
+      objectReference: {fileID: 4318878481419561769}
+    - target: {fileID: 7967742034853664536, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: LODs.Array.data[4]
+      value: 
+      objectReference: {fileID: 4318878481419561769}
+    - target: {fileID: 7967742034853664536, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
       propertyPath: blendShapes.Array.data[4]
       value: 49
       objectReference: {fileID: 0}
@@ -1317,6 +1332,26 @@ PrefabInstance:
       propertyPath: m_LocalScale.z
       value: 0.99999994
       objectReference: {fileID: 0}
+    - target: {fileID: 8563434476754515155, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8563434476754515155, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: m_FadeMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8563434476754515155, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: m_AnimateCrossFading
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8563434476754515155, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: m_LODs.Array.data[0].screenRelativeHeight
+      value: 0.001
+      objectReference: {fileID: 0}
     - target: {fileID: 8719369725014515735, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -1385,3 +1420,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6f1458346e25424fa44376035da3446, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!137 &4318878481419561769 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 5695000961980260719, guid: 27d807dbf4ab4544d887397b00f645a6,
+    type: 3}
+  m_PrefabInstance: {fileID: 8423710609454926406}
+  m_PrefabAsset: {fileID: 0}

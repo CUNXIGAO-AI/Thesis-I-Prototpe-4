@@ -98,7 +98,9 @@ MonoBehaviour:
   ID: {fileID: 11400000, guid: adfa24f62d6db4d40a1d837f4ec1a6e9, type: 2}
   ragdollPrefab: {fileID: 883479636317279480, guid: 212919feed42e8f4387a61857d8af674,
     type: 3}
-  Drag: 2
+  Drag: 2.5
   AngularDrag: 2
+  materialChangeDelay: 3
+  deathMaterial: {fileID: 2100000, guid: 7c8ef285d680fa949801346d53b36740, type: 2}
   EnablePreProcessing: 1
-  collision: 3
+  collision: 1

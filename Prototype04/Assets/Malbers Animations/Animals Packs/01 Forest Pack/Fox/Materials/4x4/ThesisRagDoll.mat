@@ -107,7 +107,7 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _GradientIntensity: 0.91
+    - _GradientIntensity: 0
     - _GradientOffset: 0
     - _GradientPower: 1
     - _GradientScale: 1
@@ -175,7 +175,7 @@ Material:
     - _Color_16: {r: 0.033737022, g: 0.040627588, b: 0.17647058, a: 0.447}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
-    - _GradientColor: {r: 0.3926219, g: 0.4639841, b: 0.4811321, a: 0}
+    - _GradientColor: {r: 0.22012573, g: 0.22012573, b: 0.22012573, a: 0}
     - _MRE1: {r: 0, g: 1, b: 0, a: 0}
     - _MRE10: {r: 0, g: 1, b: 0, a: 0}
     - _MRE11: {r: 0, g: 1, b: 0, a: 0}
