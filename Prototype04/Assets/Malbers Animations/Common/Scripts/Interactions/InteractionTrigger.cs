@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using MalbersAnimations.Controller;
 using Cinemachine; // 添加Cinemachine命名空间
 using UnityEngine.Events;
+using UnityEngine.Playables; // 添加Playable命名空间
 using MalbersAnimations; // 添加UnityEvents命名空间
 
 // 添加Icon以便在Inspector中更容易识别
@@ -34,6 +35,20 @@ public class InteractionTrigger : MonoBehaviour
     [SerializeField]
     private float exitCooldownDuration = 1f; // 可以根据需要调整
 
+
+    [Header("双碰撞体设置")]
+    [Tooltip("是否使用独立的过场动画触发区域")]
+    public bool useSeparateCutsceneTrigger = true;
+
+    [Tooltip("过场动画触发碰撞体")]
+    public BoxCollider cutsceneTriggerCollider;
+
+    [Tooltip("对话/交互触发碰撞体")]
+    public CapsuleCollider dialogueTriggerCollider;
+
+    private bool playerInCutsceneRange = false;
+
+
     [Tooltip("当前交互状态")]
     private InteractionState currentState = InteractionState.Ready;
     
@@ -60,9 +75,6 @@ public class InteractionTrigger : MonoBehaviour
     [SerializeField]
     [Tooltip("交互事件设置")]
     public InteractionEvents events = new InteractionEvents();
-
-    [Tooltip("可交互的检测半径, 无功能 只是看到的范围 方便调试")] 
-    public float interactionRadius = 2f;
 
     [System.Serializable]
     public class PromptSettings
@@ -258,7 +270,55 @@ public class InteractionTrigger : MonoBehaviour
         [Range(0f, 5f)]
         public float blackScreenToFadeOutDelay = 0.2f;  
     }
+[Space(10)]
+[Header("过场动画功能")]
+[Tooltip("启用过场动画功能")]
+public bool enableCutscene = false;
+[SerializeField]
+[Tooltip("过场动画设置")]
+public CutsceneSettings cutsceneSettings = new CutsceneSettings();
 
+private bool hasCutscenePlayed = false; // 追踪过场动画是否已播放
+
+[System.Serializable]
+public class CutsceneSettings
+{
+    [Header("过场动画设置")]
+    [Tooltip("过场动画Director组件")]
+    public PlayableDirector cutsceneDirector;
+    [Tooltip("触发延迟时间")]
+    public float cutsceneDelay = 0.75f;
+
+    [Header("相机设置")]
+    [Tooltip("过场动画使用的所有虚拟相机")]
+    public CinemachineVirtualCamera[] cutsceneVirtualCameras;
+
+        [Tooltip("过场动画播放时虚拟相机的优先级")]
+    public int cutsceneCameraPriority = 20;
+    
+    [Tooltip("过场动画结束后的虚拟相机优先级")]
+    public int resetPriority = 0;
+    
+    [Tooltip("过场动画播放完成后是否自动显示交互提示")]
+    public bool showPromptAfterCutscene = true;
+    
+    [Header("黑屏淡入淡出时间")]
+    [Tooltip("黑屏淡入时间")]
+    public float fadeInDuration = 0.5f;
+
+    [Tooltip("黑屏淡出时间")]
+    public float fadeOutDuration = 0.5f;
+    public float blackScreenDuration = 1.5f; // 黑屏持续时间
+    public float endingFadeInDuration = 0.5f; // 结束时的淡入时间
+    public float endingFadeOutDuration = 0.5f; // 结束时的淡出时间
+    
+    [Header("事件")]
+    [Tooltip("过场动画开始时触发的事件")]
+    public UnityEvent onCutsceneStarted = new UnityEvent();
+    
+    [Tooltip("过场动画结束时触发的事件")]
+    public UnityEvent onCutsceneCompleted = new UnityEvent();
+}
 
 [Header("存档功能")]
 [Tooltip("启用存档功能")]
@@ -318,9 +378,6 @@ public float dropItemDelay = 0.3f;
     // Unity界面图标，便于在场景中识别
     private void OnDrawGizmos()
     {
-        Gizmos.color = playerInRange ? Color.yellow: Color.cyan;
-        Gizmos.DrawWireSphere(transform.position, interactionRadius);
-        
         // 显示一个对话图标
         Gizmos.DrawIcon(transform.position + Vector3.up, "console.infoicon", true);
     }
@@ -346,6 +403,13 @@ public float dropItemDelay = 0.3f;
     private void Start()
     {
         InitializeComponents();
+
+            if (useSeparateCutsceneTrigger && cutsceneTriggerCollider != null && dialogueTriggerCollider != null)
+    {
+        // 确保两个碰撞体都设置为触发器
+        cutsceneTriggerCollider.isTrigger = true;
+        dialogueTriggerCollider.isTrigger = true;
+    }
     }
     
     private void InitializeComponents()
@@ -913,27 +977,66 @@ private void OnTriggerEnter(Collider other)
 {
     if (other.CompareTag(playerTag) && !isPlayerDead)
     {
-        // 只有首次进入或状态改变时才进行处理
-        if (!playerInRange)
+        // 检查是哪个碰撞体被触发
+        bool inCutsceneRange = false;
+        if (useSeparateCutsceneTrigger && cutsceneTriggerCollider != null)
+        {
+            inCutsceneRange = cutsceneTriggerCollider.bounds.Intersects(other.bounds);
+            
+            // 玩家进入了过场动画触发范围
+            if (inCutsceneRange && !playerInCutsceneRange)
+            {
+                playerInCutsceneRange = true;
+                Debug.Log("玩家进入过场动画范围");
+                
+                // 对于过场动画也要处理Extra Logic - 之前遗漏的部分
+                FindAndControlExtraLogic(false);
+                
+                // 检查是否需要播放过场动画
+                if (enableCutscene && !hasCutscenePlayed)
+                {
+                    // 立即禁用玩家输入
+                    DisablePlayerInput();
+                    // 播放过场动画
+                    StartCoroutine(PlayCutsceneSequence());
+                    return; // 提前退出，等待过场动画完成
+                }
+            }
+        }
+        
+        // 对话范围检测
+        bool inDialogueRange = false;
+        if (dialogueTriggerCollider != null)
+        {
+            inDialogueRange = dialogueTriggerCollider.bounds.Intersects(other.bounds);
+        }
+        else
+        {
+            // 如果没有专门的对话碰撞体，就使用默认的检测
+            inDialogueRange = true; 
+        }
+        
+        if (inDialogueRange && !playerInRange)
         {
             playerInRange = true;
             events.onPlayerEnterRange.Invoke();
-            FindAndControlExtraLogic(false);
-
-            // 如果是一次性交互且已完成，不显示提示
+            
+            // 只有当玩家没有进入过场动画范围时，才在这里处理Extra Logic
+            // 避免和过场动画的Extra Logic处理冲突
+            if (!playerInCutsceneRange)
+            {
+                FindAndControlExtraLogic(false);
+            }
+            
+            // 正常的交互提示逻辑
             if (isOneTimeInteraction && currentState == InteractionState.Completed)
                 return;
-                    
-            // 如果没有在交互中且不在冷却状态中，显示提示
+                
             if (currentState == InteractionState.Ready)
             {
-                // 重置标志，确保背景可以淡入
                 isBackgroundFading = false;
-                
-                // 使用新的提示更新方法
                 UpdatePromptMessage();
                 
-                // 无条件显示背景，确保 isBackgroundFading 为 false
                 if (dialogueSettings.backgroundImage != null)
                 {
                     StartCoroutine(FadeTextBackground(1.0f));
@@ -948,12 +1051,44 @@ private void OnTriggerExit(Collider other)
 {
     if (other.CompareTag(playerTag) && !isPlayerDead)
     {
-        // 只有真正离开时才进行处理
-        if (playerInRange)
+        bool wasInCutsceneRange = playerInCutsceneRange;
+        bool wasInDialogueRange = playerInRange;
+        
+        // 检查是否离开过场动画范围
+        if (useSeparateCutsceneTrigger && cutsceneTriggerCollider != null)
+        {
+            bool stillInCutsceneRange = cutsceneTriggerCollider.bounds.Intersects(other.bounds);
+            if (!stillInCutsceneRange && playerInCutsceneRange)
+            {
+                playerInCutsceneRange = false;
+                Debug.Log("玩家离开过场动画范围");
+                
+                // 只有当玩家不在对话范围内时，才在这里启用Extra Logic
+                if (!playerInRange)
+                {
+                    FindAndControlExtraLogic(true);
+                }
+            }
+        }
+        
+        // 检查是否离开对话范围
+        bool stillInDialogueRange = false;
+        if (dialogueTriggerCollider != null)
+        {
+            stillInDialogueRange = dialogueTriggerCollider.bounds.Intersects(other.bounds);
+        }
+        
+        if (playerInRange && !stillInDialogueRange)
         {
             playerInRange = false;
             events.onPlayerExitRange.Invoke();
-            FindAndControlExtraLogic(true);
+            
+            // 如果也不在过场动画范围内，才启用Extra Logic
+            if (!playerInCutsceneRange)
+            {
+                FindAndControlExtraLogic(true);
+            }
+            
             hasShownPrompt = false; // 重置提示显示状态
 
             // 如果未开始交互，清除提示
@@ -980,8 +1115,133 @@ private void OnTriggerExit(Collider other)
                 cameraSettings.virtualCamera.Priority = 0;
             }
         }
+        
+        // 特殊情况处理：如果玩家同时离开了两个范围
+        if (wasInCutsceneRange && wasInDialogueRange && !playerInCutsceneRange && !playerInRange)
+        {
+            // 确保Extra Logic被正确启用
+            FindAndControlExtraLogic(true);
+        }
     }
 }
+
+
+private IEnumerator PlayCutsceneSequence()
+{
+    yield return new WaitForSeconds(cutsceneSettings.cutsceneDelay);
+    hasCutscenePlayed = true;
+    Debug.Log("[Cutscene] 开始播放序列");
+    currentState = InteractionState.Cooldown;
+    DisablePlayerInput();
+
+    if (fadeSettings.uiBackgroundImage != null)
+    {
+        
+        // 第一次黑屏淡入
+        Debug.Log("[Cutscene] 开始黑屏淡入");
+        StartCoroutine(FadeUIBackground(true, cutsceneSettings.fadeInDuration));
+        yield return new WaitForSeconds(cutsceneSettings.fadeInDuration);
+
+          SetCutsceneCamerasPriority(cutsceneSettings.cutsceneCameraPriority);
+        
+        // 在黑屏状态下开始播放过场动画
+        if (cutsceneSettings.cutsceneDirector != null)
+        {   
+            Debug.Log("[Cutscene] 在黑屏状态下开始播放 Timeline");
+            cutsceneSettings.onCutsceneStarted.Invoke();
+            cutsceneSettings.cutsceneDirector.Play();
+            
+            // 等待短暂时间，让过场动画开始播放但还处于黑屏状态
+            yield return new WaitForSeconds(cutsceneSettings.blackScreenDuration); // 可以根据需要调整这个时间
+            
+            // 黑屏淡出（开始显示过场动画）
+            Debug.Log("[Cutscene] 开始黑屏淡出，显示过场动画");
+            StartCoroutine(FadeUIBackground(false, cutsceneSettings.fadeOutDuration));
+            
+            // 等待过场动画播放完成，但不等待黑屏淡出完成
+            // 这样黑屏淡出和过场动画播放会同时进行
+            while (cutsceneSettings.cutsceneDirector.state == PlayState.Playing)
+            {
+                yield return null;
+            }
+            Debug.Log("[Cutscene] Timeline 播放完成");
+            
+            // 过场动画播放完毕后的第二次黑屏淡入
+            Debug.Log("[Cutscene] 开始结束时的黑屏淡入");
+            StartCoroutine(FadeUIBackground(true, cutsceneSettings.endingFadeInDuration));
+            yield return new WaitForSeconds(cutsceneSettings.endingFadeInDuration);
+
+            Debug.Log("[Cutscene] 重置虚拟相机优先级");
+            SetCutsceneCamerasPriority(0);
+            // 短暂停留在黑屏
+            yield return new WaitForSeconds(cutsceneSettings.blackScreenDuration);
+            
+            // 在黑屏状态下重置相机优先级
+            
+            // 第二次黑屏淡出
+            Debug.Log("[Cutscene] 开始结束时的黑屏淡出");
+            StartCoroutine(FadeUIBackground(false, cutsceneSettings.endingFadeOutDuration));
+            yield return new WaitForSeconds(cutsceneSettings.endingFadeOutDuration);
+            
+            // 触发过场动画完成事件
+            cutsceneSettings.onCutsceneCompleted.Invoke();
+        }
+        else
+        {
+            Debug.LogWarning("[Cutscene] 过场动画Director未设置！");
+            // 如果没有过场动画，也要淡出黑屏
+            StartCoroutine(FadeUIBackground(false, cutsceneSettings.fadeOutDuration));
+            yield return new WaitForSeconds(cutsceneSettings.fadeOutDuration + 2.0f);
+        }
+    }
+    else
+    {
+        Debug.LogWarning("[Cutscene] 黑屏UI背景未设置，无法淡入淡出！");
+        yield return new WaitForSeconds(2.0f);
+    }
+
+    EnablePlayerInput();
+    Debug.Log("[Cutscene] 玩家输入恢复");
+
+    if (cutsceneSettings.showPromptAfterCutscene && playerInRange)
+    {
+        currentState = InteractionState.Ready;
+        UpdatePromptMessage();
+
+        if (dialogueSettings.backgroundImage != null)
+        {
+            Debug.Log("[Cutscene] 过场结束后开始提示背景淡入");
+            StartCoroutine(FadeTextBackground(1.0f));
+        }
+    }
+    else
+    {
+        currentState = InteractionState.Ready;
+    }
+
+    Debug.Log("[Cutscene] 播放序列结束");
+}
+
+private void SetCutsceneCamerasPriority(int priority)
+{
+    if (cutsceneSettings.cutsceneVirtualCameras == null || cutsceneSettings.cutsceneVirtualCameras.Length == 0)
+        return;
+        
+    foreach (var cam in cutsceneSettings.cutsceneVirtualCameras)
+    {
+        if (cam != null)
+        {
+            cam.Priority = priority;
+            Debug.Log($"设置相机 {cam.name} 优先级为: {priority}");
+        }
+    }
+}
+
+public void ResetCutscene()
+{
+    hasCutscenePlayed = false;
+}
+
 private void FindAndControlExtraLogic(bool enable)
 {
     // 获取当前主角色（每次都重新获取以适应重生情况）
@@ -1282,27 +1542,31 @@ private IEnumerator FadeTextBackground(float targetAlpha)
     isBackgroundFading = false; // 确保标志被重置
 }
         
-    private IEnumerator FadeUIBackground(bool fadeIn)
+private IEnumerator FadeUIBackground(bool fadeIn, float? customDuration = null)
+{
+    if (fadeSettings.uiBackgroundImage == null) yield break;
+
+    float startAlpha = fadeSettings.uiBackgroundImage.color.a;
+    float targetAlpha = fadeIn ? fadeSettings.uiMaxAlpha : 0f;
+
+    // 🆕 使用 customDuration（如果没传就使用默认）
+    float duration = customDuration ?? (fadeIn ? fadeSettings.uiFadeInDuration : fadeSettings.uiFadeOutDuration);
+
+    for (float t = 0; t < duration; t += Time.deltaTime)
     {
-        if (fadeSettings.uiBackgroundImage == null) yield break;
-        
-        float startAlpha = fadeSettings.uiBackgroundImage.color.a;
-        float targetAlpha = fadeIn ? fadeSettings.uiMaxAlpha : 0f;
-        float duration = fadeIn ? fadeSettings.uiFadeInDuration : fadeSettings.uiFadeOutDuration;
-        
-        for (float t = 0; t < duration; t += Time.deltaTime)
-        {
-            float newAlpha = Mathf.Lerp(startAlpha, targetAlpha, t / duration);
-            Color bgColor = fadeSettings.uiBackgroundImage.color;
-            bgColor.a = newAlpha;
-            fadeSettings.uiBackgroundImage.color = bgColor;
-            yield return null;
-        }
-        
-        Color finalColor = fadeSettings.uiBackgroundImage.color;
-        finalColor.a = targetAlpha;
-        fadeSettings.uiBackgroundImage.color = finalColor;
+        float newAlpha = Mathf.Lerp(startAlpha, targetAlpha, t / duration);
+        Color bgColor = fadeSettings.uiBackgroundImage.color;
+        bgColor.a = newAlpha;
+        fadeSettings.uiBackgroundImage.color = bgColor;
+        yield return null;
     }
+
+    Color finalColor = fadeSettings.uiBackgroundImage.color;
+    finalColor.a = targetAlpha;
+    fadeSettings.uiBackgroundImage.color = finalColor;
+}
+
+    
     
 
 private bool isPromptUpdating = false;
