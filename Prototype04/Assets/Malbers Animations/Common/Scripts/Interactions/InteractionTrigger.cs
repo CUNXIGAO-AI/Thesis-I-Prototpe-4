@@ -14,6 +14,8 @@ using MalbersAnimations; // 添加UnityEvents命名空间
 public class InteractionTrigger : MonoBehaviour
 {
     public ResourceManager resourceManager;  // 拖到Inspector
+    private GameObject playerExtraLogic;
+    
     private bool pendingCompleteAfterExit = false;
     private enum InteractionState
     {
@@ -505,19 +507,20 @@ public float dropItemDelay = 0.3f;
 }
 
     
-    private void HandleInteraction()
+private void HandleInteraction()
 {
-        //如果是存档功能，直接调用存档处理函数
-        if (enableSaveFunction)
+    // 如果是存档功能，直接调用存档处理函数
+    if (enableSaveFunction)
     {
         HandleSave();
         return;
     }
 
-
     currentState = InteractionState.Active;
-
     events.onInteractionStarted.Invoke();
+
+    // 只要进入正式交互模式就禁用玩家输入
+    DisablePlayerInput();
 
     // 启动相机
     if (enableCamera && cameraSettings.virtualCamera != null)
@@ -532,7 +535,13 @@ public float dropItemDelay = 0.3f;
     }
     else
     {
-        // ✅ 如果只是Prompt
+        // 如果只是Prompt(没有对话和相机)，直接启用玩家输入
+        if (!enableCamera || cameraSettings.virtualCamera == null)
+        {
+            EnablePlayerInput();
+        }
+
+        // 淡出提示文本
         if (!string.IsNullOrEmpty(promptSettings.promptMessage))
         {
             StartCoroutine(FadeText("", TextType.Prompt));
@@ -543,7 +552,7 @@ public float dropItemDelay = 0.3f;
             StartCoroutine(FadeTextBackground(0f));
         }
 
-        // ✅ 关键逻辑更新：
+        // 关键逻辑更新：
         if (promptSettings.isPromptOnlyOneTime)
         {
             currentState = InteractionState.Completed;
@@ -554,8 +563,6 @@ public float dropItemDelay = 0.3f;
         }
     }
 }
-
-
 
 private void ExitInteraction()
 {
@@ -568,10 +575,11 @@ private void ExitInteraction()
         pendingCompleteAfterExit = false; // 清除标记，避免影响下一次
     }
 
+    // 不在这里启用输入，而是在协程中的适当时机启用
     StartCoroutine(CoordinatedExitAnimation());
-        events.onInteractionEnded.Invoke();
-
+    events.onInteractionEnded.Invoke();
 }
+
 
 private IEnumerator CoordinatedExitAnimation()
 {
@@ -580,12 +588,12 @@ private IEnumerator CoordinatedExitAnimation()
     {
         // 同时开始文本和背景淡出
         StartCoroutine(FadeText("", TextType.Dialogue));
-        
+
         if (dialogueSettings.backgroundImage != null)
         {
             StartCoroutine(FadeTextBackground(0f));
         }
-        
+
         // 等待较长的那个淡出时间完成
         float maxFadeOutTime = Mathf.Max(
             dialogueSettings.dialogueFadeOutDuration,
@@ -599,82 +607,61 @@ private IEnumerator CoordinatedExitAnimation()
         StartCoroutine(FadeTextBackground(0f));
         yield return new WaitForSeconds(fadeSettings.textBackgroundFadeOutDuration);
     }
-    
-    // 添加第一个可调整的延迟
-    yield return new WaitForSeconds(exitDelays.textToBlackScreenDelay);
-    
-    // 2. 相机切换和黑屏淡入
+
     if (enableCamera && cameraSettings.virtualCamera != null)
     {
+        // 添加第一个可调整的延迟
+        yield return new WaitForSeconds(exitDelays.textToBlackScreenDelay);
+
         // 淡入UI背景（黑屏）
         StartCoroutine(FadeUIBackground(true));
-        
-        // 等待UI背景淡入完成
         yield return new WaitForSeconds(fadeSettings.uiFadeInDuration);
-        
-        // 切换相机
+
+        // 相机切换
         cameraSettings.virtualCamera.Priority = 0;
-        
-        // 添加第二个可调整的延迟
+
+        // 启用输入
+        EnablePlayerInput();
+
+        // 添加第二个延迟
         yield return new WaitForSeconds(exitDelays.blackScreenToFadeOutDelay);
-        
-        // 淡出UI背景（黑屏）
+
+        // 淡出黑屏
         StartCoroutine(FadeUIBackground(false));
-        
-        // 等待UI背景淡出完成
         yield return new WaitForSeconds(fadeSettings.uiFadeOutDuration);
     }
-    
-    // 添加最终冷却延迟
-    yield return new WaitForSeconds(exitCooldownDuration);
-    
-      // 冷却结束，检查状态
+    else
+    {
+        // 没有相机切换，立即启用输入，不等待额外时间
+        EnablePlayerInput();
+    }
+
+    // 如果有相机切换，再添加冷却延迟
+    if (enableCamera && cameraSettings.virtualCamera != null)
+    {
+        yield return new WaitForSeconds(exitCooldownDuration);
+    }
+
+    // 冷却结束，检查状态
     if (currentState == InteractionState.Cooldown)
     {
         currentState = InteractionState.Ready; // 重置为准备状态
     }
-    
+
     // 如果玩家仍在范围内，显示交互提示
-    if (playerInRange && (currentState != InteractionState.Completed))
+if (playerInRange && (currentState != InteractionState.Completed))
 {
-    // 使用更新后的提示信息函数
+    // 重置背景淡入淡出标志
+    isBackgroundFading = false;
     
-    // 只要有提示，就显示背景
-    if (!string.IsNullOrEmpty(promptSettings.promptMessage) && dialogueSettings.backgroundImage != null)
+    UpdatePromptMessage();
+
+    if (dialogueSettings.backgroundImage != null)
     {
-    StartCoroutine(FadeText(promptSettings.promptMessage, TextType.Prompt));
+        StartCoroutine(FadeTextBackground(1.0f));
     }
 }
 }
-
-private void UpdatePromptMessage()
-{
-    string baseMessage = promptSettings.promptMessage;
-    
-    // 如果有替代按键，添加到提示中
-    if (promptSettings.alternativeInteractionKey != KeyCode.None)
-    {
-        // 替换默认的"按X交互"格式
-        string mainKey = promptSettings.mainInteractionKey.ToString();
-        string altKey = promptSettings.alternativeInteractionKey.ToString();
-        
-        // 如果提示中包含具体的按键，替换它
-        if (baseMessage.Contains("X") && mainKey != "X")
-        {
-            baseMessage = baseMessage.Replace("X", mainKey);
-        }
-        
-        // 添加替代按键信息
-        baseMessage += $" 或 {altKey}";
-    }
-    
-    // 当显示提示时使用这个更新后的信息
-    string updatedPromptMessage = baseMessage;
-    
-    // 显示交互提示
-    StartCoroutine(FadeText(updatedPromptMessage, TextType.Prompt));
-}
-
 
 private void HandleChoice(DialogueChoice choice)
 {
@@ -920,27 +907,37 @@ private void JumpToResourceFailureMessage(DialogueMessage currentMessage)
         StartCoroutine(FadeUIBackground(false));
     }
 
+private bool hasShownPrompt = false; // 跟踪是否已经显示过提示
+
 private void OnTriggerEnter(Collider other)
 {
     if (other.CompareTag(playerTag) && !isPlayerDead)
     {
-        playerInRange = true;
-        events.onPlayerEnterRange.Invoke();
-
-        // 如果是一次性交互且已完成，不做任何事
-        if (isOneTimeInteraction && currentState == InteractionState.Completed)
-            return;
-                
-        // 如果没有在交互中且不在冷却状态中，显示提示
-        if (currentState == InteractionState.Ready)
+        // 只有首次进入或状态改变时才进行处理
+        if (!playerInRange)
         {
-            // 使用更新后的提示信息函数
-        StartCoroutine(FadeText(promptSettings.promptMessage, TextType.Prompt));
-            
-            // 改成无论是否启用对话，都显示背景（只要有提示就显示）
-            if (dialogueSettings.backgroundImage != null)
+            playerInRange = true;
+            events.onPlayerEnterRange.Invoke();
+            FindAndControlExtraLogic(false);
+
+            // 如果是一次性交互且已完成，不显示提示
+            if (isOneTimeInteraction && currentState == InteractionState.Completed)
+                return;
+                    
+            // 如果没有在交互中且不在冷却状态中，显示提示
+            if (currentState == InteractionState.Ready)
             {
-                StartCoroutine(FadeTextBackground(1.0f));
+                // 重置标志，确保背景可以淡入
+                isBackgroundFading = false;
+                
+                // 使用新的提示更新方法
+                UpdatePromptMessage();
+                
+                // 无条件显示背景，确保 isBackgroundFading 为 false
+                if (dialogueSettings.backgroundImage != null)
+                {
+                    StartCoroutine(FadeTextBackground(1.0f));
+                }
             }
         }
     }
@@ -951,35 +948,68 @@ private void OnTriggerExit(Collider other)
 {
     if (other.CompareTag(playerTag) && !isPlayerDead)
     {
-        playerInRange = false;
-        events.onPlayerExitRange.Invoke();
+        // 只有真正离开时才进行处理
+        if (playerInRange)
+        {
+            playerInRange = false;
+            events.onPlayerExitRange.Invoke();
+            FindAndControlExtraLogic(true);
+            hasShownPrompt = false; // 重置提示显示状态
 
-        // 如果未开始交互，清除提示
-        if (currentState == InteractionState.Ready)
-        {
-            // 淡出文本
-            StartCoroutine(FadeText("", TextType.Prompt));
-            
-            // 确保文本背景淡出
-            if (dialogueSettings.backgroundImage != null)
+            // 如果未开始交互，清除提示
+            if (currentState == InteractionState.Ready)
             {
-                StartCoroutine(FadeTextBackground(0f));
+                // 淡出文本
+                StartCoroutine(FadeText("", TextType.Prompt));
+                
+                // 确保文本背景淡出
+                if (dialogueSettings.backgroundImage != null)
+                {
+                    StartCoroutine(FadeTextBackground(0f));
+                }
             }
-        }
-        else if (currentState == InteractionState.Active)
-        {
-            // 如果正在交互中，退出交互
-            ExitInteraction();
-        }
-        
-        // 关闭相机
-        if (enableCamera && cameraSettings.virtualCamera != null)
-        {
-            cameraSettings.virtualCamera.Priority = 0;
+            else if (currentState == InteractionState.Active)
+            {
+                // 如果正在交互中，退出交互
+                ExitInteraction();
+            }
+            
+            // 关闭相机
+            if (enableCamera && cameraSettings.virtualCamera != null)
+            {
+                cameraSettings.virtualCamera.Priority = 0;
+            }
         }
     }
 }
-
+private void FindAndControlExtraLogic(bool enable)
+{
+    // 获取当前主角色（每次都重新获取以适应重生情况）
+    var animal = MAnimal.MainAnimal;
+    if (animal != null)
+    {
+        // 查找Extra Logic
+        Transform extraLogic = animal.transform.Find("Extra Logic");
+        if (extraLogic != null)
+        {
+            // 更新引用
+            playerExtraLogic = extraLogic.gameObject;
+            
+            // 设置激活状态
+            playerExtraLogic.SetActive(enable);
+            Debug.Log("找到并" + (enable ? "启用" : "禁用") + "了Extra Logic: " + playerExtraLogic.name);
+        }
+        else
+        {
+            Debug.LogWarning("在玩家对象中未找到Extra Logic游戏对象");
+        }
+    }
+    else
+    {
+        Debug.LogWarning("未找到主角色");
+    }
+}
+    
 
     private enum TextType
     {
@@ -1128,15 +1158,33 @@ private IEnumerator SaveGameCoroutine()
     }
 }
 
+private bool isTextFading = false;
+
 private IEnumerator FadeText(string newText, TextType textType = TextType.Dialogue)
 {
     // 检查CanvasGroup是否存在
-    if (textCanvasGroup == null) yield break;
+    if (textCanvasGroup == null)
+    {
+        Debug.LogWarning("[FadeText] 跳过: textCanvasGroup为空");
+        yield break;
+    }
     
     // 如果是对话类型且对话功能关闭，则退出
-    // 但允许显示提示类型的文本
-    if (textType == TextType.Dialogue && !enableDialogue) yield break;
+    if (textType == TextType.Dialogue && !enableDialogue)
+    {
+        Debug.LogWarning("[FadeText] 跳过: 对话类型但对话功能已关闭");
+        yield break;
+    }
     
+    // 如果已经有淡入淡出效果在进行中，则跳过
+    if (isTextFading)
+    {
+        Debug.LogWarning("[FadeText] 跳过: 已有文本正在淡入淡出中. 文本内容: " + newText);
+        yield break;
+    }
+    
+    Debug.Log("[FadeText] 开始执行 - 类型: " + textType + ", 内容: " + newText);
+    isTextFading = true;
     isFading = true;
     
     // 根据文本类型选择淡出时间
@@ -1144,6 +1192,7 @@ private IEnumerator FadeText(string newText, TextType textType = TextType.Dialog
         ? promptSettings.promptFadeOutDuration 
         : dialogueSettings.dialogueFadeOutDuration;
     
+    Debug.Log("[FadeText] 开始淡出 - 持续时间: " + fadeOutDuration);
     // 淡出当前文本
     float startAlpha = textCanvasGroup.alpha;
     for (float t = 0; t < fadeOutDuration; t += Time.deltaTime)
@@ -1152,54 +1201,87 @@ private IEnumerator FadeText(string newText, TextType textType = TextType.Dialog
         yield return null;
     }
     textCanvasGroup.alpha = 0f;
+    Debug.Log("[FadeText] 淡出完成");
     
     // 更新文本内容
     dialogueSettings.dialogueText.text = newText;
+    Debug.Log("[FadeText] 已更新文本内容");
     
-    // 如果新文本为空，不需要淡入
+    // 如果新文本为空，不需要淡入，但不要立即结束协程
     if (string.IsNullOrEmpty(newText))
     {
-        isFading = false;
+        Debug.Log("[FadeText] 文本为空，跳过淡入但保持协程运行");
+        // 不使用yield break，让协程继续到最后
+        // 确保UI状态能够正确更新
+        textCanvasGroup.alpha = 0f; // 确保文本完全透明
+    }
+    else
+    {
+        // 如果有新文本，正常执行淡入
+        // 根据文本类型选择淡入时间
+        float fadeInDuration = (textType == TextType.Prompt) 
+            ? promptSettings.promptFadeInDuration 
+            : dialogueSettings.dialogueFadeInDuration;
+        
+        Debug.Log("[FadeText] 开始淡入 - 持续时间: " + fadeInDuration);
+        // 淡入新文本
+        for (float t = 0; t < fadeInDuration; t += Time.deltaTime)
+        {
+            textCanvasGroup.alpha = Mathf.Lerp(0f, 1f, t / fadeInDuration);
+            yield return null;
+        }
+        textCanvasGroup.alpha = 1f;
+        Debug.Log("[FadeText] 淡入完成");
+    }
+    
+    // 无论文本是否为空，都确保标志位被重置
+    isFading = false;
+    isTextFading = false;
+    Debug.Log("[FadeText] 协程完成，标志位已重置");
+}
+   private bool isBackgroundFading = false;
+
+private IEnumerator FadeTextBackground(float targetAlpha)
+{
+    if (dialogueSettings.backgroundImage == null)
+    {
+        Debug.LogWarning("[FadeTextBackground] 跳过: backgroundImage为空");
+        isBackgroundFading = false; // 确保标志被重置
         yield break;
     }
     
-    // 根据文本类型选择淡入时间
-    float fadeInDuration = (textType == TextType.Prompt) 
-        ? promptSettings.promptFadeInDuration 
-        : dialogueSettings.dialogueFadeInDuration;
-    
-    // 淡入新文本
-    for (float t = 0; t < fadeInDuration; t += Time.deltaTime)
+    if (isBackgroundFading)
     {
-        textCanvasGroup.alpha = Mathf.Lerp(0f, 1f, t / fadeInDuration);
+        Debug.LogWarning("[FadeTextBackground] 跳过: 已有背景正在淡入淡出中. 目标透明度: " + targetAlpha);
+        yield break;
+    }
+    
+    Debug.Log("[FadeTextBackground] 开始执行 - 目标透明度: " + targetAlpha);
+    isBackgroundFading = true;
+    
+    float startAlpha = dialogueSettings.backgroundImage.color.a;
+    float duration = targetAlpha > 0 ? fadeSettings.textBackgroundFadeInDuration : fadeSettings.textBackgroundFadeOutDuration;
+    
+    Debug.Log("[FadeTextBackground] 开始淡入/淡出 - 起始透明度: " + startAlpha + ", 目标透明度: " + targetAlpha + ", 持续时间: " + duration);
+    
+    for (float t = 0; t < duration; t += Time.deltaTime)
+    {
+        float newAlpha = Mathf.Lerp(startAlpha, targetAlpha, t / duration);
+        Color bgColor = dialogueSettings.backgroundImage.color;
+        bgColor.a = newAlpha;
+        dialogueSettings.backgroundImage.color = bgColor;
         yield return null;
     }
-    textCanvasGroup.alpha = 1f;
     
-    isFading = false;
+    // 确保达到目标透明度
+    Color finalColor = dialogueSettings.backgroundImage.color;
+    finalColor.a = targetAlpha;
+    dialogueSettings.backgroundImage.color = finalColor;
+    
+    Debug.Log("[FadeTextBackground] 淡入/淡出完成");
+    isBackgroundFading = false; // 确保标志被重置
 }
-
-    private IEnumerator FadeTextBackground(float targetAlpha)
-    {
-        if (dialogueSettings.backgroundImage == null) yield break;
         
-        float startAlpha = dialogueSettings.backgroundImage.color.a;
-        float duration = targetAlpha > 0 ? fadeSettings.textBackgroundFadeInDuration : fadeSettings.textBackgroundFadeOutDuration;
-        
-        for (float t = 0; t < duration; t += Time.deltaTime)
-        {
-            float newAlpha = Mathf.Lerp(startAlpha, targetAlpha, t / duration);
-            Color bgColor = dialogueSettings.backgroundImage.color;
-            bgColor.a = newAlpha;
-            dialogueSettings.backgroundImage.color = bgColor;
-            yield return null;
-        }
-        
-        Color finalColor = dialogueSettings.backgroundImage.color;
-        finalColor.a = targetAlpha;
-        dialogueSettings.backgroundImage.color = finalColor;
-    }
-    
     private IEnumerator FadeUIBackground(bool fadeIn)
     {
         if (fadeSettings.uiBackgroundImage == null) yield break;
@@ -1221,6 +1303,65 @@ private IEnumerator FadeText(string newText, TextType textType = TextType.Dialog
         finalColor.a = targetAlpha;
         fadeSettings.uiBackgroundImage.color = finalColor;
     }
+    
+
+private bool isPromptUpdating = false;
+
+private void UpdatePromptMessage()
+{
+    // 如果已经在更新提示中，则直接返回
+    if (isPromptUpdating)
+    {
+        Debug.LogWarning("[UpdatePromptMessage] 跳过: 已有提示消息正在更新");
+        return;
+    }
+    
+    isPromptUpdating = true;
+    
+    string baseMessage = promptSettings.promptMessage;
+    
+    // 如果有替代按键，添加到提示中
+    if (promptSettings.alternativeInteractionKey != KeyCode.None)
+    {
+        // 替换默认的"按X交互"格式
+        string mainKey = promptSettings.mainInteractionKey.ToString();
+        string altKey = promptSettings.alternativeInteractionKey.ToString();
+        
+        // 如果提示中包含具体的按键，替换它
+        if (baseMessage.Contains("X") && mainKey != "X")
+        {
+            baseMessage = baseMessage.Replace("X", mainKey);
+        }
+        
+        // 添加替代按键信息
+        baseMessage += $" 或 {altKey}";
+    }
+    
+    // 当显示提示时使用这个更新后的信息
+    string updatedPromptMessage = baseMessage;
+    
+    // 显示交互提示并使用协程跟踪完成状态
+    StartCoroutine(FadePromptText(updatedPromptMessage));
+    
+    // 确保背景也显示 - 添加这部分代码
+    if (dialogueSettings.backgroundImage != null)
+    {
+        // 重置背景淡入淡出标志，确保它可以正常执行
+        isBackgroundFading = false;
+        StartCoroutine(FadeTextBackground(1.0f));
+        Debug.Log("[UpdatePromptMessage] 已启动背景淡入");
+    }
+}
+
+private IEnumerator FadePromptText(string promptText)
+{
+    // 使用现有的FadeText方法
+    yield return StartCoroutine(FadeText(promptText, TextType.Prompt));
+    
+    // 淡入淡出结束后重置标志
+    isPromptUpdating = false;
+    Debug.Log("[UpdatePromptMessage] 提示更新完成");
+}
 
     // 公共方法，可由其他脚本调用
     public void OnPlayerDeath()

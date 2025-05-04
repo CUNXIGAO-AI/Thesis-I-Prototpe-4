@@ -369,6 +369,11 @@ PrefabInstance:
       propertyPath: stats.Array.data[0].RegenWaitTime.ConstantValue
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 3348027294772892599, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: m_CollisionDetection
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 3437198816853736093, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -862,6 +867,11 @@ PrefabInstance:
       propertyPath: m_LocalScale.y
       value: 1.0000001
       objectReference: {fileID: 0}
+    - target: {fileID: 6534861746720639230, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: Description
+      value: If the Animal isn't moving after 15 seconds he will go to Sleep
+      objectReference: {fileID: 0}
     - target: {fileID: 6610878733705938229, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -871,6 +881,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalScale.z
       value: 0.99999994
+      objectReference: {fileID: 0}
+    - target: {fileID: 6688454299503528662, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: Description
+      value: If the Animal isn't moving after 15 seconds he will go to Sleep
       objectReference: {fileID: 0}
     - target: {fileID: 6689775463865158156, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
