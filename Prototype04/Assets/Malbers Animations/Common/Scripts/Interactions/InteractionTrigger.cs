@@ -318,6 +318,13 @@ public class CutsceneSettings
     
     [Tooltip("过场动画结束时触发的事件")]
     public UnityEvent onCutsceneCompleted = new UnityEvent();
+
+    [Header("渐变效果")]
+[Tooltip("是否启用过场动画的渐入渐出效果（对于没有设置摄像机的timeline可以关闭）")]
+public bool enableFadeEffect = true;
+
+[Tooltip("是否在过场动画播放期间禁用玩家输入")]
+public bool disablePlayerInput = true;
 }
 
 [Header("存档功能")]
@@ -992,15 +999,19 @@ private void OnTriggerEnter(Collider other)
                 // 对于过场动画也要处理Extra Logic - 之前遗漏的部分
                 FindAndControlExtraLogic(false);
                 
-                // 检查是否需要播放过场动画
-                if (enableCutscene && !hasCutscenePlayed)
-                {
-                    // 立即禁用玩家输入
-                    DisablePlayerInput();
-                    // 播放过场动画
-                    StartCoroutine(PlayCutsceneSequence());
-                    return; // 提前退出，等待过场动画完成
-                }
+                        // 检查是否需要播放过场动画
+                        if (enableCutscene && !hasCutscenePlayed)
+        {
+            // 仅当需要禁用输入时才禁用
+            if (cutsceneSettings.disablePlayerInput)
+            {
+                DisablePlayerInput();
+            }
+            
+            // 播放过场动画
+            StartCoroutine(PlayCutsceneSequence());
+            return; // 提前退出，等待过场动画完成
+        }
             }
         }
         
@@ -1131,77 +1142,95 @@ private IEnumerator PlayCutsceneSequence()
     yield return new WaitForSeconds(cutsceneSettings.cutsceneDelay);
     hasCutscenePlayed = true;
     Debug.Log("[Cutscene] 开始播放序列");
+    
+    // 设置状态为Cooldown，但记住是否需要禁用输入
     currentState = InteractionState.Cooldown;
-    DisablePlayerInput();
+    bool inputWasDisabled = cutsceneSettings.disablePlayerInput;
+    
+    // 检查是否启用渐变效果
+    bool useFadeEffect = cutsceneSettings.enableFadeEffect;
 
-    if (fadeSettings.uiBackgroundImage != null)
+    if (useFadeEffect && fadeSettings.uiBackgroundImage != null)
     {
-        
         // 第一次黑屏淡入
         Debug.Log("[Cutscene] 开始黑屏淡入");
         StartCoroutine(FadeUIBackground(true, cutsceneSettings.fadeInDuration));
         yield return new WaitForSeconds(cutsceneSettings.fadeInDuration);
+    }
 
-          SetCutsceneCamerasPriority(cutsceneSettings.cutsceneCameraPriority);
+    SetCutsceneCamerasPriority(cutsceneSettings.cutsceneCameraPriority);
+    
+    // 在黑屏状态下开始播放过场动画
+    if (cutsceneSettings.cutsceneDirector != null)
+    {   
+        Debug.Log("[Cutscene] 开始播放 Timeline");
+        cutsceneSettings.onCutsceneStarted.Invoke();
+        cutsceneSettings.cutsceneDirector.Play();
         
-        // 在黑屏状态下开始播放过场动画
-        if (cutsceneSettings.cutsceneDirector != null)
-        {   
-            Debug.Log("[Cutscene] 在黑屏状态下开始播放 Timeline");
-            cutsceneSettings.onCutsceneStarted.Invoke();
-            cutsceneSettings.cutsceneDirector.Play();
-            
+        // 如果启用渐变效果，等待短暂时间并淡出黑屏
+        if (useFadeEffect && fadeSettings.uiBackgroundImage != null)
+        {
             // 等待短暂时间，让过场动画开始播放但还处于黑屏状态
-            yield return new WaitForSeconds(cutsceneSettings.blackScreenDuration); // 可以根据需要调整这个时间
+            yield return new WaitForSeconds(cutsceneSettings.blackScreenDuration); 
             
             // 黑屏淡出（开始显示过场动画）
             Debug.Log("[Cutscene] 开始黑屏淡出，显示过场动画");
             StartCoroutine(FadeUIBackground(false, cutsceneSettings.fadeOutDuration));
-            
-            // 等待过场动画播放完成，但不等待黑屏淡出完成
-            // 这样黑屏淡出和过场动画播放会同时进行
-            while (cutsceneSettings.cutsceneDirector.state == PlayState.Playing)
-            {
-                yield return null;
-            }
-            Debug.Log("[Cutscene] Timeline 播放完成");
-            
-            // 过场动画播放完毕后的第二次黑屏淡入
+        }
+        
+        // 等待过场动画播放完成
+        while (cutsceneSettings.cutsceneDirector.state == PlayState.Playing)
+        {
+            yield return null;
+        }
+        Debug.Log("[Cutscene] Timeline 播放完成");
+        
+        // 过场动画播放完毕后的第二次黑屏淡入（如果启用了渐变效果）
+        if (useFadeEffect && fadeSettings.uiBackgroundImage != null)
+        {
             Debug.Log("[Cutscene] 开始结束时的黑屏淡入");
             StartCoroutine(FadeUIBackground(true, cutsceneSettings.endingFadeInDuration));
             yield return new WaitForSeconds(cutsceneSettings.endingFadeInDuration);
 
-            Debug.Log("[Cutscene] 重置虚拟相机优先级");
-            SetCutsceneCamerasPriority(0);
             // 短暂停留在黑屏
             yield return new WaitForSeconds(cutsceneSettings.blackScreenDuration);
-            
-            // 在黑屏状态下重置相机优先级
-            
-            // 第二次黑屏淡出
+        }
+        
+        Debug.Log("[Cutscene] 重置虚拟相机优先级");
+        SetCutsceneCamerasPriority(0);
+        
+        // 第二次黑屏淡出（如果启用了渐变效果）
+        if (useFadeEffect && fadeSettings.uiBackgroundImage != null)
+        {
             Debug.Log("[Cutscene] 开始结束时的黑屏淡出");
             StartCoroutine(FadeUIBackground(false, cutsceneSettings.endingFadeOutDuration));
             yield return new WaitForSeconds(cutsceneSettings.endingFadeOutDuration);
-            
-            // 触发过场动画完成事件
-            cutsceneSettings.onCutsceneCompleted.Invoke();
         }
-        else
-        {
-            Debug.LogWarning("[Cutscene] 过场动画Director未设置！");
-            // 如果没有过场动画，也要淡出黑屏
-            StartCoroutine(FadeUIBackground(false, cutsceneSettings.fadeOutDuration));
-            yield return new WaitForSeconds(cutsceneSettings.fadeOutDuration + 2.0f);
-        }
+        
+        // 触发过场动画完成事件
+        cutsceneSettings.onCutsceneCompleted.Invoke();
     }
     else
     {
-        Debug.LogWarning("[Cutscene] 黑屏UI背景未设置，无法淡入淡出！");
-        yield return new WaitForSeconds(2.0f);
+        Debug.LogWarning("[Cutscene] 过场动画Director未设置！");
+        // 如果没有过场动画，也要淡出黑屏（如果启用了渐变效果）
+        if (useFadeEffect && fadeSettings.uiBackgroundImage != null)
+        {
+            StartCoroutine(FadeUIBackground(false, cutsceneSettings.fadeOutDuration));
+            yield return new WaitForSeconds(cutsceneSettings.fadeOutDuration + 2.0f);
+        }
+        else
+        {
+            yield return new WaitForSeconds(2.0f);
+        }
     }
 
-    EnablePlayerInput();
-    Debug.Log("[Cutscene] 玩家输入恢复");
+    // 只有在之前禁用了输入的情况下才重新启用输入
+    if (inputWasDisabled)
+    {
+        EnablePlayerInput();
+        Debug.Log("[Cutscene] 玩家输入恢复");
+    }
 
     if (cutsceneSettings.showPromptAfterCutscene && playerInRange)
     {
