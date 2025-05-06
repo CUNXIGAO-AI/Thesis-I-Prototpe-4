@@ -100,7 +100,7 @@ MonoBehaviour:
     type: 3}
   Drag: 2.5
   AngularDrag: 2
-  materialChangeDelay: 3
+  materialChangeDelay: 10
   deathMaterial: {fileID: 2100000, guid: 7c8ef285d680fa949801346d53b36740, type: 2}
   EnablePreProcessing: 1
   collision: 1

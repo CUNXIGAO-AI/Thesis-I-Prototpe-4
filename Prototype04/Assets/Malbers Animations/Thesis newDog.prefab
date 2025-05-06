@@ -346,7 +346,17 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3285649973278383452, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
+      propertyPath: stats.Array.data[0].active
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3285649973278383452, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
       propertyPath: stats.Array.data[1].EditorTabs
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3285649973278383452, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: stats.Array.data[0].DegenRate.ConstantValue
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3285649973278383452, guid: 27d807dbf4ab4544d887397b00f645a6,
