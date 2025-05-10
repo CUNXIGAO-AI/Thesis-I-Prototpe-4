@@ -47,7 +47,7 @@ public class WhaleSpawner : MonoBehaviour
             if (Vector3.Distance(whale.transform.position, endPoint.position) < 0.1f)
             {
                 Destroy(whale);
-                StartCoroutine(AudioManager.instance.DisablewhaleSFXWithDelay(1f)); // 关闭鲸鱼音效, 1秒后关闭, 时间可调整
+                StartCoroutine(AudioManager.instance.DisablechainSFXWithDelay(1f)); 
                 yield break;
             }
 

@@ -1137,83 +1137,72 @@ private void OnTriggerExit(Collider other)
 }
 
 
+private bool cutsceneEnded = false;
+
 private IEnumerator PlayCutsceneSequence()
 {
     yield return new WaitForSeconds(cutsceneSettings.cutsceneDelay);
     hasCutscenePlayed = true;
-    Debug.Log("[Cutscene] 开始播放序列");
-    
-    // 设置状态为Cooldown，但记住是否需要禁用输入
     currentState = InteractionState.Cooldown;
+
     bool inputWasDisabled = cutsceneSettings.disablePlayerInput;
-    
-    // 检查是否启用渐变效果
     bool useFadeEffect = cutsceneSettings.enableFadeEffect;
+
+    if (inputWasDisabled)
+    {
+        DisablePlayerInput();
+    }
 
     if (useFadeEffect && fadeSettings.uiBackgroundImage != null)
     {
-        // 第一次黑屏淡入
-        Debug.Log("[Cutscene] 开始黑屏淡入");
         StartCoroutine(FadeUIBackground(true, cutsceneSettings.fadeInDuration));
         yield return new WaitForSeconds(cutsceneSettings.fadeInDuration);
     }
 
     SetCutsceneCamerasPriority(cutsceneSettings.cutsceneCameraPriority);
-    
-    // 在黑屏状态下开始播放过场动画
+
     if (cutsceneSettings.cutsceneDirector != null)
-    {   
-        Debug.Log("[Cutscene] 开始播放 Timeline");
+    {
+        cutsceneEnded = false;
+        cutsceneSettings.cutsceneDirector.stopped += OnCutsceneStopped;
+
         cutsceneSettings.onCutsceneStarted.Invoke();
         cutsceneSettings.cutsceneDirector.Play();
-        
-        // 如果启用渐变效果，等待短暂时间并淡出黑屏
+
         if (useFadeEffect && fadeSettings.uiBackgroundImage != null)
         {
-            // 等待短暂时间，让过场动画开始播放但还处于黑屏状态
-            yield return new WaitForSeconds(cutsceneSettings.blackScreenDuration); 
-            
-            // 黑屏淡出（开始显示过场动画）
-            Debug.Log("[Cutscene] 开始黑屏淡出，显示过场动画");
+            yield return new WaitForSeconds(cutsceneSettings.blackScreenDuration);
             StartCoroutine(FadeUIBackground(false, cutsceneSettings.fadeOutDuration));
         }
-        
-        // 等待过场动画播放完成
-        while (cutsceneSettings.cutsceneDirector.state == PlayState.Playing)
+
+        // 等待 Timeline 播放真正结束
+        while (!cutsceneEnded)
         {
             yield return null;
         }
-        Debug.Log("[Cutscene] Timeline 播放完成");
-        
-        // 过场动画播放完毕后的第二次黑屏淡入（如果启用了渐变效果）
+
+        cutsceneSettings.cutsceneDirector.stopped -= OnCutsceneStopped;
+
         if (useFadeEffect && fadeSettings.uiBackgroundImage != null)
         {
-            Debug.Log("[Cutscene] 开始结束时的黑屏淡入");
             StartCoroutine(FadeUIBackground(true, cutsceneSettings.endingFadeInDuration));
             yield return new WaitForSeconds(cutsceneSettings.endingFadeInDuration);
-
-            // 短暂停留在黑屏
             yield return new WaitForSeconds(cutsceneSettings.blackScreenDuration);
         }
-        
-        Debug.Log("[Cutscene] 重置虚拟相机优先级");
+
         SetCutsceneCamerasPriority(0);
-        
-        // 第二次黑屏淡出（如果启用了渐变效果）
+
         if (useFadeEffect && fadeSettings.uiBackgroundImage != null)
         {
-            Debug.Log("[Cutscene] 开始结束时的黑屏淡出");
             StartCoroutine(FadeUIBackground(false, cutsceneSettings.endingFadeOutDuration));
             yield return new WaitForSeconds(cutsceneSettings.endingFadeOutDuration);
         }
-        
-        // 触发过场动画完成事件
+
         cutsceneSettings.onCutsceneCompleted.Invoke();
     }
     else
     {
         Debug.LogWarning("[Cutscene] 过场动画Director未设置！");
-        // 如果没有过场动画，也要淡出黑屏（如果启用了渐变效果）
         if (useFadeEffect && fadeSettings.uiBackgroundImage != null)
         {
             StartCoroutine(FadeUIBackground(false, cutsceneSettings.fadeOutDuration));
@@ -1225,30 +1214,29 @@ private IEnumerator PlayCutsceneSequence()
         }
     }
 
-    // 只有在之前禁用了输入的情况下才重新启用输入
     if (inputWasDisabled)
     {
         EnablePlayerInput();
-        Debug.Log("[Cutscene] 玩家输入恢复");
     }
+
+    currentState = InteractionState.Ready;
 
     if (cutsceneSettings.showPromptAfterCutscene && playerInRange)
     {
-        currentState = InteractionState.Ready;
         UpdatePromptMessage();
 
         if (dialogueSettings.backgroundImage != null)
         {
-            Debug.Log("[Cutscene] 过场结束后开始提示背景淡入");
             StartCoroutine(FadeTextBackground(1.0f));
         }
     }
-    else
-    {
-        currentState = InteractionState.Ready;
-    }
 
     Debug.Log("[Cutscene] 播放序列结束");
+}
+
+private void OnCutsceneStopped(PlayableDirector director)
+{
+    cutsceneEnded = true;
 }
 
 private void SetCutsceneCamerasPriority(int priority)
@@ -1613,7 +1601,7 @@ private void UpdatePromptMessage()
     
     string baseMessage = promptSettings.promptMessage;
     
-    // 如果有替代按键，添加到提示中
+    /* 如果有替代按键，添加到提示中
     if (promptSettings.alternativeInteractionKey != KeyCode.None)
     {
         // 替换默认的"按X交互"格式
@@ -1628,7 +1616,7 @@ private void UpdatePromptMessage()
         
         // 添加替代按键信息
         baseMessage += $" 或 {altKey}";
-    }
+    }*/
     
     // 当显示提示时使用这个更新后的信息
     string updatedPromptMessage = baseMessage;

@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
+using FMODUnity;
 using System.Collections;
 
 namespace MalbersAnimations.Controller
@@ -305,6 +306,7 @@ public float respawnToFadeOutDelay = 0.5f;
             Destroy(InstantiatedPlayer);
             return;
         }
+        
 
         activeAnimal.OverrideStartState = RespawnState;
         activeAnimal.OnStateChange.AddListener(OnCharacterDead);
@@ -320,6 +322,17 @@ public float respawnToFadeOutDelay = 0.5f;
             {
                 healthStat.Value = healthStat.MaxValue;
             }
+        }
+
+         var listenerUpdater = FindObjectOfType<FMODListenerUpdater>();
+        if (listenerUpdater != null)
+        {
+            listenerUpdater.SetAttenuationTarget(InstantiatedPlayer);
+            Debug.Log("FMODListenerUpdater found and set to new player");
+        }
+        else
+        {
+            Debug.LogWarning("FMODListenerUpdater 未找到，请确认它挂在摄像机对象上");
         }
 
         // 如果玩家曾经获得过瓶子，就生成瓶子

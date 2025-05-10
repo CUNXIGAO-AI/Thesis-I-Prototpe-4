@@ -12,11 +12,10 @@ public class AudioManager : MonoBehaviour
     public static AudioManager instance { get; private set; }
     private EventInstance stealthMusic;
     private EventInstance onShotSFX;
-    private EventInstance whaleSFX;
     private List<EventInstance> eventInstances;
     private List<StudioEventEmitter> eventEmitters;
     public GameObject girlsroomAmbientTrigger; 
-    public GameObject whaleSFXTrigger; 
+    public GameObject chainSFXTrigger; 
     public GameObject platformSFXTrigger; 
     public GameObject elevatorSFXTrigger;
     public GameObject glassbrokenSFXTrigger;
@@ -163,10 +162,10 @@ public class AudioManager : MonoBehaviour
         whaleSFXTrigger.SetActive(true); 
     }*/
 
-    public IEnumerator DisablewhaleSFXWithDelay(float time) // 延迟启用SoundTrigger
+    public IEnumerator DisablechainSFXWithDelay(float time) // 延迟启用SoundTrigger
     {
         yield return new WaitForSeconds(time); // 延迟 1 秒
-        whaleSFXTrigger.SetActive(false); 
+        chainSFXTrigger.SetActive(false); 
     }
 
     public void EnablePlatformSFX()
