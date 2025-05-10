@@ -1187,16 +1187,32 @@ private IEnumerator PlayCutsceneSequence()
         {
             StartCoroutine(FadeUIBackground(true, cutsceneSettings.endingFadeInDuration));
             yield return new WaitForSeconds(cutsceneSettings.endingFadeInDuration);
+            
+            SetCutsceneCamerasPriority(0);
             yield return new WaitForSeconds(cutsceneSettings.blackScreenDuration);
         }
-
-        SetCutsceneCamerasPriority(0);
 
         if (useFadeEffect && fadeSettings.uiBackgroundImage != null)
         {
             StartCoroutine(FadeUIBackground(false, cutsceneSettings.endingFadeOutDuration));
+
+            // 在 fade-out 开始时就恢复玩家控制
+            if (inputWasDisabled)
+            {
+                EnablePlayerInput();
+            }
+
             yield return new WaitForSeconds(cutsceneSettings.endingFadeOutDuration);
         }
+        else
+        {
+            // 没有fade的情况下仍然恢复控制
+            if (inputWasDisabled)
+            {
+                EnablePlayerInput();
+            }
+        }
+
 
         cutsceneSettings.onCutsceneCompleted.Invoke();
     }
