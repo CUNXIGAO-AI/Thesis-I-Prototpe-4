@@ -15,7 +15,7 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 638824471320208270
+  lastModified: 638824886193376324
   FileSizes: []
   Exists: 1
 --- !u!114 &-7485183525612505070
@@ -210,13 +210,41 @@ MonoBehaviour:
   - {fileID: 6362072243826036924}
   - {fileID: 3653730875682848813}
   - {fileID: 7369646010623586576}
+  - {fileID: 559561437813601738}
   EditorParameters: []
   MasterBanks:
   - {fileID: -7751678157321775205}
   StringsBanks:
   - {fileID: 2062079929173913841}
-  cacheTime: 638824471320228326
+  cacheTime: 638824886193396478
   cacheVersion: 131621
+--- !u!114 &559561437813601738
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/3D_sfx/chandelierSFX
+  m_EditorClassIdentifier: 
+  Path: event:/3D_sfx/chandelierSFX
+  Guid:
+    Data1: 348190180
+    Data2: 1235321735
+    Data3: -338835269
+    Data4: -855130775
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 1
+  Is3D: 1
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 10313
 --- !u!114 &612374788702305454
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -314,10 +342,10 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 638824471320228326
+  lastModified: 638824886193396478
   FileSizes:
   - Name: 
-    Value: 1592
+    Value: 1636
   Exists: 1
 --- !u!114 &2244288365538930437
 MonoBehaviour:
