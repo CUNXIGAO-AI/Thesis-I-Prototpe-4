@@ -1,5 +1,32 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7823707376965727036
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/3D_sfx/chandelierSFX 2
+  m_EditorClassIdentifier: 
+  Path: event:/3D_sfx/chandelierSFX 2
+  Guid:
+    Data1: 550683472
+    Data2: 1203688613
+    Data3: -177843027
+    Data4: -725859597
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 1
+  Is3D: 1
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 22
+  Length: 3750
 --- !u!114 &-7751678157321775205
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15,7 +42,7 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 638824886193376324
+  lastModified: 638824965230296965
   FileSizes: []
   Exists: 1
 --- !u!114 &-7485183525612505070
@@ -211,12 +238,13 @@ MonoBehaviour:
   - {fileID: 3653730875682848813}
   - {fileID: 7369646010623586576}
   - {fileID: 559561437813601738}
+  - {fileID: -7823707376965727036}
   EditorParameters: []
   MasterBanks:
   - {fileID: -7751678157321775205}
   StringsBanks:
   - {fileID: 2062079929173913841}
-  cacheTime: 638824886193396478
+  cacheTime: 638824965230318192
   cacheVersion: 131621
 --- !u!114 &559561437813601738
 MonoBehaviour:
@@ -244,7 +272,7 @@ MonoBehaviour:
   Parameters: []
   MinDistance: 1
   MaxDistance: 20
-  Length: 10313
+  Length: 4012
 --- !u!114 &612374788702305454
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -342,10 +370,10 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 638824886193396478
+  lastModified: 638824965230318192
   FileSizes:
   - Name: 
-    Value: 1636
+    Value: 1680
   Exists: 1
 --- !u!114 &2244288365538930437
 MonoBehaviour:
