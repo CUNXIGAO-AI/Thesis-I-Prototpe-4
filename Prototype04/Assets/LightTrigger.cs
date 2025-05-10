@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 
 public class LightTrigger : MonoBehaviour
 {
-
+    public float Delay = 0.5f; // 延迟时间（秒）
 
     // Start is called before the first frame update
  [System.Serializable]
@@ -59,83 +59,170 @@ public class LightTrigger : MonoBehaviour
     [Tooltip("所有灯光的默认过渡时间（秒）")]
     public float globalTransitionDuration = 1.5f;
     
-    [Tooltip("要检测的玩家标签")]
-    private string playerTag = "Animal";
 
         [Tooltip("要控制的镜头光晕列表")]
     public List<LensFlareConfig> lensFlares = new List<LensFlareConfig>();
 
+        [Header("水面效果设置")]
+    [Tooltip("是否对水面接触事件做出反应")]
+    public bool reactToWaterContact = false;
+    [Tooltip("水面效果触发半径")]
+    public float waterEffectRadius = 10f;
     
-   void Awake()
+    // 灯光是否当前已被激活(由触发器或水面效果)
+    private bool lightsActivated = false;
+
+    void Awake()
+{
+    // 初始化所有灯光设置
+    foreach (LightConfig lightConfig in lights)
     {
-        // 初始化所有灯光设置
-        foreach (LightConfig lightConfig in lights)
+        if (lightConfig.lightComponent != null)
         {
-            if (lightConfig.lightComponent != null)
+            // 原有代码保持不变
+            if (lightConfig.useCurrentAsDefault)
             {
-                // 原有代码保持不变
-                if (lightConfig.useCurrentAsDefault)
-                {
-                    lightConfig.runtimeDefaultIntensity = lightConfig.lightComponent.intensity;
-                }
-                else
-                {
-                    lightConfig.runtimeDefaultIntensity = lightConfig.defaultIntensity;
-                    lightConfig.lightComponent.intensity = lightConfig.defaultIntensity;
-                }
+                lightConfig.runtimeDefaultIntensity = lightConfig.lightComponent.intensity;
             }
-        }
-        
-        // 初始化所有镜头光晕设置
-        foreach (LensFlareConfig flareConfig in lensFlares)
-        {
-            if (flareConfig.lensFlareComponent != null)
+            else
             {
-                if (flareConfig.useCurrentAsDefault)
-                {
-                    flareConfig.runtimeDefaultIntensity = flareConfig.lensFlareComponent.intensity;
-                }
-                else
-                {
-                    flareConfig.runtimeDefaultIntensity = flareConfig.defaultIntensity;
-                    flareConfig.lensFlareComponent.intensity = flareConfig.defaultIntensity;
-                }
+                lightConfig.runtimeDefaultIntensity = lightConfig.defaultIntensity;
+                lightConfig.lightComponent.intensity = lightConfig.defaultIntensity;
             }
         }
     }
     
-    void Start()
+    // 初始化所有镜头光晕设置
+    foreach (LensFlareConfig flareConfig in lensFlares)
     {
-        // 验证触发器设置
-        Collider triggerZone = GetComponentInChildren<Collider>();
-        if (triggerZone == null)
+        if (flareConfig.lensFlareComponent != null)
         {
-            triggerZone = GetComponent<Collider>();
+            if (flareConfig.useCurrentAsDefault)
+            {
+                flareConfig.runtimeDefaultIntensity = flareConfig.lensFlareComponent.intensity;
+            }
+            else
+            {
+                flareConfig.runtimeDefaultIntensity = flareConfig.defaultIntensity;
+                flareConfig.lensFlareComponent.intensity = flareConfig.defaultIntensity;
+            }
         }
+    }
+}
+
+   
+    void OnEnable()
+    {
+        if (reactToWaterContact)
+        {
+            // 订阅水面接触事件
+            WaterEffectEventManager.OnWaterContact += HandleWaterContact;
+        }
+    }
+    
+    void OnDisable()
+    {
+        if (reactToWaterContact)
+        {
+            // 取消订阅水面接触事件
+            WaterEffectEventManager.OnWaterContact -= HandleWaterContact;
+        }
+    }
+    
+    // 处理水面接触事件
+    private void HandleWaterContact(Vector3 contactPoint)
+    {
+        if (!reactToWaterContact) return;
         
-        if (triggerZone == null)
+        // 检查接触点是否在范围内
+        float distance = Vector3.Distance(transform.position, contactPoint);
+        if (distance <= waterEffectRadius)
         {
-            Debug.LogError("未找到触发器Collider组件，请确保在此对象或其子对象上添加了碰撞体并设置为Trigger。");
-        }
-        else if (!triggerZone.isTrigger)
-        {
-            Debug.LogWarning("检测到的碰撞体没有设置为触发器模式，已自动调整。");
-            triggerZone.isTrigger = true;
-        }
+            // 如果灯光已经被激活，不需要再次激活
+            if (lightsActivated) return;
+            
+            // 激活灯光
+            StartCoroutine(DelayedActivateLights(Delay));        }
     }
     
     // 当有对象进入触发区域时
-      void OnTriggerEnter(Collider other)
+
+    private IEnumerator DelayedActivateLights(float delay)
 {
-    if (other.CompareTag(playerTag))
+    yield return new WaitForSeconds(delay);
+    ActivateLights();
+}
+
+    
+    // 当对象离开触发区域时
+    // 激活灯光的方法
+    private void ActivateLights()
     {
+        lightsActivated = true;
+        
         // 处理灯光
         foreach (LightConfig lightConfig in lights)
         {
-            // 检查是否为一次性且已触发
-            if (lightConfig.oneTimeOnly && lightConfig.hasBeenTriggered)
-                continue;
-                
+            if (lightConfig.oneTimeOnly && lightConfig.hasBeenTriggered) continue;
+
+            if (lightConfig.lightComponent != null)
+            {
+                if (lightConfig.currentCoroutine != null)
+                    StopCoroutine(lightConfig.currentCoroutine);
+
+                float transitionTime = (lightConfig.customTransitionDuration > 0)
+                    ? lightConfig.customTransitionDuration
+                    : globalTransitionDuration;
+
+                lightConfig.currentCoroutine = StartCoroutine(
+                    TransitionLightIntensity(
+                        lightConfig.lightComponent,
+                        lightConfig.lightComponent.intensity,
+                        lightConfig.targetIntensity,
+                        transitionTime
+                    )
+                );
+
+                lightConfig.hasBeenTriggered = true;
+            }
+        }
+
+        // 处理镜头光晕
+        foreach (LensFlareConfig flareConfig in lensFlares)
+        {
+            if (flareConfig.oneTimeOnly && flareConfig.hasBeenTriggered) continue;
+
+            if (flareConfig.lensFlareComponent != null)
+            {
+                if (flareConfig.currentCoroutine != null)
+                    StopCoroutine(flareConfig.currentCoroutine);
+
+                float transitionTime = (flareConfig.customTransitionDuration > 0)
+                    ? flareConfig.customTransitionDuration
+                    : globalTransitionDuration;
+
+                flareConfig.currentCoroutine = StartCoroutine(
+                    TransitionLensFlareIntensity(
+                        flareConfig.lensFlareComponent,
+                        flareConfig.lensFlareComponent.intensity,
+                        flareConfig.targetIntensity,
+                        transitionTime
+                    )
+                );
+
+                flareConfig.hasBeenTriggered = true;
+            }
+        }
+    }
+    
+    // 停用灯光的方法
+    private void DeactivateLights()
+    {
+        lightsActivated = false;
+        
+        // 处理灯光
+        foreach (LightConfig lightConfig in lights)
+        {
             if (lightConfig.lightComponent != null)
             {
                 if (lightConfig.currentCoroutine != null)
@@ -151,87 +238,35 @@ public class LightTrigger : MonoBehaviour
                     TransitionLightIntensity(
                         lightConfig.lightComponent, 
                         lightConfig.lightComponent.intensity, 
-                        lightConfig.targetIntensity, 
+                        lightConfig.runtimeDefaultIntensity, 
                         transitionTime
                     )
                 );
-                
-                // 标记为已触发
-                lightConfig.hasBeenTriggered = true;
             }
         }
         
-        // 处理镜头光晕，同样的逻辑
+        // 处理镜头光晕
         foreach (LensFlareConfig flareConfig in lensFlares)
         {
-            // 检查是否为一次性且已触发
-            if (flareConfig.oneTimeOnly && flareConfig.hasBeenTriggered)
-                continue;
-                
             if (flareConfig.lensFlareComponent != null)
             {
-                // 原有代码...
+                if (flareConfig.currentCoroutine != null)
+                {
+                    StopCoroutine(flareConfig.currentCoroutine);
+                }
                 
-                // 标记为已触发
-                flareConfig.hasBeenTriggered = true;
-            }
-        }
-    }
-}
-    
-    // 当对象离开触发区域时
-      void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag(playerTag))
-        {
-            // 处理灯光
-            foreach (LightConfig lightConfig in lights)
-            {
-                if (lightConfig.lightComponent != null)
-                {
-                    if (lightConfig.currentCoroutine != null)
-                    {
-                        StopCoroutine(lightConfig.currentCoroutine);
-                    }
-                    
-                    float transitionTime = (lightConfig.customTransitionDuration > 0) 
-                        ? lightConfig.customTransitionDuration 
-                        : globalTransitionDuration;
-                    
-                    lightConfig.currentCoroutine = StartCoroutine(
-                        TransitionLightIntensity(
-                            lightConfig.lightComponent, 
-                            lightConfig.lightComponent.intensity, 
-                            lightConfig.runtimeDefaultIntensity, 
-                            transitionTime
-                        )
-                    );
-                }
-            }
-            
-            // 处理镜头光晕
-            foreach (LensFlareConfig flareConfig in lensFlares)
-            {
-                if (flareConfig.lensFlareComponent != null)
-                {
-                    if (flareConfig.currentCoroutine != null)
-                    {
-                        StopCoroutine(flareConfig.currentCoroutine);
-                    }
-                    
-                    float transitionTime = (flareConfig.customTransitionDuration > 0) 
-                        ? flareConfig.customTransitionDuration 
-                        : globalTransitionDuration;
-                    
-                    flareConfig.currentCoroutine = StartCoroutine(
-                        TransitionLensFlareIntensity(
-                            flareConfig.lensFlareComponent, 
-                            flareConfig.lensFlareComponent.intensity, 
-                            flareConfig.runtimeDefaultIntensity, 
-                            transitionTime
-                        )
-                    );
-                }
+                float transitionTime = (flareConfig.customTransitionDuration > 0) 
+                    ? flareConfig.customTransitionDuration 
+                    : globalTransitionDuration;
+                
+                flareConfig.currentCoroutine = StartCoroutine(
+                    TransitionLensFlareIntensity(
+                        flareConfig.lensFlareComponent, 
+                        flareConfig.lensFlareComponent.intensity, 
+                        flareConfig.runtimeDefaultIntensity, 
+                        transitionTime
+                    )
+                );
             }
         }
     }
@@ -266,5 +301,14 @@ public class LightTrigger : MonoBehaviour
         }
         
         lensFlare.intensity = endValue;
+    }
+
+        void OnDrawGizmosSelected()
+    {
+        if (reactToWaterContact)
+        {
+            Gizmos.color = new Color(0, 0.8f, 1, 0.3f);
+            Gizmos.DrawSphere(transform.position, waterEffectRadius);
+        }
     }
 }

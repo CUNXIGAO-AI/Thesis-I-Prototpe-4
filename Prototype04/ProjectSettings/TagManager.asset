@@ -16,6 +16,7 @@ TagManager:
   - IgnoreCollision
   - girlAnimator
   - fakeSkybox
+  - WaterSoundPlatform
   layers:
   - Default
   - TransparentFX

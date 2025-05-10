@@ -15,7 +15,7 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 638823476086003228
+  lastModified: 638824273850702280
   FileSizes: []
   Exists: 1
 --- !u!114 &-7485183525612505070
@@ -209,12 +209,13 @@ MonoBehaviour:
   - {fileID: 4872762478841425518}
   - {fileID: 6362072243826036924}
   - {fileID: 3653730875682848813}
+  - {fileID: 7369646010623586576}
   EditorParameters: []
   MasterBanks:
   - {fileID: -7751678157321775205}
   StringsBanks:
   - {fileID: 2062079929173913841}
-  cacheTime: 638823476086013239
+  cacheTime: 638824273850742638
   cacheVersion: 131621
 --- !u!114 &612374788702305454
 MonoBehaviour:
@@ -313,10 +314,10 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 638823476086013239
+  lastModified: 638824273850742638
   FileSizes:
   - Name: 
-    Value: 1544
+    Value: 1592
   Exists: 1
 --- !u!114 &2244288365538930437
 MonoBehaviour:
@@ -480,6 +481,33 @@ MonoBehaviour:
   MinDistance: 1
   MaxDistance: 20
   Length: 10000
+--- !u!114 &7369646010623586576
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/2D_sfx/OnGroundWaterSFX
+  m_EditorClassIdentifier: 
+  Path: event:/2D_sfx/OnGroundWaterSFX
+  Guid:
+    Data1: 1593974165
+    Data2: 1257406903
+    Data3: -619056499
+    Data4: -725199726
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 11000
 --- !u!114 &8731765165698759410
 MonoBehaviour:
   m_ObjectHideFlags: 0
