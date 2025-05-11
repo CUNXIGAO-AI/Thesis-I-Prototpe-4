@@ -7,7 +7,7 @@
 [LOG] OutputWASAPI::init                       : Output buffer size: 4096 samples, latency: 0.00ms, period: 10.00ms, DSP buffer: 1024 * 4
 [LOG] Thread::initThread                       : Init FMOD stream thread. Affinity: 0x4000000000000003, Priority: 0xFFFF7FFB, Stack Size: 98304, Semaphore: No, Sleep Time: 10, Looping: Yes.
 [LOG] Thread::initThread                       : Init FMOD mixer thread. Affinity: 0x4000000000000001, Priority: 0xFFFF7FFA, Stack Size: 81920, Semaphore: No, Sleep Time: 0, Looping: Yes.
-[LOG] AsyncManager::init                       : manager 000001D3AA1E9B78 isAsync 0 updatePeriod 0.02
+[LOG] AsyncManager::init                       : manager 000001D3DE56A098 isAsync 0 updatePeriod 0.02
 [LOG] AsyncManager::init                       : done
 [LOG] PlaybackSystem::init                     : 
 [LOG] Thread::initThread                       : Init FMOD Studio sample load thread. Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 98304, Semaphore: No, Sleep Time: 1, Looping: No.
@@ -18,40 +18,6 @@
 [LOG] Manager::readBank                        : fileversion = 142, compatVersion = 140 (oldest = 44, newest = 142)
 [LOG] Manager::readBank                        : fileversion = 142, compatVersion = 140 (oldest = 44, newest = 142)
 [LOG] PlaybackSystem::acquireMasterBus         : Setting master channel group format to 6
-[LOG] SoundI::release                          :  (000001D3B0E8D4E8)
-[LOG] SoundI::release                          :     Ocean_sfx (000001D2D9D3B688)
-[LOG] SoundI::release                          :  (000001D37587BD18)
-[LOG] SoundI::release                          :     dogStep1 (000001D26832D7C8)
-[LOG] SoundI::release                          :  (000001D37587B478)
-[LOG] SoundI::release                          :     dogStep2 (000001D26832B0C8)
-[LOG] SoundI::release                          :  (000001D37587B5E8)
-[LOG] SoundI::release                          :     dogStep3 (000001D26832CC68)
-[LOG] SoundI::release                          :  (000001D37587BA38)
-[LOG] SoundI::release                          :     dogStep4 (000001D26832C5E8)
-[LOG] SoundI::release                          :  (000001D37587B028)
-[LOG] SoundI::release                          :     dogStep5 (000001D26832B408)
-[LOG] SoundI::release                          :  (000001D3C5118D48)
-[LOG] SoundI::release                          :     Combat_snare & hat (000001D3C861E628)
-[LOG] SoundI::release                          :  (000001D37DD3BBF8)
-[LOG] SoundI::release                          :     Kick (000001D3C861DFA8)
-[LOG] SoundI::release                          :  (000001D3C5118EB8)
-[LOG] SoundI::release                          :     Bird (000001D3C861E148)
-[LOG] SoundI::release                          :  (000001D3C51188F8)
-[LOG] SoundI::release                          :     TopLayer (000001D3B0F58268)
-[LOG] SoundI::release                          :  (000001D37DD3B358)
-[LOG] SoundI::release                          :     Bass (000001D3C861DAC8)
-[LOG] SoundI::release                          :  (000001D3C5118618)
-[LOG] SoundI::release                          :     Bird_sfx (000001D3C861E2E8)
-[LOG] Thread::callback                         : FMOD Studio update thread finished.
-[LOG] Thread::callback                         : FMOD Studio bank load thread finished.
-[LOG] Profile::disconnectAll                   : Profiler disconnecting all clients
-[LOG] Thread::callback                         : FMOD Studio sample load thread finished.
-[LOG] LiveUpdate::release                      : 
-[LOG] LiveUpdate::reset                        : Reset connection (reason Disconnected)
-[LOG] Thread::callback                         : FMOD stream thread finished.
-[LOG] Thread::callback                         : FMOD mixer thread finished.
-[LOG] Profile::disconnectAll                   : Profiler disconnecting all clients
-[LOG] SystemI::close                           : Closed.
 [LOG] Thread::callback                         : FMOD Studio bank load thread finished.
 [LOG] Thread::callback                         : FMOD Studio sample load thread finished.
 [LOG] LiveUpdate::release                      : 
