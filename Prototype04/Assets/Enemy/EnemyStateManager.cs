@@ -276,7 +276,7 @@ private float currentJitterUpdateInterval = 0.2f;
             resourceManager.SetDepletionRate(2f); // 设置基础消耗速率
             resourceManager.StartResourceDepletion(resourceManager.currentValue);
             
-            AudioManager.instance.PlayOnShotSFX();
+            //AudioManager.instance.PlayOnShotSFX();
         }
         else
         {
@@ -287,7 +287,7 @@ private float currentJitterUpdateInterval = 0.2f;
             // 恢复默认灯光状态
             resourceManager.SetLightState(ResourceManager.LightState.Default);
             
-            AudioManager.instance.StopOnShotSFX();
+            //AudioManager.instance.StopOnShotSFX();
         }
         
         previousCanSeeItem = canSeeItem;
@@ -402,78 +402,82 @@ private float currentJitterUpdateInterval = 0.2f;
         Gizmos.DrawLine(vertices[1], vertices[3]);
     }
 
-    void UpdateAlertMeter()
+void UpdateAlertMeter()
+{
+    if (resourceManager.currentValue <= 0) return;
+
+    if (canSeeItem)
     {
-
-        if (resourceManager.currentValue <= 0) return;
-
-        if (canSeeItem)
-        {
-            // 检测到玩家时，警戒值逐渐增加
-            alertMeter += Time.deltaTime * alertMeterIncreaseRate;
-        }
-        else if (canDecreaseAlertMeter)
-        {
-            // 如果允许，未检测到玩家时警戒值逐渐减少
-            alertMeter -= Time.deltaTime * alertMeterDecreaseRate;
-        }
-
-        // 限制警戒值在 0 到最大值之间
-        alertMeter = Mathf.Clamp(alertMeter, 0, alertMeterMax);
-
-        // 状态切换逻辑
-        if (alertMeter >= alertThresholds[2] && !hasSwitchedToCombatState && currentState != CombatState)
-        {
-            SwitchState(CombatState);
-            AudioManager.instance.SetEnemyStateParameter(1);
-            hasSwitchedToCombatState = true;
-        }
-        else if (alertMeter >= alertThresholds[1] && alertMeter < alertThresholds[2] && currentState == PatrolState && !hasSwitchedToAlertState)
-        {
-            SwitchState(AlertState);
-            AudioManager.instance.UpdateStealthMusic();
-            emitter.Stop();
-            hasSwitchedToAlertState = true;
-        }
-        else if(playerLost == true && currentState == CombatState && !hasSwitchedToSearchState)
-        {
-            SwitchState(SearchState);
-             AudioManager.instance.SetEnemyStateParameter(2);
-            hasSwitchedToSearchState = true;
-        }
-        else if (alertMeter < alertThresholds[0] && currentState == SearchState && !hasSwitchedToPatrolState)
-        {
-            SwitchState(PatrolState);
-            AudioManager.instance.StopStealthMusic();
-            emitter.Play();
-            hasSwitchedToPatrolState = true;
-        }
-        else if (currentState == AlertState  && !hasSwitchedToSearchState)
-        {
-            SwitchState(SearchState);
-            AudioManager.instance.SetEnemyStateParameter(2);
-            hasSwitchedToSearchState = true;
-        }
+        alertMeter += Time.deltaTime * alertMeterIncreaseRate;
+    }
+    else if (canDecreaseAlertMeter)
+    {
+        alertMeter -= Time.deltaTime * alertMeterDecreaseRate;
     }
 
+    alertMeter = Mathf.Clamp(alertMeter, 0, alertMeterMax);
+
+    // Combat 状态（最高优先级）
+    if (alertMeter >= alertThresholds[2] && !hasSwitchedToCombatState && currentState != CombatState)
+    {
+        SwitchState(CombatState);
+        AudioManager.instance.SetEnemyStateParameter(1);
+        hasSwitchedToCombatState = true;
+    }
+
+    // 从 Patrol 进入 Alert
+    else if (alertMeter >= alertThresholds[1] && alertMeter < alertThresholds[2] && currentState == PatrolState && !hasSwitchedToAlertState)
+    {
+        SwitchState(AlertState);
+        AudioManager.instance.UpdateStealthMusic();
+        emitter.Stop();
+        hasSwitchedToAlertState = true;
+    }
+
+    // Combat 丢失目标 → Search
+    else if (playerLost == true && currentState == CombatState && !hasSwitchedToSearchState)
+    {
+        SwitchState(SearchState);
+        AudioManager.instance.SetEnemyStateParameter(2);
+        hasSwitchedToSearchState = true;
+    }
+
+    // Alert 状态警戒值归零 → 回 Patrol
+    else if (alertMeter < alertThresholds[0] && currentState == AlertState && !hasSwitchedToPatrolState)
+    {
+        SwitchState(PatrolState);
+        AudioManager.instance.StopStealthMusic();
+        emitter.Play();
+        hasSwitchedToPatrolState = true;
+    }
+
+    // Search 状态警戒值归零 → 回 Patrol
+    else if (alertMeter < alertThresholds[0] && currentState == SearchState && !hasSwitchedToPatrolState)
+    {
+        SwitchState(PatrolState);
+        AudioManager.instance.StopStealthMusic();
+        emitter.Play();
+        hasSwitchedToPatrolState = true;
+    }
+}
     void UpdateAlertLight()
     {
         if (alertSpotLight != null)  // 确保 SpotLight 存在
         {
             // 根据警戒值确定目标颜色
-            if (alertMeter <= 25)
+            if (alertMeter <= alertThresholds[0])
             {
                 targetColor = lowAlertColor;
             }
-            else if (alertMeter > 25 && alertMeter <= 50)
+            else if (alertMeter > alertThresholds[0] && alertMeter <= alertThresholds[1])
             {
                 targetColor = mediumAlertColor;
             }
-            else if (alertMeter > 50 && alertMeter < 100)
+            else if (alertMeter > alertThresholds[1] && alertMeter < alertThresholds[2])
             {
                 targetColor = highAlertColor;
             }
-            else if (alertMeter >= 100)
+            else if (alertMeter >= alertThresholds[2])
             {
                 targetColor = maxAlertColor;
                 canDecreaseAlertMeter = false;  // 达到最大值后停止降低
