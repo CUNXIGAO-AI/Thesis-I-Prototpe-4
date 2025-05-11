@@ -22,6 +22,10 @@ public class FMODEvents : MonoBehaviour
     [field: SerializeField] public EventReference chainSFX { get; private set; }
     [field: Header("OnWaterGround_sfx")]
     [field: SerializeField] public EventReference onWaterGroundSFX { get; private set; }
+    [field: Header("Chandelier_sfx")]
+    [field: SerializeField] public EventReference chandelierSFX { get; private set; }
+        [field: Header("Chandelier_sfx")]
+    [field: SerializeField] public EventReference chandelierSFX2 { get; private set; }
     
 
     public static FMODEvents instance { get; private set; }
