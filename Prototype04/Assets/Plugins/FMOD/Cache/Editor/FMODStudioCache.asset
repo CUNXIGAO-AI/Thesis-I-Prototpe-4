@@ -70,7 +70,7 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 638825968673400726
+  lastModified: 638826046364100570
   FileSizes: []
   Exists: 1
 --- !u!114 &-7485183525612505070
@@ -348,12 +348,14 @@ MonoBehaviour:
   - {fileID: -6549301269222718195}
   - {fileID: -8829204708851682114}
   - {fileID: -2040320447988488151}
+  - {fileID: 3715380478347393745}
+  - {fileID: 8072860782275686353}
   EditorParameters: []
   MasterBanks:
   - {fileID: -7751678157321775205}
   StringsBanks:
   - {fileID: 2062079929173913841}
-  cacheTime: 638825968673425968
+  cacheTime: 638826046364127027
   cacheVersion: 131621
 --- !u!114 &559561437813601738
 MonoBehaviour:
@@ -479,10 +481,10 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 638825968673425968
+  lastModified: 638826046364127027
   FileSizes:
   - Name: 
-    Value: 1850
+    Value: 1942
   Exists: 1
 --- !u!114 &2244288365538930437
 MonoBehaviour:
@@ -565,6 +567,33 @@ MonoBehaviour:
   MinDistance: 1
   MaxDistance: 20
   Length: 19270
+--- !u!114 &3715380478347393745
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/2D_sfx/drop_sfx
+  m_EditorClassIdentifier: 
+  Path: event:/2D_sfx/drop_sfx
+  Guid:
+    Data1: 690186355
+    Data2: 1125946966
+    Data3: 1374633612
+    Data4: 335694788
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
 --- !u!114 &4872762478841425518
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -700,6 +729,33 @@ MonoBehaviour:
   MinDistance: 1
   MaxDistance: 20
   Length: 11000
+--- !u!114 &8072860782275686353
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/2D_sfx/Pickup_sfx
+  m_EditorClassIdentifier: 
+  Path: event:/2D_sfx/Pickup_sfx
+  Guid:
+    Data1: -279890698
+    Data2: 1273647781
+    Data3: -380909172
+    Data4: -637448985
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
 --- !u!114 &9156684481864442318
 MonoBehaviour:
   m_ObjectHideFlags: 0

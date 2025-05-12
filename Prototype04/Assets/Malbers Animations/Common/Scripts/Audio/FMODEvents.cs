@@ -26,7 +26,11 @@ public class FMODEvents : MonoBehaviour
     [field: SerializeField] public EventReference chandelierSFX { get; private set; }
         [field: Header("Chandelier_sfx")]
     [field: SerializeField] public EventReference chandelierSFX2 { get; private set; }
-    [field: Header("chain_sfx")]
+
+    [field: Header("pickup_sfx")]
+    [field: SerializeField] public EventReference pickupSFX { get; private set; }
+    [field: Header("drop_sfx")]
+    [field: SerializeField] public EventReference dropSFX { get; private set; }
     
     
 

@@ -295,6 +295,7 @@ public void PlayChandelierSFX(Vector3 position)
             {
                 onShotSFX.stop(allowFadeOut ? FMOD.Studio.STOP_MODE.ALLOWFADEOUT : FMOD.Studio.STOP_MODE.IMMEDIATE);
             }
+            
 
             // 停止所有其他的事件实例
             foreach (EventInstance eventInstance in eventInstances)
@@ -377,6 +378,16 @@ public void PlayChainSFX(Vector3 position)
     RuntimeManager.PlayOneShot(FMODEvents.instance.chainSFX, position);
 }
 
+public void PlayPickupSFX(Vector3 position)
+{
+    RuntimeManager.PlayOneShot(FMODEvents.instance.pickupSFX, position);
+
+}
+
+public void PlayDropSFX(Vector3 position)
+{
+    RuntimeManager.PlayOneShot(FMODEvents.instance.dropSFX, position);
+}
 }
 }
 

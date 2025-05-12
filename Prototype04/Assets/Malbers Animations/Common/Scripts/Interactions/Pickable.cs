@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
 using MalbersAnimations.Scriptables;
 using MalbersAnimations.Events;
+using System.Collections;
 using MalbersAnimations.Reactions;
+using Audio;
 
 
 #if UNITY_EDITOR
@@ -189,12 +191,27 @@ namespace MalbersAnimations.Controller
             //Weapons can be picked witout having a picker
             var realPicker = Picker ? Picker.Root.gameObject : null;
 
-            OnPicked.Invoke(realPicker);             //Call the Event
+            OnPicked.Invoke(realPicker);             //Call the Event     
+
             PickedReaction?.React(realPicker);
 
             CurrentPickTime = Time.time;            //Store the time it was picked
-            if (Collectable) enabled = false;
+
+               if (Collectable) enabled = false;
         }
+
+        public void PlayPickupSFX()
+        {
+            StartCoroutine(PlayPickupSoundDelayed(0.1f));
+        }
+
+        private IEnumerator PlayPickupSoundDelayed(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            AudioManager.instance.PlayOneShot(FMODEvents.instance.pickupSFX, transform.position);
+        }
+
+
 
         public virtual void Drop()
         {
@@ -212,6 +229,8 @@ namespace MalbersAnimations.Controller
             DroppedReaction?.React(realPicker);
 
             Picker = null;                                          //Reset who did the picking
+
+            AudioManager.instance.PlayOneShot(FMODEvents.instance.dropSFX, transform.position);
             CurrentPickTime = Time.time;
         }
 
