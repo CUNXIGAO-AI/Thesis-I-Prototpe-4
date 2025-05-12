@@ -19,7 +19,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1676981121245276475
 Transform:
   m_ObjectHideFlags: 0
@@ -121,6 +121,9 @@ MonoBehaviour:
   resourceManager: {fileID: 0}
   isOneTimeInteraction: 0
   exitCooldownDuration: 1
+  useSeparateCutsceneTrigger: 1
+  cutsceneTriggerCollider: {fileID: 0}
+  dialogueTriggerCollider: {fileID: 0}
   events:
     onInteractionStarted:
       m_PersistentCalls:
@@ -134,7 +137,6 @@ MonoBehaviour:
     onPlayerExitRange:
       m_PersistentCalls:
         m_Calls: []
-  interactionRadius: 2
   promptSettings:
     promptMessage: "\u6309 X \u4EA4\u4E92"
     promptFadeInDuration: 0.3
@@ -160,6 +162,27 @@ MonoBehaviour:
     uiFadeInDuration: 0.5
     uiFadeOutDuration: 0.5
     uiMaxAlpha: 1
+  enableCutscene: 0
+  cutsceneSettings:
+    cutsceneDirector: {fileID: 0}
+    cutsceneDelay: 0.75
+    cutsceneVirtualCameras: []
+    cutsceneCameraPriority: 20
+    resetPriority: 0
+    showPromptAfterCutscene: 1
+    fadeInDuration: 0.5
+    fadeOutDuration: 0.5
+    blackScreenDuration: 1.5
+    endingFadeInDuration: 0.5
+    endingFadeOutDuration: 0.5
+    onCutsceneStarted:
+      m_PersistentCalls:
+        m_Calls: []
+    onCutsceneCompleted:
+      m_PersistentCalls:
+        m_Calls: []
+    enableFadeEffect: 1
+    disablePlayerInput: 1
   enableSaveFunction: 0
   sleepZoneHelper: {fileID: 0}
   saveSettings:
@@ -215,6 +238,7 @@ Transform:
   - {fileID: 1676981121245276475}
   - {fileID: 2963330291676545678}
   - {fileID: 7701940186935527210}
+  - {fileID: 2844042576321155739}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
 --- !u!54 &3182056044800634435
@@ -402,12 +426,60 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 30496451734390883}
+        m_TargetAssemblyTypeName: ResourceManager, MalbersAnimations
+        m_MethodName: IsPickedUp
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 0}
+        m_TargetAssemblyTypeName: MalbersAnimations.Controller.MRespawner, MalbersAnimations
+        m_MethodName: MarkBottleObtained
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   OnPrePicked:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1917095936096250719}
+        m_TargetAssemblyTypeName: MalbersAnimations.Controller.Pickable, MalbersAnimations
+        m_MethodName: PlayPickupSFX
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   OnDropped:
     m_PersistentCalls:
       m_Calls:
+      - m_Target: {fileID: 30496451734390883}
+        m_TargetAssemblyTypeName: ResourceManager, MalbersAnimations
+        m_MethodName: IsDroppedBy
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
       - m_Target: {fileID: 30496451734390883}
         m_TargetAssemblyTypeName: ResourceManager, MalbersAnimations
         m_MethodName: IsDroppedBy
@@ -549,9 +621,166 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  triggerEffectsOnPickup: 0
+  triggerEffectsOnPickup: 1
   pickupEffectZone: {fileID: 0}
-  pickupResourceDelay: 1.5
+--- !u!1 &2978442639878858210
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2844042576321155739}
+  - component: {fileID: 1876689654444168666}
+  m_Layer: 0
+  m_Name: PlayerLensFlare
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2844042576321155739
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2978442639878858210}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 6.666667, y: 6.6666656, z: 6.6666656}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 9157798788383467608}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1876689654444168666
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2978442639878858210}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc4d76f733087744991913c9d19d5274, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_LensFlareData: {fileID: 11400000, guid: a9dbcbf520dc79948880f7d62093671b, type: 2}
+  intensity: 0
+  maxAttenuationDistance: 100
+  maxAttenuationScale: 100
+  distanceAttenuationCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  scaleByDistanceCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  attenuationByLightShape: 1
+  radialScreenAttenuationCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  useOcclusion: 1
+  occlusionRadius: 0.5
+  useBackgroundCloudOcclusion: 0
+  sampleCount: 64
+  occlusionOffset: 0.05
+  scale: 1
+  allowOffScreen: 0
+  volumetricCloudOcclusion: 0
+  occlusionRemapCurve:
+    <length>k__BackingField: 2
+    m_Loop: 0
+    m_ZeroValue: 1
+    m_Range: 1
+    m_Curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
 --- !u!1 &3093643127099527282
 GameObject:
   m_ObjectHideFlags: 0
@@ -563,6 +792,7 @@ GameObject:
   - component: {fileID: 7701940186935527210}
   - component: {fileID: 5155459136276712774}
   - component: {fileID: 8863348940124391675}
+  - component: {fileID: 3453329347054991905}
   m_Layer: 0
   m_Name: Point Light
   m_TagString: Untagged
@@ -769,6 +999,132 @@ MonoBehaviour:
   m_PointlightHDType: 0
   m_SpotLightShape: 0
   m_AreaLightShape: 0
+--- !u!114 &3453329347054991905
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3093643127099527282}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc4d76f733087744991913c9d19d5274, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_LensFlareData: {fileID: 11400000, guid: a9dbcbf520dc79948880f7d62093671b, type: 2}
+  intensity: 1
+  maxAttenuationDistance: 100
+  maxAttenuationScale: 100
+  distanceAttenuationCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  scaleByDistanceCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  attenuationByLightShape: 1
+  radialScreenAttenuationCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  useOcclusion: 1
+  occlusionRadius: 0.5
+  useBackgroundCloudOcclusion: 0
+  sampleCount: 64
+  occlusionOffset: 0.05
+  scale: 1
+  allowOffScreen: 0
+  volumetricCloudOcclusion: 0
+  occlusionRemapCurve:
+    <length>k__BackingField: 2
+    m_Loop: 0
+    m_ZeroValue: 1
+    m_Range: 1
+    m_Curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
 --- !u!1001 &1641204230683549876
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -959,6 +1315,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7128182972145813447, guid: dc658da316a6f194e8313a6e5065d371,
         type: 3}
+      propertyPath: lensFlareSRP
+      value: 
+      objectReference: {fileID: 1876689654444168666}
+    - target: {fileID: 7128182972145813447, guid: dc658da316a6f194e8313a6e5065d371,
+        type: 3}
+      propertyPath: depletionRate
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7128182972145813447, guid: dc658da316a6f194e8313a6e5065d371,
+        type: 3}
       propertyPath: resourceLight
       value: 
       objectReference: {fileID: 5155459136276712774}
@@ -966,6 +1332,21 @@ PrefabInstance:
         type: 3}
       propertyPath: resourceAddDelay
       value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7128182972145813447, guid: dc658da316a6f194e8313a6e5065d371,
+        type: 3}
+      propertyPath: minFlareIntensity
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7128182972145813447, guid: dc658da316a6f194e8313a6e5065d371,
+        type: 3}
+      propertyPath: depletionMultiplier
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7128182972145813447, guid: dc658da316a6f194e8313a6e5065d371,
+        type: 3}
+      propertyPath: flareTransitionSpeed
+      value: 0.3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

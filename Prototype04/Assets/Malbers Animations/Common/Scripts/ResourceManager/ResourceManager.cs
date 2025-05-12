@@ -1,5 +1,7 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Rendering;
+
 
 public class ResourceManager : MonoBehaviour
 {
@@ -17,76 +19,58 @@ public class ResourceManager : MonoBehaviour
     public float maxValue = 100f;        // 最大资源值
     public float depletionRate = 5f;     // 消耗率 
     public float depletionMultiplier = 1f; // 消耗倍数
-    
-    [Header("光线设置")]
-    public Light resourceLight;          // 引用场景中的灯光组件
-    public float minIntensity = 0.1f;    // 最小亮度（资源为0时）
-    public float maxIntensity = 3.0f;    // 最大亮度（资源满时）
+
+    [Header("镜头光晕组件")]
+public LensFlareComponentSRP lensFlareSRP; // 替代 spotlight
+public float minFlareIntensity = 0.1f;
+public float maxFlareIntensity = 1.0f;
+
     
     [Header("时间延迟类设置")]
-    [SerializeField] public float resourceAddDelay = 0.5f;  // 水瓶丢进去后多久获得资源（开始发光）
-    [SerializeField] private float brightnessIncreaseSpeed = 1.0f;  // 亮度增加速度
-    public AnimationCurve brightnessIncreaseCurve = AnimationCurve.EaseInOut(0, 0, 1, 1); // 默认曲线
-    [SerializeField] private float brightnessDecreaseSpeed = 1.0f;  // 亮度减少速度
-    public AnimationCurve brightnessDecreaseCurve = AnimationCurve.EaseInOut(0, 0, 1, 1); // 亮度减少曲线
+    public float resourceAddDelay = 0.5f;
+    [SerializeField] private float brightnessIncreaseSpeed = 1.0f;
+    public AnimationCurve brightnessIncreaseCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+    [SerializeField] private float brightnessDecreaseSpeed = 1.0f;
+    public AnimationCurve brightnessDecreaseCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
-        // 用于亮度增加的时间追踪
     private float increaseTimer = 0f;
-    private float decreaseTimer = 0f; // 新增：用于减少效果的计时器
+    private float decreaseTimer = 0f;
     private float startValue = 0f;
     private float targetValue = 0f;
     private bool isIncreasing = false;
-    private bool isDecreasing = false; // 新增：标记是否正在减少
-    
-    
-    //[Header("UI Settings")]             // 原UI设置的引用（保留但不直接使用）
-    //public Image WaterdropImage;
-    //public TextMeshProUGUI WaterdropText;
+    private bool isDecreasing = false;
 
-    private bool isInitialized = false;   // 标记资源是否已初始化
+    private bool isInitialized = false;
     public bool isPickedUp { get; private set; } = false;
-    
-    private float currentDisplayValue;    // 当前显示值（用于平滑过渡）
 
+    private float currentDisplayValue;
     public event System.Action OnResourceDepleted;
 
-    [Header("对冲效果")]
-public bool enableOvershoot = true;        // 是否启用过冲效果
-public float overshootPercent = 50f;       // 过冲百分比(比如50表示会超过目标值50%)
-public AnimationCurve overshootCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);  // 过冲曲线
-public float overshootThreshold = 0.75f;   // 过冲触发的阈值（0-1之间）
-private bool isOvershooting = false;       // 当前是否在过冲状态
-private float overshootTarget;             // 过冲目标值
-private float overshootTimer = 0f;         // 过冲计时器
-private bool isReadyForOvershoot = false;  // 是否准备好执行过冲效果
+    [Header("闪烁效果")]
+    public float defaultFlickerFrequency = 1.0f;
+    public float defaultFlickerIntensity = 0.1f;
+    public float detectedFlickerFrequency = 5.0f;
+    public float detectedFlickerIntensity = 0.3f;
+    public float combatFlickerFrequency = 10.0f;
+    public float combatFlickerIntensity = 0.5f;
 
+    private float currentFlickerFrequency;
+    private float currentFlickerIntensity;
+    private float flickerTime = 0.0f;
+    private LightState currentLightState = LightState.Default;
 
-        [Header("闪烁效果")]
-    public float defaultFlickerFrequency = 1.0f;     // 默认呼吸式闪烁速度
-    public float defaultFlickerIntensity = 0.1f; // 默认呼吸式闪烁强度
-
-    public float detectedFlickerFrequency = 5.0f;    // 被检测时闪烁速度
-    public float detectedFlickerIntensity = 0.3f; // 被检测时闪烁强度
-
-    public float combatFlickerFrequency = 10.0f;     // 战斗状态闪烁速度
-    public float combatFlickerIntensity = 0.5f;  // 战斗状态闪烁强度
-
-    private float currentFlickerFrequency;          // 当前闪烁速度
-    private float currentFlickerIntensity;      // 当前闪烁强度
-    private float flickerTime = 0.0f;           // 闪烁计时器
-    private LightState currentLightState = LightState.Default; // 当前灯光状态
-
-[Header("拾取延迟设置")]
-[SerializeField, Tooltip("拾取瓶子后多久获得资源（开始发光）")]
-public float pickupResourceDelay = 0.3f;  // 默认值可以设置得比普通resourceAddDelay更短
-
+    [Header("拾取延迟设置")]
+    public float pickupResourceDelay = 0.3f;
 
     [Header("资源归零过渡设置")]
-    [Tooltip("当资源归0瓶子到熄灭时的过渡")]
-    public float transitionDuration = 3.5f;     // 过渡持续时间（秒）
-    public float transitionDelay = 1f;       // 过渡前的延迟时间
+    public float transitionDuration = 3.5f;
+    public float transitionDelay = 1f;
+    public float flareTransitionSpeed = 1f;
+    private float currentFlareIntensity = 0f;
+    [Header("丢弃延迟设置")]
+public float dropLightDelay = 0.5f;  // 丢弃后光晕延迟亮起时间
+private bool justDropped = false;    // 标记是否刚被丢弃
 
-    
 
 
     public enum LightState
@@ -98,67 +82,31 @@ public float pickupResourceDelay = 0.3f;  // 默认值可以设置得比普通re
 
     private void Awake()
     {
-        // 隐藏原UI元素
-        /*
-        if (WaterdropImage != null)
-        {
-            var tempColor = WaterdropImage.color;
-            tempColor.a = 0;
-            WaterdropImage.color = tempColor;
-        }
-
-        if (WaterdropText != null)
-        {
-            var tempColor = WaterdropText.color;
-            tempColor.a = 0;
-            WaterdropText.color = tempColor;
-        }*/
-        
-        // 初始化显示值
         currentDisplayValue = currentValue;
         UpdateLightIntensity();
 
         currentFlickerFrequency = defaultFlickerFrequency;
         currentFlickerIntensity = defaultFlickerIntensity;
-        
     }
 
- private void Update()
-{
-    // 处理资源消耗
-    if (isDepleting && currentValue > 0) 
+    private void Update()
     {
-        currentValue -= depletionRate * depletionMultiplier * Time.deltaTime;
-
-        if (currentValue <= 0)
+        if (isDepleting && currentValue > 0)
         {
-            currentValue = 0;
-            isDepleting = false;
-            OnResourceDepleted?.Invoke();
-            
-            // 资源耗尽时启动过渡协程
-            StartCoroutine(TransitionToDefaultFlicker());
+            currentValue -= depletionRate * depletionMultiplier * Time.deltaTime;
+
+            if (currentValue <= 0)
+            {
+                currentValue = 0;
+                isDepleting = false;
+                OnResourceDepleted?.Invoke();
+                StartCoroutine(TransitionToDefaultFlicker());
+            }
         }
-    }
-    
-    // 处理显示值更新
-    if (isOvershooting)
-    {
-        // 如果在过冲状态，执行过冲更新
-        UpdateOvershoot();
-    }
-    else
-    {
-        // 平滑过渡逻辑
+
         if (currentValue > currentDisplayValue)
         {
-            // 如果之前在减少状态，重置减少状态
-            if (isDecreasing)
-            {
-                isDecreasing = false;
-            }
-            
-            // 如果不在增加状态，开始一个新的增加过程
+            if (isDecreasing) isDecreasing = false;
             if (!isIncreasing)
             {
                 isIncreasing = true;
@@ -166,16 +114,11 @@ public float pickupResourceDelay = 0.3f;  // 默认值可以设置得比普通re
                 startValue = currentDisplayValue;
                 targetValue = currentValue;
             }
-            
-            // 更新计时器
+
             increaseTimer += Time.deltaTime * brightnessIncreaseSpeed;
             float normalizedTime = Mathf.Clamp01(increaseTimer);
-            
-            // 使用曲线计算当前值
-            currentDisplayValue = Mathf.Lerp(startValue, targetValue, 
-                brightnessIncreaseCurve.Evaluate(normalizedTime));
-            
-            // 如果完成了增加过程
+            currentDisplayValue = Mathf.Lerp(startValue, targetValue, brightnessIncreaseCurve.Evaluate(normalizedTime));
+
             if (normalizedTime >= 1.0f)
             {
                 isIncreasing = false;
@@ -184,13 +127,7 @@ public float pickupResourceDelay = 0.3f;  // 默认值可以设置得比普通re
         }
         else if (currentValue < currentDisplayValue)
         {
-            // 如果之前在增加状态，重置增加状态
-            if (isIncreasing)
-            {
-                isIncreasing = false;
-            }
-            
-            // 如果不在减少状态，开始一个新的减少过程
+            if (isIncreasing) isIncreasing = false;
             if (!isDecreasing)
             {
                 isDecreasing = true;
@@ -198,16 +135,11 @@ public float pickupResourceDelay = 0.3f;  // 默认值可以设置得比普通re
                 startValue = currentDisplayValue;
                 targetValue = currentValue;
             }
-            
-            // 更新计时器
+
             decreaseTimer += Time.deltaTime * brightnessDecreaseSpeed;
             float normalizedTime = Mathf.Clamp01(decreaseTimer);
-            
-            // 使用曲线计算当前值
-            currentDisplayValue = Mathf.Lerp(startValue, targetValue, 
-                brightnessDecreaseCurve.Evaluate(normalizedTime));
-            
-            // 如果完成了减少过程
+            currentDisplayValue = Mathf.Lerp(startValue, targetValue, brightnessDecreaseCurve.Evaluate(normalizedTime));
+
             if (normalizedTime >= 1.0f)
             {
                 isDecreasing = false;
@@ -216,163 +148,89 @@ public float pickupResourceDelay = 0.3f;  // 默认值可以设置得比普通re
         }
         else
         {
-            // 如果当前值等于显示值，重置所有状态
             isIncreasing = false;
             isDecreasing = false;
         }
-        
-        // 检测过冲条件
-        if (currentValue > 0)
-        {
-            float percentageReached = currentDisplayValue / currentValue;
-            
-            // 只有当满足以下所有条件时才触发过冲
-            if (enableOvershoot && 
-                !isReadyForOvershoot && 
-                !isOvershooting &&  // 确保当前没有在过冲状态
-                currentValue > startValue && // 只在资源增加时
-                Mathf.Abs(currentValue - currentDisplayValue) > 0.01f && // 确保有足够的差距
-                percentageReached >= overshootThreshold)
-            {
-                isReadyForOvershoot = true;
-                StartOvershoot();
-            }
-}
+
+        UpdateLightIntensity();
     }
-        
-    UpdateLightIntensity();
-}
 
-public bool IsDecreasing => isDecreasing;
-public bool IsIncreasing => isIncreasing;
-public bool IsOvershooting => isOvershooting;
-
-private void StartOvershoot()
+   private void UpdateLightIntensity()
 {
-    isOvershooting = true;
-    overshootTarget = currentValue + (currentValue * (overshootPercent / 100f));
-    overshootTimer = 0f;
-}
+    if (lensFlareSRP == null) return;
 
-private void UpdateOvershoot()
-{
-    // 增加计时器，不限制在0-1范围内
-    overshootTimer += Time.deltaTime;
-    
-    // 获取曲线的时间范围
-    float curveDuration = overshootCurve[overshootCurve.length - 1].time;
-    
-    // 使用动画曲线的值来确定当前显示值
-    float curveValue = overshootCurve.Evaluate(overshootTimer);
-    
-    // 计算当前显示值
-    currentDisplayValue = Mathf.Lerp(currentValue, overshootTarget, curveValue);
-    
-    // 如果完成整个曲线的播放，重置状态
-    if (overshootTimer >= curveDuration)
+    float targetIntensity;
+
+    // 如果刚被丢弃或仍在被拾取状态，光晕为0
+    if (isPickedUp || justDropped)
     {
-        currentDisplayValue = currentValue;
-        isOvershooting = false;
-        isReadyForOvershoot = false;  // 重置过冲准备状态，允许再次触发
-        overshootTimer = 0f;
+        targetIntensity = 0f;
     }
-}
-
-        private IEnumerator TransitionToDefaultFlicker()
+    else
     {
-        // 等待延迟时间
+        float valuePercentage = Mathf.Clamp01(currentDisplayValue / maxValue);
+        float baseIntensity = Mathf.Lerp(minFlareIntensity, maxFlareIntensity, valuePercentage);
+
+        flickerTime += Time.deltaTime * currentFlickerFrequency;
+        float flickerFactor = Mathf.Sin(flickerTime) * currentFlickerIntensity;
+        targetIntensity = baseIntensity * (1.0f + flickerFactor);
+    }
+
+    // 平滑过渡
+    currentFlareIntensity = Mathf.Lerp(currentFlareIntensity, targetIntensity, Time.deltaTime * flareTransitionSpeed);
+    lensFlareSRP.intensity = currentFlareIntensity;
+
+    currentDisplayValueDebug = currentDisplayValue;
+}
+    private IEnumerator TransitionToDefaultFlicker()
+    {
         yield return new WaitForSeconds(transitionDelay);
-        
-        // 保存开始时的闪烁速度
         float startSpeed = currentFlickerFrequency;
         float elapsedTime = 0f;
-        
-        // 在过渡持续时间内平滑过渡
+
         while (elapsedTime < transitionDuration)
         {
             elapsedTime += Time.deltaTime;
             float t = Mathf.Clamp01(elapsedTime / transitionDuration);
-            
-            // 平滑过渡闪烁速度
             currentFlickerFrequency = Mathf.Lerp(startSpeed, defaultFlickerFrequency, t);
-            
             yield return null;
         }
-        
-        // 确保最终值精确
+
         currentFlickerFrequency = defaultFlickerFrequency;
-        
-        // 确保状态也设置为默认
         SetLightState(LightState.Default);
     }
-        
-    // 更新灯光亮度的方法
-    private void UpdateLightIntensity()
+
+    public void SetLightState(LightState state)
     {
-        if (resourceLight != null)
+        currentLightState = state;
+
+        switch (state)
         {
-            // 计算基础亮度
-            float valuePercentage = Mathf.Clamp01(currentDisplayValue / maxValue);
-            float baseIntensity = Mathf.Lerp(minIntensity, maxIntensity, valuePercentage);
-            
-            // 应用闪烁效果
-            flickerTime += Time.deltaTime * currentFlickerFrequency;
-            float flickerFactor = Mathf.Sin(flickerTime) * currentFlickerIntensity;
-            resourceLight.intensity = baseIntensity * (1.0f + flickerFactor);
-            
-            // 更新调试变量 - 只显示当前显示值
-            currentDisplayValueDebug = currentDisplayValue;
+            case LightState.Default:
+                currentLightStateDebug = "Default";
+                currentFlickerFrequency = defaultFlickerFrequency;
+                currentFlickerIntensity = defaultFlickerIntensity;
+                break;
+            case LightState.Detected:
+                currentLightStateDebug = "Detected";
+                currentFlickerFrequency = detectedFlickerFrequency;
+                currentFlickerIntensity = detectedFlickerIntensity;
+                break;
+            case LightState.Combat:
+                currentLightStateDebug = "Combat";
+                currentFlickerFrequency = combatFlickerFrequency;
+                currentFlickerIntensity = combatFlickerIntensity;
+                break;
         }
     }
-
-
-public void SetLightState(LightState state)
-{
-    currentLightState = state;
-    
-    // 更新调试显示
-    switch(state)
-    {
-        case LightState.Default:
-            currentLightStateDebug = "Default";
-            break;
-        case LightState.Detected:
-            currentLightStateDebug = "Detected";
-            break;
-        case LightState.Combat:
-            currentLightStateDebug = "Combat";
-            break;
-    }
-    
-    // 根据状态设置闪烁参数
-    switch (state)
-    {
-        case LightState.Default:
-            currentFlickerFrequency = defaultFlickerFrequency;
-            currentFlickerIntensity = defaultFlickerIntensity;
-            break;
-            
-        case LightState.Detected:
-            currentFlickerFrequency = detectedFlickerFrequency;
-            currentFlickerIntensity = detectedFlickerIntensity;
-            break;
-            
-        case LightState.Combat:
-            currentFlickerFrequency = combatFlickerFrequency;
-            currentFlickerIntensity = combatFlickerIntensity;
-            break;
-    }
-}
 
     public void StartResourceDepletion(float initialMaxValue)
     {
         if (!isInitialized)
         {
-            //maxValue = initialMaxValue;
-            //currentValue = maxValue;
             isInitialized = true;
         }
-            isDepleting = true;
+        isDepleting = true;
     }
 
     public void StopResourceDepletion()
@@ -390,7 +248,7 @@ public void SetLightState(LightState state)
         depletionRate = rate;
     }
 
-    public void TriggerResourceDepleted() 
+    public void TriggerResourceDepleted()
     {
         OnResourceDepleted?.Invoke();
     }
@@ -398,35 +256,41 @@ public void SetLightState(LightState state)
     public void IsPickedUp()
     {
         isPickedUp = true;
-         Debug.Log("物品已拾取!");
+        Debug.Log("物品已拾取!");
     }
 
     public void IsDroppedBy()
     {
         isPickedUp = false;
-         Debug.Log("物品已丢弃!");
+        Debug.Log("物品已丢弃!");
+        StartCoroutine(DelayedDropLight());
     }
+
+    private IEnumerator DelayedDropLight()
+{
+    justDropped = true;
+    isPickedUp = false;  // 立即设置为未拾取状态
+    
+    // 延迟指定时间
+    yield return new WaitForSeconds(dropLightDelay);
+    
+    // 延迟结束后标记为可以亮起
+    justDropped = false;
+}
+
 
     public void AddResource(float amount)
     {
-        isOvershooting = false;
-        isReadyForOvershoot = false;
-        isIncreasing = false; // 重置增加状态
+        isIncreasing = false;
         StartCoroutine(DelayedAddResource(amount));
     }
-        
-    // 延迟添加资源
+
     public IEnumerator DelayedAddResource(float amount)
     {
-        // 添加资源前的延迟
         yield return new WaitForSeconds(resourceAddDelay);
-        
         bool wasEmpty = currentValue <= 0;
-        
-        // 直接修改资源值，显示过渡由Update处理
         currentValue = Mathf.Min(currentValue + amount, maxValue);
-        
-        // 如果之前资源为空，现在有了资源，重置光的状态
+
         if (wasEmpty && currentValue > 0)
         {
             SetLightState(LightState.Default);
@@ -440,23 +304,20 @@ public void SetLightState(LightState state)
     }
 
     public IEnumerator DelayedPickupResource(float amount)
-{
-    // 添加资源前的延迟（使用拾取专用延迟）
-    yield return new WaitForSeconds(pickupResourceDelay);
-    
-    bool wasEmpty = currentValue <= 0;
-    
-    // 直接修改资源值，显示过渡由Update处理
-    currentValue = Mathf.Min(currentValue + amount, maxValue);
-    
-    // 如果之前资源为空，现在有了资源，重置光的状态
-    if (wasEmpty && currentValue > 0)
     {
-        SetLightState(LightState.Default);
-    }
-    
-    Debug.Log("拾取模式 - 资源已添加: " + amount);
-}
+        yield return new WaitForSeconds(pickupResourceDelay);
+        bool wasEmpty = currentValue <= 0;
+        currentValue = Mathf.Min(currentValue + amount, maxValue);
 
+        if (wasEmpty && currentValue > 0)
+        {
+            SetLightState(LightState.Default);
+        }
+
+        Debug.Log("拾取模式 - 资源已添加: " + amount);
+    }
+
+    public bool IsDecreasing => isDecreasing;
+    public bool IsIncreasing => isIncreasing;
 }
 

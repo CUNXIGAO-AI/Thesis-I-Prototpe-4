@@ -784,15 +784,20 @@ private void HandleResourceChoice(DialogueChoice choice, DialogueMessage current
             // 资源充足，执行选择动作
             ExecuteChoiceActions(choice);
 
-            // ✅ 如果勾选了“选择后结束对话”，直接退出
+            // 先消耗资源
+            ConsumeResources();
+
+            // 消耗资源后，标记为完成状态，防止重新触发
+            pendingCompleteAfterExit = true;
+
+            // 然后检查是否需要直接退出对话
             if (choice.endDialogueAfterChoice)
             {
+                // 如果直接退出对话，立即设置为完成状态
+                currentState = InteractionState.Completed;
                 ExitInteraction();
                 return;
             }
-
-            // 消耗资源
-            ConsumeResources();
 
             // 跳转到下一条消息
             JumpToNextMessage(choice);
@@ -810,7 +815,7 @@ private void HandleResourceChoice(DialogueChoice choice, DialogueMessage current
         // 不需要消耗资源的选项，直接执行
         ExecuteChoiceActions(choice);
 
-        // ✅ 如果勾选了“选择后结束对话”，直接退出
+        // 如果勾选了"选择后结束对话"，直接退出
         if (choice.endDialogueAfterChoice)
         {
             ExitInteraction();
@@ -829,6 +834,7 @@ private void ConsumeResources()
 {
     if (resourceManager != null)
     {
+        Debug.Log("消耗资源");
         resourceManager.ConsumeAllResource();
     }
 }
