@@ -2,172 +2,22 @@
 [LOG] Manager::init                            : maxchannels = 256 studioflags = 00000006 flags 00000000 extradriverdata 0000000000000000.
 [LOG] SystemI::init                            : Initialize version=20225 (147536), maxchannels=256, flags=0x00020000
 [LOG] SystemI::setOutputInternal               : Setting output to 'FMOD WASAPI Output'
-[LOG] SystemI::createSound                     : filename = Assets/FMODBanks/Desktop/Master.bank : mode 02010082
-[LOG] SystemI::createSound                     : FMOD_NONBLOCKING specified.  Putting into queue to be opened asynchronously!
-[LOG] AsyncThread::add                         : add sound to async queue : soundi = 00000147913B54A8, queue head = 00000147DCBE8888, queue count = 0
-[LOG] SystemI::createSound                     : filename = Assets/FMODBanks/Desktop/Master.bank : mode 02010082
-[LOG] SystemI::createSound                     : FMOD_NONBLOCKING specified.  Putting into queue to be opened asynchronously!
-[LOG] AsyncThread::add                         : add sound to async queue : soundi = 00000147913B3498, queue head = 00000147DCBE8888, queue count = 1
-[LOG] AsyncThread::threadFunc                  : Starting Asynchronous operation on sound 00000147913B54A8
-[LOG] SystemI::createSoundInternal             :     Create name='Assets/FMODBanks/Desktop/Master.bank', mode=0x02010082
-[LOG] SystemI::createSoundInternal             :     exinfo->cbsize             = 224
-[LOG] SystemI::createSoundInternal             :     exinfo->length             = 6058848
-[LOG] SystemI::createSoundInternal             :     exinfo->fileoffset         = 70400
-[LOG] SystemI::createSoundInternal             :     exinfo->numsubsounds       = 1
-[LOG] SystemI::createSoundInternal             :     exinfo->inclusionlist      = 00000146D6F90680
-[LOG] SystemI::createSoundInternal             :     exinfo->inclusionlistnum   = 1
-[LOG] SystemI::createSoundInternal             :     exinfo->suggestedsoundtype = 5
-[LOG] SystemI::createSoundInternal             :     exinfo->initialseekposition = 312
-[LOG] SystemI::createSoundInternal             :     exinfo->initialseekpostype = 1
-[LOG] SystemI::createSoundInternal             :     Stream 0/1: name='Water', format=5, channels=2, frequency=48000, lengthbytes=90880, lengthpcm=635715, pcmblocksize=0, loopstart=0, loopend=0, mode=0x00000000, channelmask=0x00000000, channelorder=0, peakvolume=0.857208.
-[LOG] OutputWASAPI::init                       :     Mix Format (WAVEFORMATEX): wFormatTag=0xFFFE, nChannels=2, nSamplesPerSec=48000, nAvgBytesPerSec=384000, nBlockAlign=8, wBitsPerSample=32, cbSize=22.
-[LOG] AsyncThread::threadFunc                  : Finished Asynchronous operation on sound 00000147913B54A8
-[LOG] AsyncThread::threadFunc                  : Starting Asynchronous operation on sound 00000147913B3498
+[LOG] OutputWASAPI::init                       : Mix Format (WAVEFORMATEX): wFormatTag=0xFFFE, nChannels=2, nSamplesPerSec=48000, nAvgBytesPerSec=384000, nBlockAlign=8, wBitsPerSample=32, cbSize=22.
 [LOG] OutputWASAPI::init                       : Mix Format (WAVEFORMATEXTENSIBLE): wValidBitsPerSample=32, dwChannelMask=0x00000003, SubFormat=00000003-0000-0010-8000-00AA00389B71.
-[LOG] SystemI::createSoundInternal             :     Create name='Assets/FMODBanks/Desktop/Master.bank', mode=0x02010082
-[LOG] SystemI::createSoundInternal             :     exinfo->cbsize             = 224
-[LOG] SystemI::createSoundInternal             :     exinfo->length             = 6058848
-[LOG] SystemI::createSoundInternal             :     exinfo->fileoffset         = 70400
-[LOG] SystemI::createSoundInternal             :     exinfo->numsubsounds       = 1
-[LOG] SystemI::createSoundInternal             :     exinfo->inclusionlist      = 00000146D6F907C0
-[LOG] SystemI::createSoundInternal             :     exinfo->inclusionlistnum   = 1
-[LOG] SystemI::createSoundInternal             :     exinfo->suggestedsoundtype = 5
-[LOG] SystemI::createSoundInternal             :     exinfo->initialseekposition = 6095
-[LOG] SystemI::createSoundInternal             :     exinfo->initialseekpostype = 1
-[LOG] SystemI::createSoundInternal             :     Stream 0/1: name='waterstream', format=5, channels=1, frequency=48000, lengthbytes=483648, lengthpcm=1484850, pcmblocksize=0, loopstart=0, loopend=0, mode=0x00000000, channelmask=0x00000000, channelorder=0, peakvolume=0.876862.
-[LOG] AsyncThread::threadFunc                  : Finished Asynchronous operation on sound 00000147913B3498
 [LOG] OutputWASAPI::init                       : Output buffer size: 4096 samples, latency: 0.00ms, period: 10.00ms, DSP buffer: 1024 * 4
 [LOG] Thread::initThread                       : Init FMOD stream thread. Affinity: 0x4000000000000003, Priority: 0xFFFF7FFB, Stack Size: 98304, Semaphore: No, Sleep Time: 10, Looping: Yes.
 [LOG] Thread::initThread                       : Init FMOD mixer thread. Affinity: 0x4000000000000001, Priority: 0xFFFF7FFA, Stack Size: 81920, Semaphore: No, Sleep Time: 0, Looping: Yes.
-[LOG] AsyncManager::init                       : manager 00000144618164E8 isAsync 0 updatePeriod 0.02
+[LOG] AsyncManager::init                       : manager 00000205D0524988 isAsync 0 updatePeriod 0.02
 [LOG] AsyncManager::init                       : done
 [LOG] PlaybackSystem::init                     : 
 [LOG] Thread::initThread                       : Init FMOD Studio sample load thread. Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 98304, Semaphore: No, Sleep Time: 1, Looping: No.
 [LOG] PlaybackSystem::init                     : done
 [LOG] Thread::initThread                       : Init FMOD Studio bank load thread. Affinity: 0x4000000000000003, Priority: 0xFFFF7FFD, Stack Size: 98304, Semaphore: No, Sleep Time: 1, Looping: No.
 [LOG] Manager::init                            : done.
-[LOG] SoundI::release                          : waterstream (00000147913B8AA8)
-[LOG] SoundI::release                          :     waterstream (0000014675E7C928)
-[LOG] SoundI::release                          :     waterstream (00000147B9AA6138)
-[LOG] SoundI::release                          : Water (00000147913B5808)
-[LOG] SoundI::release                          :     Water (0000014675E7DCA8)
-[LOG] SoundI::release                          :     Water (00000147B9AA58C8)
-[LOG] SoundI::release                          : Water (00000147913B8088)
-[LOG] SoundI::release                          :     Water (0000014675E7D2E8)
-[LOG] SoundI::release                          :     Water (00000147B9AA2CE8)
-[LOG] SystemI::createSound                     : filename = Assets/FMODBanks/Desktop/Master.bank : mode 02010082
-[LOG] SystemI::createSound                     : FMOD_NONBLOCKING specified.  Putting into queue to be opened asynchronously!
-[LOG] AsyncThread::add                         : add sound to async queue : soundi = 00000147913B7158, queue head = 00000147DCBE8888, queue count = 0
-[LOG] AsyncThread::threadFunc                  : Starting Asynchronous operation on sound 00000147913B7158
-[LOG] SystemI::createSoundInternal             :     Create name='Assets/FMODBanks/Desktop/Master.bank', mode=0x02010082
-[LOG] SystemI::createSoundInternal             :     exinfo->cbsize             = 224
-[LOG] SystemI::createSoundInternal             :     exinfo->length             = 6058848
-[LOG] SystemI::createSoundInternal             :     exinfo->fileoffset         = 70400
-[LOG] SystemI::createSoundInternal             :     exinfo->numsubsounds       = 1
-[LOG] SystemI::createSoundInternal             :     exinfo->inclusionlist      = 00000146D6F90B80
-[LOG] SystemI::createSoundInternal             :     exinfo->inclusionlistnum   = 1
-[LOG] SystemI::createSoundInternal             :     exinfo->suggestedsoundtype = 5
-[LOG] SystemI::createSoundInternal             :     exinfo->initialseekpostype = 1
-[LOG] SystemI::createSoundInternal             :     Stream 0/1: name='waterstream', format=5, channels=1, frequency=48000, lengthbytes=483648, lengthpcm=1484850, pcmblocksize=0, loopstart=0, loopend=0, mode=0x00000000, channelmask=0x00000000, channelorder=0, peakvolume=0.876862.
-[LOG] AsyncThread::threadFunc                  : Finished Asynchronous operation on sound 00000147913B7158
-[LOG] AsyncThread::add                         : add sound to async queue : soundi = 00000147B89AC8F8, queue head = 00000147DCBE8888, queue count = 0
-[LOG] AsyncThread::threadFunc                  : Starting Asynchronous operation on sound 00000147B89AC8F8
-[LOG] AsyncThread::threadFunc                  : Finished Asynchronous operation on sound 00000147B89AC8F8
-[LOG] SoundI::release                          : waterstream (00000147913B8598)
-[LOG] SoundI::release                          :     waterstream (0000014675E7DB08)
-[LOG] SoundI::release                          :     waterstream (00000147B9AA0CD8)
-[LOG] SystemI::createSound                     : filename = Assets/FMODBanks/Desktop/Master.bank : mode 02010082
-[LOG] SystemI::createSound                     : FMOD_NONBLOCKING specified.  Putting into queue to be opened asynchronously!
-[LOG] AsyncThread::add                         : add sound to async queue : soundi = 00000147913B4DE8, queue head = 00000147DCBE8888, queue count = 0
-[LOG] AsyncThread::threadFunc                  : Starting Asynchronous operation on sound 00000147913B4DE8
-[LOG] SystemI::createSoundInternal             :     Create name='Assets/FMODBanks/Desktop/Master.bank', mode=0x02010082
-[LOG] SystemI::createSoundInternal             :     exinfo->cbsize             = 224
-[LOG] SystemI::createSoundInternal             :     exinfo->length             = 6058848
-[LOG] SystemI::createSoundInternal             :     exinfo->fileoffset         = 70400
-[LOG] SystemI::createSoundInternal             :     exinfo->numsubsounds       = 1
-[LOG] SystemI::createSoundInternal             :     exinfo->inclusionlist      = 00000146D6F90CC0
-[LOG] SystemI::createSoundInternal             :     exinfo->inclusionlistnum   = 1
-[LOG] SystemI::createSoundInternal             :     exinfo->suggestedsoundtype = 5
-[LOG] SystemI::createSoundInternal             :     exinfo->initialseekposition = 6312
-[LOG] SystemI::createSoundInternal             :     exinfo->initialseekpostype = 1
-[LOG] SystemI::createSoundInternal             :     Stream 0/1: name='Water', format=5, channels=2, frequency=48000, lengthbytes=90880, lengthpcm=635715, pcmblocksize=0, loopstart=0, loopend=0, mode=0x00000000, channelmask=0x00000000, channelorder=0, peakvolume=0.857208.
-[LOG] AsyncThread::threadFunc                  : Finished Asynchronous operation on sound 00000147913B4DE8
-[LOG] SystemI::createSound                     : filename = Assets/FMODBanks/Desktop/Master.bank : mode 02010082
-[LOG] SystemI::createSound                     : FMOD_NONBLOCKING specified.  Putting into queue to be opened asynchronously!
-[LOG] AsyncThread::add                         : add sound to async queue : soundi = 00000147913B59B8, queue head = 00000147DCBE8888, queue count = 0
-[LOG] SystemI::createSound                     : filename = Assets/FMODBanks/Desktop/Master.bank : mode 02010082
-[LOG] SystemI::createSound                     : FMOD_NONBLOCKING specified.  Putting into queue to be opened asynchronously!
-[LOG] AsyncThread::add                         : add sound to async queue : soundi = 00000147913B39A8, queue head = 00000147DCBE8888, queue count = 1
-[LOG] AsyncThread::threadFunc                  : Starting Asynchronous operation on sound 00000147913B59B8
-[LOG] SystemI::createSoundInternal             :     Create name='Assets/FMODBanks/Desktop/Master.bank', mode=0x02010082
-[LOG] SystemI::createSoundInternal             :     exinfo->cbsize             = 224
-[LOG] SystemI::createSoundInternal             :     exinfo->length             = 6058848
-[LOG] SystemI::createSoundInternal             :     exinfo->fileoffset         = 70400
-[LOG] SystemI::createSoundInternal             :     exinfo->numsubsounds       = 1
-[LOG] SystemI::createSoundInternal             :     exinfo->inclusionlist      = 00000146D6F90E00
-[LOG] SystemI::createSoundInternal             :     exinfo->inclusionlistnum   = 1
-[LOG] SystemI::createSoundInternal             :     exinfo->suggestedsoundtype = 5
-[LOG] SystemI::createSoundInternal             :     exinfo->initialseekposition = 312
-[LOG] SystemI::createSoundInternal             :     exinfo->initialseekpostype = 1
-[LOG] SystemI::createSoundInternal             :     Stream 0/1: name='Water', format=5, channels=2, frequency=48000, lengthbytes=90880, lengthpcm=635715, pcmblocksize=0, loopstart=0, loopend=0, mode=0x00000000, channelmask=0x00000000, channelorder=0, peakvolume=0.857208.
-[LOG] AsyncThread::threadFunc                  : Finished Asynchronous operation on sound 00000147913B59B8
-[LOG] AsyncThread::threadFunc                  : Starting Asynchronous operation on sound 00000147913B39A8
-[LOG] SystemI::createSoundInternal             :     Create name='Assets/FMODBanks/Desktop/Master.bank', mode=0x02010082
-[LOG] SystemI::createSoundInternal             :     exinfo->cbsize             = 224
-[LOG] SystemI::createSoundInternal             :     exinfo->length             = 6058848
-[LOG] SystemI::createSoundInternal             :     exinfo->fileoffset         = 70400
-[LOG] SystemI::createSoundInternal             :     exinfo->numsubsounds       = 1
-[LOG] SystemI::createSoundInternal             :     exinfo->inclusionlist      = 00000146D6F90F40
-[LOG] SystemI::createSoundInternal             :     exinfo->inclusionlistnum   = 1
-[LOG] SystemI::createSoundInternal             :     exinfo->suggestedsoundtype = 5
-[LOG] SystemI::createSoundInternal             :     exinfo->initialseekposition = 6095
-[LOG] SystemI::createSoundInternal             :     exinfo->initialseekpostype = 1
-[LOG] SystemI::createSoundInternal             :     Stream 0/1: name='waterstream', format=5, channels=1, frequency=48000, lengthbytes=483648, lengthpcm=1484850, pcmblocksize=0, loopstart=0, loopend=0, mode=0x00000000, channelmask=0x00000000, channelorder=0, peakvolume=0.876862.
-[LOG] AsyncThread::threadFunc                  : Finished Asynchronous operation on sound 00000147913B39A8
-[LOG] SoundI::release                          : waterstream (00000147913B39A8)
-[LOG] SoundI::release                          :     waterstream (0000014678E6BC88)
-[LOG] SoundI::release                          :     waterstream (00000147B89ADD38)
-[LOG] SoundI::release                          : Water (00000147913B59B8)
-[LOG] SoundI::release                          :     Water (0000014678E69DA8)
-[LOG] SoundI::release                          :     Water (00000147B89AEC68)
-[LOG] SoundI::release                          : Water (00000147913B4DE8)
-[LOG] SoundI::release                          :     Water (0000014678E6B128)
-[LOG] SoundI::release                          :     Water (00000147B89AEE18)
-[LOG] SoundI::release                          : waterstream (00000147913B7158)
-[LOG] SoundI::release                          :     waterstream (0000014678E68068)
-[LOG] SoundI::release                          :     waterstream (00000147B89AC8F8)
-[LOG] SoundI::release                          : waterstream (00000147913B3498)
-[LOG] SoundI::release                          :     waterstream (0000014675E7DE48)
-[LOG] SoundI::release                          :     waterstream (00000147B9AA31F8)
-[LOG] SoundI::release                          : Water (00000147913B54A8)
-[LOG] SoundI::release                          :     Water (0000014675E7C108)
-[LOG] SoundI::release                          :     Water (00000147B9AA2988)
-[LOG] SoundI::release                          :  (00000147B5E55438)
-[LOG] SoundI::release                          :     pickup_sfx_01 (000001467896FEF8)
-[LOG] SoundI::release                          :  (00000146782A8E58)
-[LOG] SoundI::release                          :     OnGroundWaterSFX (0000014678972AD8)
-[LOG] SoundI::release                          :  (00000146D6611028)
-[LOG] SoundI::release                          :     dogStep1 (0000014678972C78)
-[LOG] SoundI::release                          :  (00000146D6610BD8)
-[LOG] SoundI::release                          :     dogStep2 (000001467896F878)
-[LOG] SoundI::release                          :  (00000147981FB708)
-[LOG] SoundI::release                          :     dogStep3 (000001467896FD58)
-[LOG] SoundI::release                          :  (00000146D6610EB8)
-[LOG] SoundI::release                          :     dogStep4 (0000014678970578)
-[LOG] SoundI::release                          :  (00000147981FB598)
-[LOG] SoundI::release                          :     dogStep5 (000001467896FBB8)
-[LOG] SoundI::release                          :  (0000014703015DE8)
-[LOG] SoundI::release                          :     Bird_sfx (0000014678352138)
-[LOG] Thread::callback                         : FMOD Studio update thread finished.
-[LOG] Thread::callback                         : FMOD Studio bank load thread finished.
-[LOG] Profile::disconnectAll                   : Profiler disconnecting all clients
-[LOG] Thread::callback                         : FMOD Studio sample load thread finished.
-[LOG] LiveUpdate::release                      : 
-[LOG] LiveUpdate::reset                        : Reset connection (reason Disconnected)
-[LOG] Thread::callback                         : FMOD stream thread finished.
-[LOG] Thread::callback                         : FMOD mixer thread finished.
-[LOG] Profile::disconnectAll                   : Profiler disconnecting all clients
-[LOG] SystemI::close                           : Closed.
+[LOG] Manager::readBank                        : fileversion = 142, compatVersion = 140 (oldest = 44, newest = 142)
+[LOG] Manager::readBank                        : fileversion = 142, compatVersion = 140 (oldest = 44, newest = 142)
+[LOG] Manager::readBank                        : fileversion = 142, compatVersion = 140 (oldest = 44, newest = 142)
+[LOG] PlaybackSystem::acquireMasterBus         : Setting master channel group format to 6
 [LOG] Thread::callback                         : FMOD Studio bank load thread finished.
 [LOG] Thread::callback                         : FMOD Studio sample load thread finished.
 [LOG] LiveUpdate::release                      : 
@@ -175,5 +25,3 @@
 [LOG] Thread::callback                         : FMOD stream thread finished.
 [LOG] Thread::callback                         : FMOD mixer thread finished.
 [LOG] SystemI::close                           : Closed.
-[LOG] Thread::callback                         : FMOD nonblocking thread (0) finished.
-[LOG] Thread::callback                         : FMOD file thread finished.
