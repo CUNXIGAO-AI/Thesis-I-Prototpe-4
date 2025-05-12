@@ -1003,6 +1003,10 @@ private void OnTriggerEnter(Collider other)
 {
     if (other.CompareTag(playerTag) && !isPlayerDead)
     {
+        var animator = other.GetComponentInParent<Animator>();
+        if (animator == null || !animator.enabled)
+            return;
+
         // 检查是哪个碰撞体被触发
         bool inCutsceneRange = false;
         if (useSeparateCutsceneTrigger && cutsceneTriggerCollider != null)
@@ -1081,6 +1085,10 @@ private void OnTriggerExit(Collider other)
 {
     if (other.CompareTag(playerTag) && !isPlayerDead)
     {
+            var animator = other.GetComponentInParent<Animator>();
+    if (animator == null || !animator.enabled)
+        return;
+        
         bool wasInCutsceneRange = playerInCutsceneRange;
         bool wasInDialogueRange = playerInRange;
         
