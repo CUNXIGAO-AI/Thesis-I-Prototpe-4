@@ -371,6 +371,12 @@ public bool IsChandelierSFX2Playing()
 {
     return isChandelierSFX2Playing;
 }
+
+public void PlayChainSFX(Vector3 position)
+{
+    RuntimeManager.PlayOneShot(FMODEvents.instance.chainSFX, position);
+}
+
 }
 }
 
