@@ -64,26 +64,36 @@ public class ResourceEffectsManager : MonoBehaviour
         }
     }
     
-    [System.Serializable]
-    public class LensFlareEffect
+    public enum FadeMode
+{
+    None,
+    FadeIn,
+    FadeOut
+}
+   [System.Serializable]
+public class LensFlareEffect
+{
+    public LensFlareComponentSRP lensFlare;
+    public float fadeDelay = 0.0f;
+    public float fadeDuration = 4.0f;
+    public AnimationCurve fadeCurve = AnimationCurve.EaseInOut(0, 1, 1, 0);
+    public FadeMode fadeMode = FadeMode.FadeOut;  // 默认是淡出
+
+    private float initialIntensity;
+    [Tooltip("淡入的目标强度（如果默认是0）")]
+    public float targetIntensity = 1.0f; // 你想要淡入到的值
+
+    public void Initialize()
     {
-        public LensFlareComponentSRP lensFlare;
-        public float fadeDelay = 0.0f;
-        public float fadeDuration = 4.0f;
-        public AnimationCurve fadeCurve = AnimationCurve.EaseInOut(0, 1, 1, 0);
-        private float initialIntensity;
-
-        public void Initialize()
-        {
-            if (lensFlare != null)
-                initialIntensity = lensFlare.intensity;
-        }
-
-        public float GetInitialIntensity()
-        {
-            return initialIntensity;
-        }
+        if (lensFlare != null)
+            initialIntensity = lensFlare.intensity;
     }
+
+    public float GetInitialIntensity()
+    {
+        return initialIntensity;
+    }
+}
 
     [System.Serializable]
 public class FogEffect
@@ -158,11 +168,24 @@ public List<FogEffect> fogEffects = new List<FogEffect>();
         }
         
         // 触发所有镜头光晕效果
-        foreach (var effect in lensFlareEffects)
-        {
-            if (effect.lensFlare != null)
-                StartCoroutine(FadeLensFlare(effect, snapDelay));
-        }
+foreach (var effect in lensFlareEffects)
+{
+    if (effect.lensFlare == null) continue;
+
+    switch (effect.fadeMode)
+    {
+        case FadeMode.FadeOut:
+            StartCoroutine(FadeLensFlare(effect, snapDelay));
+            break;
+        case FadeMode.FadeIn:
+            StartCoroutine(FadeInLensFlare(effect, snapDelay));
+            break;
+        case FadeMode.None:
+        default:
+            break;
+    }
+}
+
         foreach (var effect in fogEffects)
 {
     if (effect.fogVolume != null)
@@ -318,6 +341,28 @@ private IEnumerator FadeFog(FogEffect effect, float snapCompletionDelay)
     effect.fogVolume.gameObject.SetActive(false);
 }
 
+public IEnumerator FadeInLensFlare(ResourceEffectsManager.LensFlareEffect effect, float delay)
+{
+    yield return new WaitForSeconds(delay);
+    yield return new WaitForSeconds(effect.fadeDelay);
+
+    if (effect.lensFlare == null) yield break;
+
+    effect.lensFlare.intensity = 0f; // 从0开始
+    float timer = 0f;
+
+    while (timer < effect.fadeDuration)
+    {
+        timer += Time.deltaTime;
+        float normalizedTime = Mathf.Clamp01(timer / effect.fadeDuration);
+        float curveValue = effect.fadeCurve.Evaluate(normalizedTime);
+
+        effect.lensFlare.intensity = Mathf.Lerp(0f, effect.targetIntensity, curveValue);
+        yield return null;
+    }
+
+    effect.lensFlare.intensity = effect.targetIntensity;
+}
     // 重置所有效果（如果需要重新使用）
     public void ResetAllEffects()
     {

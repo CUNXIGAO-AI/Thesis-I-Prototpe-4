@@ -4,6 +4,8 @@ using UnityEngine.Events;
 public class NarrativeAction : MonoBehaviour
 {
     // Start is called before the first frame update
+    public ResourceEffectsManager resourceEffectsManager;
+
 public enum ActionType
     {
         FirstInteractionYes,   // 第一次交互给礼物
@@ -35,8 +37,12 @@ public enum ActionType
             case ActionType.FirstInteractionYes:
                 Debug.Log("执行动作：第一次交互-给予礼物");
                 NarrativeManager.Instance.HandleFirstInteraction(true);
+
+                if (resourceEffectsManager != null)
+                    resourceEffectsManager.TriggerAllEffects(0f); // 可自定义 snap delay
                 break;
-                
+
+            
             case ActionType.FirstInteractionNo:
                 Debug.Log("执行动作：第一次交互-不给礼物");
                 NarrativeManager.Instance.HandleFirstInteraction(false);

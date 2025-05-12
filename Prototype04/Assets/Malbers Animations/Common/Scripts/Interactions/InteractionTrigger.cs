@@ -177,6 +177,8 @@ public class InteractionTrigger : MonoBehaviour
         public List<NarrativeAction> narrativeActions = new List<NarrativeAction>();
         [Tooltip("是否消耗资源")]
     public bool consumeResources = false;  // 新增属性
+    [Tooltip("选择后是否直接结束对话")]
+public bool endDialogueAfterChoice = false;
     }
 
     [System.Serializable]
@@ -263,7 +265,7 @@ public class InteractionTrigger : MonoBehaviour
         [Space(5)]
         
         [Tooltip("文本/交互 淡出结束 到 黑屏淡入延迟")]
-        [Range(0f, 5)]
+        [Range(0f, 10)]
         public float textToBlackScreenDelay = 0.3f;
         
         [Tooltip("黑屏淡入 到 黑屏淡出延迟")]
@@ -747,6 +749,13 @@ private void HandleChoice(DialogueChoice choice)
     {
         // 不需要资源检测，正常处理
         ExecuteChoiceActions(choice);
+
+                if (choice.endDialogueAfterChoice)
+        {
+            ExitInteraction(); // 立即退出交互
+            return; // 跳过后续流程
+        }
+
         JumpToNextMessage(choice);
 
         // ✅ 正常选择后才设置完成
@@ -766,18 +775,22 @@ private void HandleResourceChoice(DialogueChoice choice, DialogueMessage current
         if (resourceManager != null && !resourceManager.isPickedUp)
         {
             Debug.Log("物品未被拾取，无法消耗资源");
-            // 跳转到资源不足对话
             JumpToResourceFailureMessage(currentMessage);
-            
-            // 资源未拾取时，不标记交互为完成
-            return; // 提前返回，不执行pendingCompleteAfterExit = true
+            return;
         }
         // 然后检查资源是否充足
         else if (resourceManager != null && resourceManager.currentValue > 0)
         {
             // 资源充足，执行选择动作
             ExecuteChoiceActions(choice);
-            
+
+            // ✅ 如果勾选了“选择后结束对话”，直接退出
+            if (choice.endDialogueAfterChoice)
+            {
+                ExitInteraction();
+                return;
+            }
+
             // 消耗资源
             ConsumeResources();
 
@@ -786,22 +799,28 @@ private void HandleResourceChoice(DialogueChoice choice, DialogueMessage current
         }
         else
         {
-            // 资源不足，跳到指定的noResourceDialogueIndex
+            // 资源不足，跳到指定的 noResourceDialogueIndex
             Debug.Log("资源不足，跳转到资源不足对话");
             JumpToResourceFailureMessage(currentMessage);
-            
-            // 资源不足时，不标记交互为完成
-            return; // 提前返回，不执行pendingCompleteAfterExit = true
+            return;
         }
     }
     else
     {
-        // 不需要消耗资源的选项(比如"No"选项)，直接执行动作不检查资源
+        // 不需要消耗资源的选项，直接执行
         ExecuteChoiceActions(choice);
+
+        // ✅ 如果勾选了“选择后结束对话”，直接退出
+        if (choice.endDialogueAfterChoice)
+        {
+            ExitInteraction();
+            return;
+        }
+
         JumpToNextMessage(choice);
     }
-    
-    // 只有成功完成交互才标记为一次性
+
+    // 成功完成交互才标记为一次性
     pendingCompleteAfterExit = true;
 }
 
