@@ -7,7 +7,8 @@ public class EnemyOffState : EnemyBaseState
     public override void EnterState(EnemyStateManager enemy)
     {
         Debug.Log("Entered OffState");
-        enemy.StartCoroutine(DelayedDimLight(enemy.alertSpotLight));
+        enemy.StartCoroutine(FadeOutRoutine(enemy));
+        enemy.TurnOffMusic();
     }
 
     public override void UpdateState(EnemyStateManager enemy)
@@ -20,42 +21,30 @@ public class EnemyOffState : EnemyBaseState
         Debug.Log("Exiting OffState.");
     }
 
-    private IEnumerator DelayedDimLight(Light light)
+    private IEnumerator FadeOutRoutine(EnemyStateManager enemy)
     {
-        // 设置延迟时间（秒）
-        float delay = 1.5f; // 您可以根据需要调整这个值
-        
-        Debug.Log("Waiting for " + delay + " seconds before dimming light...");
-        
-        // 等待指定的延迟时间
-        yield return new WaitForSeconds(delay);
-        
-        Debug.Log("Delay completed, starting to dim light now.");
-        
-        // 延迟结束后，启动原来的熄灯协程
-        yield return DimLight(light);
-    }
+        Light light = enemy.alertSpotLight;
 
-    private IEnumerator DimLight(Light light) 
-    {
-        if (light == null)
+        yield return new WaitForSeconds(enemy.fadeOutDelay);
+        enemy.TurnOffMusic();
+
+        if (light != null)
         {
-            Debug.LogWarning("No SpotLight found. Skipping dimming process.");
-            yield break;
+            float elapsedTime = 0f;
+            float startValue = 1f;
+
+            // 逐渐让 flicker 整体变暗
+            while (elapsedTime < enemy.fadeOutDuration)
+            {
+                float progress = elapsedTime / enemy.fadeOutDuration;
+                enemy.flickerFadeMultiplier = Mathf.Lerp(startValue, 0f, progress);
+
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
+
+            enemy.flickerFadeMultiplier = 0f;
+            light.enabled = false;
         }
-
-        float duration = 3.0f; // 持续时间（秒）
-        float startIntensity = light.intensity;
-        float elapsedTime = 0f;
-
-        while (elapsedTime < duration)
-        {
-            light.intensity = Mathf.Lerp(startIntensity, 0f, elapsedTime / duration);
-            elapsedTime += Time.deltaTime; // 累加经过的时间
-            yield return null; // 等待下一帧
-        }
-
-        light.intensity = 0f; // 确保最终亮度为 0
-        Debug.Log("Light is completely dimmed.");
     }
 }

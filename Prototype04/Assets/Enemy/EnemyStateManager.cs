@@ -105,6 +105,7 @@ public class EnemyStateManager : MonoBehaviour
     public FlickerSettings alertFlicker;
     public FlickerSettings combatFlicker;
     public FlickerSettings searchFlicker;
+    public FlickerSettings offFlicker;
 
 
     private ResourceManager resourceManager;
@@ -152,6 +153,10 @@ public float combatJitterUpdateInterval = 0.1f;  // 战斗状态抖动更新间�
 public float searchJitterRange = 0.4f;           // 搜索状态抖动范围
 public float searchJitterSmoothSpeed = 3.5f;     // 搜索状态抖动平滑速度
 public float searchJitterUpdateInterval = 0.15f; // 搜索状态抖动更新间隔
+[Header("Off State Jitter")]
+public float offJitterRange = 0.0f;             // 关闭状态抖动范围
+public float offJitterSmoothSpeed = 0.0f;       // 关闭状态抖动平滑速度
+public float offJitterUpdateInterval = 0.0f;   // 关闭状态抖动更新间隔
 
 // 当前抖动状态参数
 [HideInInspector] public Vector3 currentJitter = Vector3.zero;  // 当前抖动值
@@ -165,6 +170,10 @@ private float currentJitterUpdateInterval = 0.2f;
 
     //audio
     private StudioEventEmitter emitter;
+
+[Header("敌人关闭灯光渐出")]
+public float fadeOutDelay = 1.5f;
+public float fadeOutDuration = 3.5f;
 
 
     void Start()
@@ -238,6 +247,9 @@ private float currentJitterUpdateInterval = 0.2f;
 
         if (currentState == OffState)
         {
+
+            ApplyLightFlicker();
+            UpdateJitterEffect(); // 如果你希望 Off 状态下仍保留微弱晃动感
             return; // 直接返回，跳过所有检测逻辑
         }
 
@@ -581,8 +593,11 @@ void UpdateAlertMeter()
         }
     }
 
-    private void ApplyLightFlicker()
+[HideInInspector] public float flickerFadeMultiplier = 1f; // 默认全亮
+
+private void ApplyLightFlicker()
 {
+    {
     if (alertSpotLight == null) return;
 
     FlickerSettings settings = patrolFlicker;
@@ -593,11 +608,17 @@ void UpdateAlertMeter()
         settings = combatFlicker;
     else if (currentState == SearchState)
         settings = searchFlicker;
+    else if (currentState == OffState)
+        settings = offFlicker;
 
     float flicker = Mathf.Lerp(settings.intensityMin, settings.intensityMax,
         Mathf.PerlinNoise(Time.time * settings.frequency, 0f));
-    alertSpotLight.intensity = flicker;
+
+    // ⚠️ 加入 fadeMultiplier 缩放控制
+    alertSpotLight.intensity = flicker * flickerFadeMultiplier;
 }
+}
+
 
 private void UpdateJitterEffect()
 {
@@ -648,6 +669,12 @@ private void UpdateJitterParameters()
         currentJitterSmoothSpeed = searchJitterSmoothSpeed;
         currentJitterUpdateInterval = searchJitterUpdateInterval;
     }
+    else if (currentState == OffState)
+    {
+        currentJitterRange = 0f; // 关闭抖动
+        currentJitterSmoothSpeed = 0f;
+        currentJitterUpdateInterval = 0f;
+    }
 }
 
 public Quaternion GetJitteredRotation(Quaternion baseRotation)
@@ -686,5 +713,13 @@ public Quaternion GetJitteredRotation(Quaternion baseRotation)
             SwitchState(OffState);
         }
     }
+
+        public void TurnOffMusic()
+    {
+
+        AudioManager.instance.StopStealthMusic(true);
+    }
+
+
 
 }
