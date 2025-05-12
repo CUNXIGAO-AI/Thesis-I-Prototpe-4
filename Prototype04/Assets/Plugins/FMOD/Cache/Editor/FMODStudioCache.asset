@@ -70,9 +70,36 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 638826048119766064
+  lastModified: 638826167654929029
   FileSizes: []
   Exists: 1
+--- !u!114 &-7500074298258355165
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/3D_sfx/Whale_sfx
+  m_EditorClassIdentifier: 
+  Path: event:/3D_sfx/Whale_sfx
+  Guid:
+    Data1: 650340557
+    Data2: 1256344645
+    Data3: 807660732
+    Data4: -1698305110
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 55368
 --- !u!114 &-7485183525612505070
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -127,6 +154,33 @@ MonoBehaviour:
   MinDistance: 1
   MaxDistance: 20
   Length: 21465
+--- !u!114 &-6859068161629680472
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/3D_sfx/Water_scatter_small_sfx
+  m_EditorClassIdentifier: 
+  Path: event:/3D_sfx/Water_scatter_small_sfx
+  Guid:
+    Data1: 2071625063
+    Data2: 1222778258
+    Data3: -1476987734
+    Data4: 256583688
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 1
+  Is3D: 1
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 12500
 --- !u!114 &-6549301269222718195
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -283,7 +337,7 @@ MonoBehaviour:
   MinDistance: 1
   MaxDistance: 20
   Length: 0
---- !u!114 &-513270927164845681
+--- !u!114 &-1215513820447303575
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -293,14 +347,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
-  m_Name: event:/3D_sfx/water_sfx
+  m_Name: event:/3D_sfx/Water_scatter_sfx
   m_EditorClassIdentifier: 
-  Path: event:/3D_sfx/water_sfx
+  Path: event:/3D_sfx/Water_scatter_sfx
   Guid:
-    Data1: 144464086
-    Data2: 1110797258
-    Data3: -1391944538
-    Data4: -640635392
+    Data1: -1777154446
+    Data2: 1104343482
+    Data3: -462002789
+    Data4: -979869462
   Banks:
   - {fileID: -7751678157321775205}
   IsStream: 1
@@ -333,8 +387,6 @@ MonoBehaviour:
   - {fileID: -7485183525612505070}
   - {fileID: -5377560633542728932}
   - {fileID: 6346559110579297461}
-  - {fileID: 2244288365538930437}
-  - {fileID: -513270927164845681}
   - {fileID: -7183746455759484675}
   - {fileID: 1857283281754013777}
   - {fileID: 4872762478841425518}
@@ -350,12 +402,16 @@ MonoBehaviour:
   - {fileID: -2040320447988488151}
   - {fileID: 3715380478347393745}
   - {fileID: 8072860782275686353}
+  - {fileID: -1215513820447303575}
+  - {fileID: -7500074298258355165}
+  - {fileID: 4873357184105748531}
+  - {fileID: -6859068161629680472}
   EditorParameters: []
   MasterBanks:
   - {fileID: -7751678157321775205}
   StringsBanks:
   - {fileID: 2062079929173913841}
-  cacheTime: 638826048119842055
+  cacheTime: 638826167654964124
   cacheVersion: 131621
 --- !u!114 &559561437813601738
 MonoBehaviour:
@@ -481,38 +537,11 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 638826048119842055
+  lastModified: 638826167654964124
   FileSizes:
   - Name: 
-    Value: 1942
+    Value: 2046
   Exists: 1
---- !u!114 &2244288365538930437
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
-  m_Name: event:/3D_sfx/whale_sfx
-  m_EditorClassIdentifier: 
-  Path: event:/3D_sfx/whale_sfx
-  Guid:
-    Data1: 650340557
-    Data2: 1256344645
-    Data3: 807660732
-    Data4: -1698305110
-  Banks:
-  - {fileID: -7751678157321775205}
-  IsStream: 0
-  Is3D: 0
-  IsOneShot: 0
-  Parameters: []
-  MinDistance: 1
-  MaxDistance: 20
-  Length: 55368
 --- !u!114 &2280706006725664899
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -621,6 +650,33 @@ MonoBehaviour:
   MinDistance: 1
   MaxDistance: 20
   Length: 19270
+--- !u!114 &4873357184105748531
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/3D_sfx/Water_sfx
+  m_EditorClassIdentifier: 
+  Path: event:/3D_sfx/Water_sfx
+  Guid:
+    Data1: 144464086
+    Data2: 1110797258
+    Data3: -1391944538
+    Data4: -640635392
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 1
+  Is3D: 1
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 12500
 --- !u!114 &6346559110579297461
 MonoBehaviour:
   m_ObjectHideFlags: 0
