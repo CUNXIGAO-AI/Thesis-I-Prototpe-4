@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using Audio;
 
 public class ResourceEffectsManager : MonoBehaviour
 {
@@ -127,6 +128,19 @@ public class FogEffect
     [Header("体积雾效果")]
 public List<FogEffect> fogEffects = new List<FogEffect>();
 
+
+[System.Serializable]
+public class MaterialFadeEffect
+{
+    public Renderer targetRenderer;
+    public float fadeDuration = 2.0f;
+    public AnimationCurve fadeCurve = AnimationCurve.EaseInOut(0, 1, 1, 0);
+}
+    
+[Header("材质渐隐效果")]
+public List<MaterialFadeEffect> materialFadeEffects = new();
+
+
     private void Start()
     {
         // 初始化所有效果
@@ -153,44 +167,56 @@ public List<FogEffect> fogEffects = new List<FogEffect>();
     
     public void TriggerAllEffects(float snapDelay)
     {
-        // 触发所有光源效果
-        foreach (var effect in lightEffects)
-        {
-            if (effect.targetLight != null)
-                StartCoroutine(FadeLight(effect, snapDelay));
-        }
-        
-        // 触发所有水流效果
-        foreach (var effect in waterEffects)
-        {
-            if (effect.waterStream != null)
-                StartCoroutine(ScaleWaterStream(effect, snapDelay));
-        }
-        
-        // 触发所有镜头光晕效果
-foreach (var effect in lensFlareEffects)
+            // 触发所有光源效果
+            foreach (var effect in lightEffects)
+            {
+                if (effect.targetLight != null)
+                    StartCoroutine(FadeLight(effect, snapDelay));
+            }
+            
+            // 触发所有水流效果
+            foreach (var effect in waterEffects)
+            {
+                if (effect.waterStream != null)
+                    StartCoroutine(ScaleWaterStream(effect, snapDelay));
+            }
+            foreach (var matEffect in materialFadeEffects)
 {
-    if (effect.lensFlare == null) continue;
-
-    switch (effect.fadeMode)
+    if (matEffect.targetRenderer != null)
+        StartCoroutine(FadeMaterialProperties(matEffect));
+}
+            
+            // 触发所有镜头光晕效果
+    foreach (var effect in lensFlareEffects)
     {
-        case FadeMode.FadeOut:
-            StartCoroutine(FadeLensFlare(effect, snapDelay));
-            break;
-        case FadeMode.FadeIn:
-            StartCoroutine(FadeInLensFlare(effect, snapDelay));
-            break;
-        case FadeMode.None:
-        default:
-            break;
-    }
-}
+        if (effect.lensFlare == null) continue;
 
-        foreach (var effect in fogEffects)
-{
-    if (effect.fogVolume != null)
-        StartCoroutine(FadeFog(effect, snapDelay));
-}
+        switch (effect.fadeMode)
+        {
+            case FadeMode.FadeOut:
+                StartCoroutine(FadeLensFlare(effect, snapDelay));
+                break;
+            case FadeMode.FadeIn:
+                StartCoroutine(FadeInLensFlare(effect, snapDelay));
+                break;
+            case FadeMode.None:
+            default:
+                break;
+        }
+
+        
+    }
+
+                foreach (var effect in fogEffects)
+        {
+            if (effect.fogVolume != null)
+                StartCoroutine(FadeFog(effect, snapDelay));
+        }
+
+            if (AudioManager.instance != null)
+        {
+            AudioManager.instance.StopWaterSFX(true);
+            }
 
     }
     
@@ -223,6 +249,49 @@ foreach (var effect in lensFlareEffects)
     effect.targetLight.intensity = 0f;
 }
 
+private IEnumerator FadeMaterialProperties(MaterialFadeEffect effect)
+{
+    Renderer rend = effect.targetRenderer;
+
+    if (!rend.material.name.EndsWith("(Instance)"))
+    {
+        rend.material = new Material(rend.material); // 克隆材质避免全局修改
+    }
+
+    Material mat = rend.material;
+
+    Color baseColor = mat.GetColor("_BaseColor");
+    Color voronoiColor = mat.HasProperty("_VoronoiColor") ? mat.GetColor("_VoronoiColor") : Color.white;
+
+    float startAlpha = baseColor.a;
+    Color startVoronoiColor = voronoiColor;
+
+    float time = 0f;
+
+    while (time < effect.fadeDuration)
+    {
+        time += Time.deltaTime;
+        float t = effect.fadeCurve.Evaluate(time / effect.fadeDuration);
+
+        // 渐变 BaseColor 的 Alpha
+        baseColor.a = Mathf.Lerp(startAlpha, 0f, t);
+        mat.SetColor("_BaseColor", baseColor);
+
+        // 渐变 VoronoiColor 到黑色
+        Color fadedVoronoi = Color.Lerp(startVoronoiColor, Color.black, t);
+        mat.SetColor("_VoronoiColor", fadedVoronoi);
+
+        yield return null;
+    }
+
+    // 最终值设定
+    baseColor.a = 0f;
+    mat.SetColor("_BaseColor", baseColor);
+    mat.SetColor("_VoronoiColor", Color.black);
+
+    // ✅ 关闭物体
+    rend.gameObject.SetActive(false);
+}
     // 水流缩放效果协程
     private IEnumerator ScaleWaterStream(WaterStreamEffect effect, float snapCompletionDelay)
     {
@@ -363,6 +432,8 @@ public IEnumerator FadeInLensFlare(ResourceEffectsManager.LensFlareEffect effect
 
     effect.lensFlare.intensity = effect.targetIntensity;
 }
+
+
     // 重置所有效果（如果需要重新使用）
     public void ResetAllEffects()
     {

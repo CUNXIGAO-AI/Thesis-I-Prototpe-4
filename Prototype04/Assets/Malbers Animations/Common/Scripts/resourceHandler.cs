@@ -57,10 +57,20 @@ public class ResourceHandler : MonoBehaviour
             bottleRigidbody = bottleObject.GetComponent<Rigidbody>();
             
             // 如果是拾取模式，也应用snap功能
-            if (triggerEffectsOnPickup && currentZone != null && currentZone.bottleSnapPoint != null)
+        if (triggerEffectsOnPickup && pickupEffectZone != null && !resourceManager.isPickedUp)
+        {
+            // 冻结碰撞，防止物理碰撞但保留交互功能
+            Collider col = bottleObject.GetComponent<Collider>();
+            if (col != null)
             {
-                ApplySnap(currentZone.bottleSnapPoint.position);
+                col.isTrigger = true;
             }
+
+            if (bottleRigidbody != null)
+            {
+                bottleRigidbody.isKinematic = true;
+            }
+        }
         }
     }
     
@@ -207,17 +217,28 @@ public class ResourceHandler : MonoBehaviour
         if (triggerEffectsOnPickup && pickupEffectZone != null)
         {
             // 检测拾取状态的变化 - 从未拾取变为已拾取
-            if (resourceManager.isPickedUp && !wasPickedUp)
+        if (resourceManager.isPickedUp && !wasPickedUp)
+        {
+            // ✅ 恢复碰撞体
+            Collider col = bottleObject.GetComponent<Collider>();
+            if (col != null)
             {
-                // 瓶子被拾取，触发特效
-                pickupEffectZone.TriggerEffects(0f);
-                
-                // 使用ResourceManager中的拾取专用延迟
-                StartCoroutine(resourceManager.DelayedPickupResource(pickupEffectZone.resourceValue));
-                triggerEffectsOnPickup = false; // 禁用拾取触发特效
-                
-                Debug.Log("拾取触发 - 已触发特效，使用拾取专用延迟添加资源");
+                col.isTrigger = false; // 允许物理碰撞
             }
+
+            // ✅ 恢复刚体
+            if (bottleRigidbody != null)
+            {
+                bottleRigidbody.isKinematic = false;
+            }
+
+            // ✅ 保留原本的特效触发逻辑
+            pickupEffectZone.TriggerEffects(0f);
+            StartCoroutine(resourceManager.DelayedPickupResource(pickupEffectZone.resourceValue));
+            triggerEffectsOnPickup = false;
+
+            Debug.Log("拾取触发 - 已触发特效，使用拾取专用延迟添加资源");
+        }
         }
         // 更新上一帧的拾取状态
         wasPickedUp = resourceManager.isPickedUp;

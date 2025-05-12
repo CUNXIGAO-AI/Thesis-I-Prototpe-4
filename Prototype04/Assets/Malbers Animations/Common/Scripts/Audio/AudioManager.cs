@@ -24,6 +24,8 @@ public class AudioManager : MonoBehaviour
         private bool isChandelierPlaying = false;
         private EventInstance chandelierSFX2;
 private bool isChandelierSFX2Playing = false;
+private EventInstance waterSFX;
+private bool isWaterSFXPlaying = false;
 
 
 
@@ -364,6 +366,39 @@ public void StopChandelierSFX2(bool allowFadeOut = true)
         chandelierSFX2.stop(allowFadeOut ? FMOD.Studio.STOP_MODE.ALLOWFADEOUT : FMOD.Studio.STOP_MODE.IMMEDIATE);
         isChandelierSFX2Playing = false;
         Debug.Log("吊灯音效2停止播放");
+    }
+}
+
+public void InitializeWaterSFX(EventReference sfxEvent, Vector3 position)
+{
+    waterSFX = CreateEventInstance(sfxEvent);
+    waterSFX.set3DAttributes(RuntimeUtils.To3DAttributes(position));
+    eventInstances.Add(waterSFX);
+}
+
+public void PlayWaterSFX(Vector3 position)
+{
+    if (waterSFX.isValid())
+    {
+        waterSFX.set3DAttributes(RuntimeUtils.To3DAttributes(position));
+
+        PLAYBACK_STATE playbackState;
+        waterSFX.getPlaybackState(out playbackState);
+        if (playbackState == PLAYBACK_STATE.STOPPED)
+        {
+            waterSFX.start();
+            isWaterSFXPlaying = true;
+        }
+    }
+}
+
+public void StopWaterSFX(bool allowFadeOut = true)
+{
+    if (waterSFX.isValid() && isWaterSFXPlaying)
+    {
+        waterSFX.stop(allowFadeOut ? FMOD.Studio.STOP_MODE.ALLOWFADEOUT : FMOD.Studio.STOP_MODE.IMMEDIATE);
+        waterSFX.release();
+        isWaterSFXPlaying = false;
     }
 }
 
