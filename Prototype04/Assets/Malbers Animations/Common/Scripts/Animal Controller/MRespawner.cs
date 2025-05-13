@@ -17,6 +17,7 @@ namespace MalbersAnimations.Controller
         #region Respawn
         [Tooltip("Animal Prefab to Swpawn"), FormerlySerializedAs("playerPrefab")]
         public GameObject player;
+public Vector3 playerRotationEuler = Vector3.zero;
 
         [Header("瓶子控制")]
 [Tooltip("玩家是否已经在游戏中获得过瓶子，一旦设置为true将持续有效")]
@@ -221,24 +222,29 @@ public float respawnToFadeOutDelay = 0.5f;
 
 
     private void SceneAnimal()
-    {
-        if (activeAnimal == null || activeAnimal.gameObject == null)
-            return;
+{
+    if (activeAnimal == null || activeAnimal.gameObject == null)
+        return;
 
-        InstantiatedPlayer = activeAnimal.gameObject;
-        
-        // 确保在添加监听器之前移除已有的监听器
-        activeAnimal.OnStateChange.RemoveListener(OnCharacterDead);
-        activeAnimal.OnStateChange.AddListener(OnCharacterDead);
-        
-        activeAnimal.Teleport_Internal(transform.position);
-        activeAnimal.transform.rotation = transform.rotation;
-        activeAnimal.OverrideStartState = RespawnState;
-        activeAnimal.InputSource?.Enable(true);
-        if (activeAnimal.MainCollider) activeAnimal.MainCollider.enabled = true;
-        activeAnimal.SetMainPlayer();
-        Respawned = true;
-    }
+    InstantiatedPlayer = activeAnimal.gameObject;
+    
+    // 确保在添加监听器之前移除已有的监听器
+    activeAnimal.OnStateChange.RemoveListener(OnCharacterDead);
+    activeAnimal.OnStateChange.AddListener(OnCharacterDead);
+    
+    // 设置位置和旋转
+    activeAnimal.Teleport_Internal(transform.position);
+    
+    // 使用 playerRotationEuler 而不是 transform.rotation
+    Quaternion rotation = Quaternion.Euler(playerRotationEuler);
+    activeAnimal.transform.rotation = rotation;
+    
+    activeAnimal.OverrideStartState = RespawnState;
+    activeAnimal.InputSource?.Enable(true);
+    if (activeAnimal.MainCollider) activeAnimal.MainCollider.enabled = true;
+    activeAnimal.SetMainPlayer();
+    Respawned = true;
+}
 
         /// <summary>Listen to the Animal States</summary>
    public void OnCharacterDead(int StateID)
@@ -296,7 +302,10 @@ public float respawnToFadeOutDelay = 0.5f;
 
     try 
     {
-        InstantiatedPlayer = Instantiate(originalPrefab, transform.position, transform.rotation);
+        // 使用 playerRotationEuler 而不是 transform.rotation
+        Quaternion rotation = Quaternion.Euler(playerRotationEuler);
+        InstantiatedPlayer = Instantiate(originalPrefab, transform.position, rotation);
+        
         if (InstantiatedPlayer == null)
         {
             Debug.LogError("Failed to instantiate player");
@@ -311,7 +320,12 @@ public float respawnToFadeOutDelay = 0.5f;
             return;
         }
         
-
+        // 在设置其他属性之前，确保旋转被正确应用
+        // 使用 Teleport_Internal 来确保位置和旋转都被正确设置
+        activeAnimal.Teleport_Internal(transform.position);
+        // 再次设置旋转，确保不被覆盖
+        activeAnimal.transform.rotation = rotation;
+        
         activeAnimal.OverrideStartState = RespawnState;
         activeAnimal.OnStateChange.AddListener(OnCharacterDead);
         OnRespawned.Invoke(InstantiatedPlayer);
@@ -328,7 +342,7 @@ public float respawnToFadeOutDelay = 0.5f;
             }
         }
 
-         var listenerUpdater = FindObjectOfType<FMODListenerUpdater>();
+        var listenerUpdater = FindObjectOfType<FMODListenerUpdater>();
         if (listenerUpdater != null)
         {
             listenerUpdater.SetAttenuationTarget(InstantiatedPlayer);
@@ -348,8 +362,6 @@ public float respawnToFadeOutDelay = 0.5f;
         }
         else if (assignedPickableItem != null)
         {
-            // 玩家尚未获得过瓶子，隐藏它
-            //assignedPickableItem.gameObject.SetActive(false);
             Debug.Log("Bottle hidden - player has not obtained bottle yet");
         }
     }

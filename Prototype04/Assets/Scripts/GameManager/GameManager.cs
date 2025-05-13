@@ -28,6 +28,29 @@ public class GameManager : MonoBehaviour
 [Range(-89f, 89f)] public float initialPitch = 10f;
 [Header("Debug Preview (Runtime Only)")]
 public bool previewCameraRotationInRuntime = false;
+[Header("Fade Settings")]
+public AnimationCurve fadeCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+
+[Header("Camera Side Settings")]
+[Tooltip("游戏开始时的相机侧向偏移值")]
+public float initialCameraSide = 0.5f;
+[Tooltip("侧向偏移恢复的平滑速度")]
+public float sideOffsetLerpSpeed = 5f;
+
+
+private float originalCameraSide; // 保存Inspector中设置的原始侧向偏移值
+private float targetCameraSide;   // 目标侧向偏移值
+private bool shouldRestoreCameraSide = false; // 控制是否应该恢复侧向偏移
+private int playerInputCount = 0; // 记录输入次数
+private bool cameraSideInitialized = false; // 标记相机侧向偏移是否已初始化
+
+[Header("Camera Side Lerp Settings")]
+public AnimationCurve cameraSideCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+
+[Tooltip("从初始值 lerp 到目标值的总时间（秒）")]
+public float cameraSideLerpDuration = 1.5f;
+public float cameraDelay = 1f; // 延迟时间（秒）
+
 
         
 
@@ -60,6 +83,7 @@ public bool previewCameraRotationInRuntime = false;
         }
     }
 
+
      private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         Debug.Log("GameManager: 场景加载完成，重新初始化 UI 引用");
@@ -78,6 +102,8 @@ public bool previewCameraRotationInRuntime = false;
         
         // 重新初始化游戏状态
         InitializeGameState();
+        InitializeCameraSide();
+
     }
       private void InitializeGameState()
     {
@@ -113,6 +139,65 @@ public bool previewCameraRotationInRuntime = false;
             Debug.Log($"GameManager: 玩家输入状态设置为 {UIManager.Instance.hasGameStarted}");
         }
     }
+
+private void InitializeCameraSide()
+{
+    if (cameraFollowTarget != null)
+    {
+        originalCameraSide = cameraFollowTarget.CameraSide;
+        cameraFollowTarget.SetCameraSide(initialCameraSide);
+        targetCameraSide = initialCameraSide;
+        shouldRestoreCameraSide = false;
+        cameraSideLerpTimer = 0f;
+        cameraSideInitialized = true;
+
+        Debug.Log($"GameManager: 相机侧向偏移初始化 - 设置为 {initialCameraSide}，原始值为 {originalCameraSide}");
+    }
+}
+
+
+private bool hasTriggeredCameraLerp = false;
+public void OnPlayerInput()
+{
+    if (!cameraSideInitialized || hasTriggeredCameraLerp) return;
+
+    hasTriggeredCameraLerp = true;
+    StartCoroutine(DelayedCameraSideLerp(cameraDelay));  // 0.5秒后启动
+}
+private IEnumerator DelayedCameraSideLerp(float delay)
+{
+    yield return new WaitForSeconds(delay);
+
+    shouldRestoreCameraSide = true;
+    targetCameraSide = 1.0f;
+    cameraSideLerpTimer = 0f;
+    Debug.Log("GameManager: 延迟结束，相机开始缓慢偏移到右侧");
+}
+
+
+private float cameraSideLerpTimer = 0f;
+
+private void UpdateCameraSide()
+{
+    if (cameraFollowTarget != null && shouldRestoreCameraSide)
+    {
+        cameraSideLerpTimer += Time.deltaTime;
+
+        float t = Mathf.Clamp01(cameraSideLerpTimer / cameraSideLerpDuration);
+        float curveValue = cameraSideCurve.Evaluate(t);
+
+        float newSide = Mathf.Lerp(initialCameraSide, targetCameraSide, curveValue);
+        cameraFollowTarget.SetCameraSide(newSide);
+
+        if (t >= 1f)
+        {
+            shouldRestoreCameraSide = false;
+            cameraSideLerpTimer = 0f;
+            cameraFollowTarget.SetCameraSide(targetCameraSide);
+            Debug.Log($"GameManager: 相机侧向偏移完成: {targetCameraSide}");
+        }
+    }
+}
     
 
        private void RefindUIComponents()
@@ -242,12 +327,15 @@ public bool previewCameraRotationInRuntime = false;
             NarrativeManager.Instance.OnEndingTriggered += HandleEndingTriggered;
         }
 
-        if (cameraFollowTarget != null)
-{
-    cameraFollowTarget.SetCameraRotation(initialYaw, initialPitch);
-    Debug.Log($"GameManager: 初始相机视角设定为 Yaw: {initialYaw}, Pitch: {initialPitch}");
-}
-        
+            if (cameraFollowTarget != null)
+    {
+        cameraFollowTarget.SetCameraRotation(initialYaw, initialPitch);
+        Debug.Log($"GameManager: 初始相机视角设定为 Yaw: {initialYaw}, Pitch: {initialPitch}");
+    }
+
+    InitializeCameraSide();
+
+            
         Debug.Log("GameManager: 游戏已启动");
 
     }
@@ -282,6 +370,21 @@ public bool previewCameraRotationInRuntime = false;
             // 退出当前 Mode（例如坐下）
             // 你也可以改变游戏状态，例如切换到 GameState.Playing
         }
+
+        if (UIManager.Instance.hasGameStarted)
+        {
+            bool hasMovementInput = Input.GetKey(KeyCode.W) ||
+                                    Input.GetKey(KeyCode.A) ||
+                                    Input.GetKey(KeyCode.S) ||
+                                    Input.GetKey(KeyCode.D);
+
+            if (hasMovementInput)
+            {
+                OnPlayerInput();  // 只会触发一次
+            }
+        }
+
+            UpdateCameraSide    (); // 更新相机侧向偏移
 
         // 基本控制
         HandleBasicControls();
@@ -499,7 +602,8 @@ private IEnumerator FadeTextCoroutine(TextMeshProUGUI text, bool fadeIn, float d
     for (float t = 0f; t < duration; t += Time.deltaTime)
     {
         float normalized = t / duration;
-        float alpha = Mathf.Lerp(startAlpha, targetAlpha, normalized);
+        float curveT = fadeCurve.Evaluate(normalized);
+        float alpha = Mathf.Lerp(startAlpha, targetAlpha, curveT);
         text.color = new Color(text.color.r, text.color.g, text.color.b, alpha);
         yield return null;
     }
@@ -524,19 +628,18 @@ private IEnumerator FadeImageCoroutine(bool fadeIn, float duration)
     for (float t = 0f; t < duration; t += Time.deltaTime)
     {
         float normalized = t / duration;
-        float alpha = Mathf.Lerp(startAlpha, targetAlpha, normalized);
+        float curveT = fadeCurve.Evaluate(normalized);
+        float alpha = Mathf.Lerp(startAlpha, targetAlpha, curveT);
         Color newColor = uiFadeImage.color;
         newColor.a = alpha;
         uiFadeImage.color = newColor;
         yield return null;
     }
 
-    // 确保最终结果
     Color finalColor = uiFadeImage.color;
     finalColor.a = targetAlpha;
     uiFadeImage.color = finalColor;
 }
-
 private void HandleInactivityTimer()
 {
     if (Input.anyKey || Input.GetAxis("Mouse X") != 0 || Input.GetAxis("Mouse Y") != 0)
