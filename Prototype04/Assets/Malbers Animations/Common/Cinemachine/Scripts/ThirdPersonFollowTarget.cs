@@ -9,12 +9,17 @@ using UnityEngine;
 
 namespace MalbersAnimations
 {
+
+
     [AddComponentMenu("Malbers/Camera/Third Person Follow Target (Cinemachine)")]
     //[AddComponentMenu("Malbers/Camera/Third Person Follow Target (CM3)")]
     public class ThirdPersonFollowTarget : MonoBehaviour
     {
         /// <summary> List of all the scene Third Person Follow Cameras (using the same brain)! </summary>
         /// [Header("Custom Input Lock")]
+        ///     [Header("Custom Input Lock")]
+    public bool lockInput = true;
+
         public static HashSet<ThirdPersonFollowTarget> TPFCameras;
 
         [Tooltip("Cinemachine Brain Camera")]
@@ -185,6 +190,17 @@ namespace MalbersAnimations
             TPFCameras.Remove(this);
         }
 
+        public void SetCameraRotation(float yaw, float pitch)
+{
+    _cinemachineTargetYaw = yaw;
+    _cinemachineTargetPitch = pitch;
+
+    Quaternion targetRotation = Quaternion.Euler(_cinemachineTargetPitch, _cinemachineTargetYaw, 0.0f);
+    if (UpVector) targetRotation = Quaternion.FromToRotation(Vector3.up, UpVector.up) * targetRotation;
+
+    CamPivot.rotation = targetRotation;
+}
+
         private void CreateCameraPivot()
         {
             //Search on the other TFP cameras to see if we are using the same Target...
@@ -309,6 +325,8 @@ namespace MalbersAnimations
         {
             if (Active)
             {
+                if (lockInput) return;
+
                 // if there is an input and camera position
                 if (look.Value.sqrMagnitude >= _threshold)
                 {

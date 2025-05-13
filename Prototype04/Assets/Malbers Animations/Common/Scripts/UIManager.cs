@@ -6,6 +6,7 @@ using UnityEngine.Events;
 public class UIManager : MonoBehaviour
 {
     // Start is called before the first frame update
+    public bool hasGameStarted = false;
 // 单例模式
     public static UIManager Instance { get; private set; }
     
