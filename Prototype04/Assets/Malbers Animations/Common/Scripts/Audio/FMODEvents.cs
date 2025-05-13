@@ -37,7 +37,8 @@ public class FMODEvents : MonoBehaviour
     [field: SerializeField] public EventReference interactionSFX { get; private set; }
     [field: Header("death_sfx")]
     [field: SerializeField] public EventReference deathSFX { get; private set; }
-    
+    [field: Header("startui_sfx")]
+    [field: SerializeField] public EventReference startUISFX { get; private set; }
     
 
     public static FMODEvents instance { get; private set; }

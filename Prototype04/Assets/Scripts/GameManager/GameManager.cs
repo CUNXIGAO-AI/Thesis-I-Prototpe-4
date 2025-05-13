@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
 using System.Collections;
+using Audio;
 
 public class GameManager : MonoBehaviour
 {
@@ -259,7 +260,7 @@ public bool previewCameraRotationInRuntime = false;
         if (Input.GetKeyDown(KeyCode.X))
         {
             UIManager.Instance.hasGameStarted = true;
-
+            AudioManager.instance.PlayOneShot(FMODEvents.instance.startUISFX, transform.position);
             if (startMessageText != null)
             {
                 FadeText(startMessageText, false, textFadeDuration);
