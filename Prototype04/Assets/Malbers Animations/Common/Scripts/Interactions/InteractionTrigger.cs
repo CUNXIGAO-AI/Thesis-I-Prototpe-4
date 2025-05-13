@@ -16,6 +16,10 @@ public class InteractionTrigger : MonoBehaviour
 {
     public ResourceManager resourceManager;  // 拖到Inspector
     private GameObject playerExtraLogic;
+    [Header("对话音效设置")]
+    [Tooltip("进入对话时启用，结束后禁用的音效物体（应包含 FMOD StudioEventEmitter）")]
+    public GameObject dialogueSFXObject;
+    public float dialogueSFXDelay = 0f;
     
     private bool pendingCompleteAfterExit = false;
     private enum InteractionState
@@ -604,6 +608,8 @@ private void HandleInteraction()
     if (enableDialogue && dialogueSettings.messages.Count > 0)
     {
         currentMessageIndex = 0;
+        StartCoroutine(DelayedDialogueSFX(dialogueSFXDelay));
+
         DisplayCurrentMessage();
     }
     else
@@ -651,6 +657,11 @@ private void ExitInteraction()
     // 不在这里启用输入，而是在协程中的适当时机启用
     StartCoroutine(CoordinatedExitAnimation());
     events.onInteractionEnded.Invoke();
+
+    if (dialogueSFXObject != null)
+{
+    dialogueSFXObject.SetActive(false);
+}
 }
 
 
@@ -1864,6 +1875,22 @@ private void EnablePlayerInput()
     else
     {
         Debug.LogWarning("未能找到玩家的MalbersInput组件，无法重新启用输入");
+    }
+}
+
+private IEnumerator DelayedDialogueSFX(float delay)
+{
+    yield return new WaitForSeconds(delay);
+    
+    if (dialogueSFXObject != null)
+    {
+        dialogueSFXObject.SetActive(true);
+
+        var emitter = dialogueSFXObject.GetComponent<FMODUnity.StudioEventEmitter>();
+        if (emitter != null && !emitter.IsPlaying())
+        {
+            emitter.Play();
+        }
     }
 }
 }
