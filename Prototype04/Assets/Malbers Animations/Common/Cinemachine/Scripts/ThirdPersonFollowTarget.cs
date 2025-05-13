@@ -14,6 +14,9 @@ namespace MalbersAnimations
     public class ThirdPersonFollowTarget : MonoBehaviour
     {
         /// <summary> List of all the scene Third Person Follow Cameras (using the same brain)! </summary>
+        /// [Header("Custom Input Lock")]
+public bool lockCameraInput = true; // 默认为 true，游戏开始时锁定相机旋转
+
         public static HashSet<ThirdPersonFollowTarget> TPFCameras;
 
         [Tooltip("Cinemachine Brain Camera")]
@@ -247,7 +250,7 @@ namespace MalbersAnimations
             while (true)
             {
                 // yield return new WaitForEndOfFrame();
-                CameraRotation(UnScaledTime ? Time.unscaledDeltaTime : Time.deltaTime, LerpRotation);
+                if (!lockCameraInput && look.Value.sqrMagnitude >= _threshold)
                 // CameraRotation(UnScaledTime ? Time.fixedUnscaledTime : Time.fixedDeltaTime, LerpRotation);
                 yield return null;
             }

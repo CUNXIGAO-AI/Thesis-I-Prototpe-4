@@ -646,13 +646,28 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6154047008028815210, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
-      propertyPath: Editor_Tabs1
+      propertyPath: Mode_Tabs1
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6154047008028815210, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: Editor_Tabs1
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6154047008028815210, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: Editor_Tabs2
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 6154047008028815210, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
       propertyPath: SelectedState
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6154047008028815210, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: Editor_EventTabs
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 6154047008028815210, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
