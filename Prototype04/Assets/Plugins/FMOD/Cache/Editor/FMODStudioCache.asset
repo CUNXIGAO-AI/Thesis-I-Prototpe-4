@@ -97,7 +97,7 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 638826786539544957
+  lastModified: 638826864722106348
   FileSizes: []
   Exists: 1
 --- !u!114 &-7500074298258355165
@@ -435,12 +435,13 @@ MonoBehaviour:
   - {fileID: -6859068161629680472}
   - {fileID: 7673770290504243585}
   - {fileID: -8829666219434420348}
+  - {fileID: 5654295786854700987}
   EditorParameters: []
   MasterBanks:
   - {fileID: -7751678157321775205}
   StringsBanks:
   - {fileID: 2062079929173913841}
-  cacheTime: 638826786539569787
+  cacheTime: 638826864722145029
   cacheVersion: 131621
 --- !u!114 &559561437813601738
 MonoBehaviour:
@@ -566,10 +567,10 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 638826786539569787
+  lastModified: 638826864722145029
   FileSizes:
   - Name: 
-    Value: 2130
+    Value: 2184
   Exists: 1
 --- !u!114 &2280706006725664899
 MonoBehaviour:
@@ -706,6 +707,33 @@ MonoBehaviour:
   MinDistance: 1
   MaxDistance: 20
   Length: 12500
+--- !u!114 &5654295786854700987
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/2D_sfx/firstTowerAmbience2D_sfx
+  m_EditorClassIdentifier: 
+  Path: event:/2D_sfx/firstTowerAmbience2D_sfx
+  Guid:
+    Data1: 807874163
+    Data2: 1295310278
+    Data3: -1638151263
+    Data4: 627711010
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 1
+  Is3D: 0
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 13583
 --- !u!114 &6346559110579297461
 MonoBehaviour:
   m_ObjectHideFlags: 0
