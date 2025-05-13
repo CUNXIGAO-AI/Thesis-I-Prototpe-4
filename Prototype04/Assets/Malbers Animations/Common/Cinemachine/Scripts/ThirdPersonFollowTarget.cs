@@ -248,7 +248,7 @@ namespace MalbersAnimations
             while (true)
             {
                 // yield return new WaitForEndOfFrame();
-                // CameraRotation(UnScaledTime ? Time.fixedUnscaledTime : Time.fixedDeltaTime, LerpRotation);
+                 CameraRotation(UnScaledTime ? Time.fixedUnscaledTime : Time.fixedDeltaTime, LerpRotation);
                 yield return null;
             }
         }
