@@ -1,9 +1,23 @@
+using MalbersAnimations;
+using MalbersAnimations.Controller;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using TMPro;
+using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
         public static GameManager Instance { get; private set; }
+        private MAnimal playerAnimal;
+        public ModeID SitModeID;  // 在 Inspector 拖你配置了坐下动作的 Mode，例如 Relax 或 SitMode
+        private MInput playerInput;
+
+    public TextMeshProUGUI startMessageText;
+    public float textFadeDuration = 1f;
+    private Coroutine textFadeCoroutine;
+
+        
+
     
     // 游戏状态枚举
     public enum GameState
@@ -33,8 +47,56 @@ public class GameManager : MonoBehaviour
     
     void Start()
     {
+                if (startMessageText != null)
+        {
+            // 确保起始透明度为 0
+            var c = startMessageText.color;
+            c.a = 0f;
+            startMessageText.color = c;
+
+            FadeText(startMessageText, true, textFadeDuration);
+        }
+
+
         // 隐藏鼠标光标并锁定到屏幕中心
         SetCursorLock(true);
+
+                if (MRespawner.instance != null)
+        {
+            GameObject player = MRespawner.instance.player;
+            if (player != null)
+            {
+                playerAnimal = player.GetComponent<MAnimal>();
+                if (playerAnimal != null && SitModeID != null)
+                {
+                    playerAnimal.Mode_Activate(SitModeID, 8);  // 激活 SitMode 的 Ability 8
+                    Debug.Log("GameManager: 已请求坐下 (Mode: " + SitModeID.name + ", Ability: 8)");
+                }
+                else
+                {
+                    Debug.LogWarning("GameManager: 玩家对象存在，但未找到 MAnimal 组件");
+                }
+
+                                playerInput = playerAnimal.GetComponent<MInput>();
+                if (playerInput != null)
+                {
+                    playerInput.enabled = false;
+                    Debug.Log("GameManager: 玩家输入已禁用");
+                }
+                else
+                {
+                    Debug.LogWarning("GameManager: 未找到 MInput 组件");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("GameManager: MRespawner.instance.player 为 null");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("GameManager: 未找到 MRespawner 实例");
+        }
         
         // 订阅NarrativeManager的结局事件
         if (NarrativeManager.Instance != null)
@@ -47,6 +109,25 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.X))
+        {
+            if (startMessageText != null)
+            {
+                FadeText(startMessageText, false, textFadeDuration);
+            }
+
+            // 解锁输入
+            if (playerInput != null)
+            {
+                playerInput.enabled = true;
+                Debug.Log("GameManager: 玩家输入已启用");
+            }
+
+            // 退出当前 Mode（例如坐下）
+
+            // 你也可以改变游戏状态，例如切换到 GameState.Playing
+        }
+
         // 基本控制
         HandleBasicControls();
         
@@ -224,4 +305,28 @@ public class GameManager : MonoBehaviour
             NarrativeManager.Instance.OnEndingTriggered -= HandleEndingTriggered;
         }
     }
+
+    public void FadeText(TextMeshProUGUI text, bool fadeIn, float duration)
+{
+    if (textFadeCoroutine != null)
+        StopCoroutine(textFadeCoroutine);
+
+    textFadeCoroutine = StartCoroutine(FadeTextCoroutine(text, fadeIn, duration));
+}
+
+private IEnumerator FadeTextCoroutine(TextMeshProUGUI text, bool fadeIn, float duration)
+{
+    float startAlpha = text.color.a;
+    float targetAlpha = fadeIn ? 1f : 0f;
+
+    for (float t = 0f; t < duration; t += Time.deltaTime)
+    {
+        float normalized = t / duration;
+        float alpha = Mathf.Lerp(startAlpha, targetAlpha, normalized);
+        text.color = new Color(text.color.r, text.color.g, text.color.b, alpha);
+        yield return null;
+    }
+
+    text.color = new Color(text.color.r, text.color.g, text.color.b, targetAlpha);
+}
 }
