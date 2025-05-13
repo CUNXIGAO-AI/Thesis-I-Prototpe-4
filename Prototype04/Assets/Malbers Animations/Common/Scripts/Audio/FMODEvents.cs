@@ -35,6 +35,8 @@ public class FMODEvents : MonoBehaviour
     [field: SerializeField] public EventReference waterSFX { get; private set; }
     [field: Header("interaction_sfx")]
     [field: SerializeField] public EventReference interactionSFX { get; private set; }
+    [field: Header("death_sfx")]
+    [field: SerializeField] public EventReference deathSFX { get; private set; }
     
     
 

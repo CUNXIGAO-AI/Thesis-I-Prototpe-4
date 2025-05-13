@@ -4,8 +4,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
-using FMODUnity;
 using System.Collections;
+using Audio;
 
 namespace MalbersAnimations.Controller
 {
@@ -245,6 +245,10 @@ public float respawnToFadeOutDelay = 0.5f;
 {
     if (!Respawned || StateID != StateEnum.Death) return;
 
+    if (AudioManager.instance != null)
+    {
+        AudioManager.instance.PlayOneShot(FMODEvents.instance.deathSFX, activeAnimal.transform.position);
+    }
     oldPlayer = activeAnimal.gameObject;
     activeAnimal.OnStateChange.RemoveListener(OnCharacterDead);
 
