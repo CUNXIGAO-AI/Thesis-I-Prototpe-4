@@ -41,6 +41,8 @@ public class ResourceHandler : MonoBehaviour
     [Tooltip("拾取模式下添加资源的延迟时间(秒)，覆盖ResourceManager中的默认值")]
         // 是否处于snapped状态
     private bool isSnapped = false;
+    private ResourceZone triggeredZone;
+
 
         private void Start()
     {
@@ -103,6 +105,8 @@ public class ResourceHandler : MonoBehaviour
         {
             zone.hasTriggered = true;
             currentZone = zone; // 记录当前所在的zone
+                triggeredZone = zone;  // ✅ 记住触发过的zone
+
 
             if (zone.bottleSnapPoint != null && bottleObject != null)
             {
@@ -206,10 +210,10 @@ public class ResourceHandler : MonoBehaviour
                 }
             }
             
-            if (currentZone != null)
+            if (triggeredZone != null)
             {
-                // 清除当前zone状态
-                currentZone = null;
+                triggeredZone.NotifyPickupAfterTrigger();
+                triggeredZone = null;  // ✅ 确保只激活一次
             }
         }
         
@@ -238,6 +242,10 @@ public class ResourceHandler : MonoBehaviour
             triggerEffectsOnPickup = false;
 
             Debug.Log("拾取触发 - 已触发特效，使用拾取专用延迟添加资源");
+                        if (currentZone != null)
+            {
+                currentZone.NotifyPickupAfterTrigger();
+            }
         }
         }
         // 更新上一帧的拾取状态

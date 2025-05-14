@@ -22,9 +22,6 @@ public GameObject waterSFXObject;  // 拖入带 StudioEventEmitter 的 GameObjec
     [Tooltip("特效完成后要激活的敌人GameObject")]
     public GameObject enemyToActivate;
     [Tooltip("是否在特效完成后激活敌人")]
-    public bool activateEnemyAfterEffects = true; // 默认为true
-    [Tooltip("特效完成后多久激活敌人（秒）")]
-    public float enemyActivationDelay = 0.5f;
 
 
     private void Start()
@@ -41,11 +38,6 @@ public GameObject waterSFXObject;  // 拖入带 StudioEventEmitter 的 GameObjec
         {
             effectsManager.TriggerAllEffects(snapDuration);
             
-            // 默认情况下，如果设置了敌人GameObject就激活它
-            if (activateEnemyAfterEffects && enemyToActivate != null)
-            {
-                StartCoroutine(WaitAndActivateEnemy(snapDuration));
-            }
         }
         
         if (waterSFXObject != null)
@@ -53,23 +45,19 @@ public GameObject waterSFXObject;  // 拖入带 StudioEventEmitter 的 GameObjec
             waterSFXObject.SetActive(false);
         }
     }
-    
 
-        private IEnumerator WaitAndActivateEnemy(float snapDuration)
+    public void ActivateEnemyManually()
+{
+    Debug.Log("Activating enemy manually.");
+}
+    public void NotifyPickupAfterTrigger()
+{
+    if (hasTriggered && enemyToActivate != null && !enemyToActivate.activeInHierarchy)
     {
-        // 计算所有特效的最大持续时间
-        float maxEffectDuration = CalculateMaxEffectDuration();
-        
-        // 等待snapDuration + 最长特效时间 + 额外延迟
-        yield return new WaitForSeconds(snapDuration + maxEffectDuration + enemyActivationDelay);
-        
-        // 激活敌人
-        if (enemyToActivate != null && !enemyToActivate.activeInHierarchy)
-        {
-            enemyToActivate.SetActive(true);
-            Debug.Log($"敌人已在资源点 {gameObject.name} 激活");
-        }
+        enemyToActivate.SetActive(true);
+        Debug.Log($"资源被拾取后敌人激活: {enemyToActivate.name}");
     }
+}
     
     private float CalculateMaxEffectDuration()
     {
