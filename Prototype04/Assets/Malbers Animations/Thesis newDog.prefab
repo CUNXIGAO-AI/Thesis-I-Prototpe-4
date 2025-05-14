@@ -1119,6 +1119,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
+      propertyPath: inputs.Array.data[0].type
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: inputs.Array.data[1].type
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
       propertyPath: inputs.Array.data[2].name
       value: Speed ++
       objectReference: {fileID: 0}
@@ -1134,8 +1144,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
+      propertyPath: inputs.Array.data[4].type
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
       propertyPath: inputs.Array.data[5].name
       value: PickDrop
+      objectReference: {fileID: 0}
+    - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: inputs.Array.data[5].type
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
