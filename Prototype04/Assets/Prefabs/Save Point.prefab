@@ -220,7 +220,7 @@ MonoBehaviour:
   sleepZoneHelper: {fileID: 8568244771197120285}
   saveSettings:
     delayBeforeBlackScreen: 3
-    blackScreenDuration: 11
+    blackScreenDuration: 9
     onSaveCompleted:
       m_PersistentCalls:
         m_Calls: []

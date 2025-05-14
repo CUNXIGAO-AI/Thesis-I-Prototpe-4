@@ -79,7 +79,7 @@ private float fadeOutDelay = 1f;
 
 [Header("手柄长按重启设置")]
 [Tooltip("长按手柄B键重启游戏的时间（秒）")]
-private float gamepadRestartHoldTime = 5f;
+private float gamepadRestartHoldTime = 3f;
 [Tooltip("是否启用手柄长按重启功能")]
 private bool enableGamepadRestart = true;
 private float gamepadRestartTimer = 0f;
