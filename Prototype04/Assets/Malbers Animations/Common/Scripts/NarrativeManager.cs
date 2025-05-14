@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Audio;
 using UnityEngine;
 using UnityEngine.SceneManagement; // 引入场景管理命名空间
 
@@ -43,6 +44,8 @@ public class NarrativeManager : MonoBehaviour
         [Header("重载场景后引用恢复设置")]
     [SerializeField] private string skyboxTag = "fakeSkybox";
     [SerializeField] private string npcAnimatorTag = "girlAnimator";
+    [Header("结局音效播放设置")]
+public float endingSFXDelay = 2f;
     
     // NPC状态
     public enum NPCState
@@ -321,12 +324,32 @@ public class NarrativeManager : MonoBehaviour
         
         Debug.Log($"触发结局: {endingType}, NPC状态: {currentNPCState}, Skybox状态: {skyboxActive}");
         
-        // 触发结局事件，让其他系统响应
-        if (OnEndingTriggered != null)
+        if (AudioManager.instance != null)
         {
-            OnEndingTriggered(endingType);
+            StartCoroutine(PlayEndingSFXWithDelay(endingType));
         }
     }
+
+    private IEnumerator PlayEndingSFXWithDelay(EndingType endingType)
+{
+    yield return new WaitForSeconds(endingSFXDelay);
+
+    switch (endingType)
+    {
+        case EndingType.GoodEnding:
+            FMODUnity.RuntimeManager.PlayOneShot(FMODEvents.instance.goodEndingSFX);
+            break;
+        case EndingType.BadEnding:
+            FMODUnity.RuntimeManager.PlayOneShot(FMODEvents.instance.badEndingSFX);
+            break;
+        case EndingType.WorstEnding:
+            FMODUnity.RuntimeManager.PlayOneShot(FMODEvents.instance.badEndingSFX);
+            break;
+    }
+
+    if (showDebugMessages)
+        Debug.Log($"[NarrativeManager] 已播放 {endingType} 的音效");
+}
 
     // ✅ 新增：对所有Animator设置触发器的方法
     private void SetTriggerForAllAnimators(NPCState state)

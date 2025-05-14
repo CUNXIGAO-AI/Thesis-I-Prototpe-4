@@ -884,13 +884,6 @@ private IEnumerator SwitchToChoiceCameraThenExit(DialogueChoice choice)
     // 6. 直接标记为完成状态，不显示prompt
     currentState = InteractionState.Completed;
     events.onInteractionEnded.Invoke();
-    EnablePlayerInput();
-
-    // 7. 关闭音效（如果有）
-    if (dialogueSFXObject != null)
-    {
-        dialogueSFXObject.SetActive(false);
-    }
 }
 
 private void HandleResourceChoice(DialogueChoice choice, DialogueMessage currentMessage)
@@ -1056,7 +1049,6 @@ private IEnumerator SwitchToNoResourceCameraThenExit(DialogueChoice choice)
     // 5. 完成交互（资源不足不标记为完成，允许再次尝试）
     currentState = InteractionState.Completed;
     events.onInteractionEnded.Invoke();
-    EnablePlayerInput();
 
 }
 
@@ -1778,7 +1770,6 @@ private IEnumerator SaveGameCoroutine()
         StartCoroutine(FadeUIBackground(true));
         yield return new WaitForSeconds(fadeSettings.uiFadeInDuration);
     }
-    
         AudioManager.instance.PlayOneShot(FMODEvents.instance.saveSFX, transform.position);
 
     // 保持黑屏一段时间

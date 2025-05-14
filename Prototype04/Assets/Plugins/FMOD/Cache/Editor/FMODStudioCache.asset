@@ -97,7 +97,7 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 638828095427600745
+  lastModified: 638828096366526824
   FileSizes: []
   Exists: 1
 --- !u!114 &-7500074298258355165
@@ -442,7 +442,6 @@ MonoBehaviour:
   - {fileID: -5377560633542728932}
   - {fileID: 6346559110579297461}
   - {fileID: -7183746455759484675}
-  - {fileID: 1857283281754013777}
   - {fileID: 4872762478841425518}
   - {fileID: 6362072243826036924}
   - {fileID: 3653730875682848813}
@@ -467,12 +466,15 @@ MonoBehaviour:
   - {fileID: -2648236931639015904}
   - {fileID: 8390441718808900414}
   - {fileID: 5024818580865329638}
+  - {fileID: 3021119335078802201}
+  - {fileID: 5212391425730918107}
+  - {fileID: 2156405005460167188}
   EditorParameters: []
   MasterBanks:
   - {fileID: -7751678157321775205}
   StringsBanks:
   - {fileID: 2062079929173913841}
-  cacheTime: 638828095427626748
+  cacheTime: 638828096366570105
   cacheVersion: 131621
 --- !u!114 &559561437813601738
 MonoBehaviour:
@@ -528,33 +530,6 @@ MonoBehaviour:
   MinDistance: 4
   MaxDistance: 25
   Length: 4000
---- !u!114 &1857283281754013777
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
-  m_Name: event:/2D_sfx/Glassbroken_sfx
-  m_EditorClassIdentifier: 
-  Path: event:/2D_sfx/Glassbroken_sfx
-  Guid:
-    Data1: -1258480392
-    Data2: 1221885615
-    Data3: -282899576
-    Data4: -1003110947
-  Banks:
-  - {fileID: -7751678157321775205}
-  IsStream: 0
-  Is3D: 0
-  IsOneShot: 1
-  Parameters: []
-  MinDistance: 1
-  MaxDistance: 20
-  Length: 0
 --- !u!114 &1874059395224540563
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -598,11 +573,38 @@ MonoBehaviour:
   Path: Assets/FMODBanks/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 638828095427626748
+  lastModified: 638828096366570105
   FileSizes:
   - Name: 
-    Value: 2360
+    Value: 2460
   Exists: 1
+--- !u!114 &2156405005460167188
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/2D_sfx/glassbroken_sfx
+  m_EditorClassIdentifier: 
+  Path: event:/2D_sfx/glassbroken_sfx
+  Guid:
+    Data1: -1258480392
+    Data2: 1221885615
+    Data3: -282899576
+    Data4: -1003110947
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
 --- !u!114 &2280706006725664899
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -630,6 +632,33 @@ MonoBehaviour:
   MinDistance: 1
   MaxDistance: 10
   Length: 14000
+--- !u!114 &3021119335078802201
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/2D_sfx/goodending_sfx
+  m_EditorClassIdentifier: 
+  Path: event:/2D_sfx/goodending_sfx
+  Guid:
+    Data1: 1357005142
+    Data2: 1083698733
+    Data3: 1234822589
+    Data4: 1810070913
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 1
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 26038
 --- !u!114 &3653730875682848813
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -792,6 +821,33 @@ MonoBehaviour:
   MinDistance: 1
   MaxDistance: 20
   Length: 500
+--- !u!114 &5212391425730918107
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/2D_sfx/badending_sfx
+  m_EditorClassIdentifier: 
+  Path: event:/2D_sfx/badending_sfx
+  Guid:
+    Data1: -1074281853
+    Data2: 1152752453
+    Data3: 1627026823
+    Data4: 156501692
+  Banks:
+  - {fileID: -7751678157321775205}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 3289
 --- !u!114 &5654295786854700987
 MonoBehaviour:
   m_ObjectHideFlags: 0

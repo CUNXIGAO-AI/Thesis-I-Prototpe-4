@@ -41,6 +41,10 @@ public class FMODEvents : MonoBehaviour
     [field: SerializeField] public EventReference startUISFX { get; private set; }
     [field: Header("save_sfx")]
     [field: SerializeField] public EventReference saveSFX { get; private set; }
+    [field: Header("goodending_sfx")]
+    [field: SerializeField] public EventReference goodEndingSFX { get; private set; }
+    [field: Header("badending_sfx")]
+    [field: SerializeField] public EventReference badEndingSFX { get; private set; }
     
 
     public static FMODEvents instance { get; private set; }
