@@ -912,6 +912,11 @@ PrefabInstance:
       propertyPath: Description
       value: If the Animal isn't moving after 15 seconds he will go to Sleep
       objectReference: {fileID: 0}
+    - target: {fileID: 6534861746720639230, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: Delayed.ConstantValue
+      value: 30
+      objectReference: {fileID: 0}
     - target: {fileID: 6610878733705938229, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -926,6 +931,11 @@ PrefabInstance:
         type: 3}
       propertyPath: Description
       value: If the Animal isn't moving after 15 seconds he will go to Sleep
+      objectReference: {fileID: 0}
+    - target: {fileID: 6688454299503528662, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: Delayed.ConstantValue
+      value: 120
       objectReference: {fileID: 0}
     - target: {fileID: 6689775463865158156, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
@@ -1090,12 +1100,12 @@ PrefabInstance:
     - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
       propertyPath: inputs.Array.size
-      value: 6
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
       propertyPath: DefaultMap.selectedIndex
-      value: 5
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
@@ -1115,6 +1125,11 @@ PrefabInstance:
     - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
       propertyPath: inputs.Array.data[5].key
+      value: 101
+      objectReference: {fileID: 0}
+    - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: inputs.Array.data[6].key
       value: 101
       objectReference: {fileID: 0}
     - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
@@ -1159,6 +1174,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
+      propertyPath: inputs.Array.data[6].name
+      value: PickDrop
+      objectReference: {fileID: 0}
+    - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: inputs.Array.data[6].type
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
       propertyPath: inputs.Array.data[2].input
       value: SpeedUp
       objectReference: {fileID: 0}
@@ -1179,7 +1204,17 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
+      propertyPath: inputs.Array.data[6].input
+      value: InputValue
+      objectReference: {fileID: 0}
+    - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
       propertyPath: inputs.Array.data[2].GetPressed
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: inputs.Array.data[6].GetPressed
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
@@ -1190,6 +1225,11 @@ PrefabInstance:
     - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
       propertyPath: inputs.Array.data[5].OnInputDown.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: inputs.Array.data[6].OnInputDown.m_PersistentCalls.m_Calls.Array.size
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
@@ -1214,6 +1254,11 @@ PrefabInstance:
       objectReference: {fileID: 3016570487082011251}
     - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
+      propertyPath: inputs.Array.data[6].OnInputDown.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 3016570487082011251}
+    - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
       propertyPath: inputs.Array.data[2].OnInputDown.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
       objectReference: {fileID: 0}
@@ -1234,12 +1279,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
+      propertyPath: inputs.Array.data[6].OnInputDown.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: TryPickUpDrop
+      objectReference: {fileID: 0}
+    - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
       propertyPath: inputs.Array.data[5].OnInputDown.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
       value: MalbersAnimations.Controller.MPickUp, MalbersAnimations
       objectReference: {fileID: 0}
     - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
+      propertyPath: inputs.Array.data[6].OnInputDown.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: MalbersAnimations.Controller.MPickUp, MalbersAnimations
+      objectReference: {fileID: 0}
+    - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
       propertyPath: inputs.Array.data[2].OnInputDown.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
+        type: 3}
+      propertyPath: inputs.Array.data[6].OnInputDown.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 7967742034853664536, guid: 27d807dbf4ab4544d887397b00f645a6,

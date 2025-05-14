@@ -19,6 +19,9 @@ public class GameManager : MonoBehaviour
     public ThirdPersonFollowTarget cameraFollowTarget;
     public UnityEngine.UI.Image uiFadeImage;  // 在 Inspector 拖入 Image
     public float framefadeDuration = 1f;  // Fade 持续时间
+    public UnityEngine.UI.Image secondUIFadeImage;  // 第二个UI fade image
+    public float secondImageFadeDuration = 1f;  // 第二个image的fade持续时间
+    private Coroutine secondImageFadeCoroutine;
     private Coroutine imageFadeCoroutine;
         [Header("Auto Restart Settings")]
     public float inactivityTimeThreshold = 10f;  // 默认设置为10秒，Inspector可改
@@ -51,6 +54,8 @@ public AnimationCurve cameraSideCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 public float cameraSideLerpDuration = 1.5f;
 public float cameraDelay = 1f; // 延迟时间（秒）
 private static bool hasPlayedStartSFX = false; // 确保只播放一次开始音效
+private bool hasTextFadedOut = false; // 跟踪文本是否已经淡出
+
 
    [Header("Start Text Blink Settings")]
     [Tooltip("文本闪烁频率 (单位: 每秒周期数)")]
@@ -282,6 +287,16 @@ private static bool hasPlayedStartSFX = false; // 确保只播放一次开始音
             cameraFollowTarget = FindObjectOfType<ThirdPersonFollowTarget>();
             Debug.Log("GameManager: 重新找到相机控制器");
         }
+
+        if (secondUIFadeImage == null)
+    {
+        GameObject secondUIObj = GameObject.Find("Title UI");
+        if (secondUIObj != null)
+        {
+            secondUIFadeImage = secondUIObj.GetComponent<UnityEngine.UI.Image>();
+            Debug.Log("GameManager: 重新找到 Second UI 图片组件");
+        }
+    }
     }
 
     private void RefindPlayerReferences()
@@ -309,6 +324,11 @@ private static bool hasPlayedStartSFX = false; // 确保只播放一次开始音
         {
             uiFadeImage = GameObject.Find("Start UI")?.GetComponent<UnityEngine.UI.Image>();
         }
+
+        if (secondUIFadeImage == null)
+{
+    secondUIFadeImage = GameObject.Find("Second UI")?.GetComponent<UnityEngine.UI.Image>();
+}
 
         if (cameraFollowTarget == null)
         {
@@ -409,10 +429,11 @@ private static bool hasPlayedStartSFX = false; // 确保只播放一次开始音
                 Debug.Log("GameManager: 首次按X键，播放开始音效");
             }
             
-            if (startMessageText != null)
+            if (startMessageText != null && !hasTextFadedOut)
             {
                 // 从当前亮度淡出，使用原来的fade out曲线
                 FadeText(startMessageText, false, textFadeDuration);
+                hasTextFadedOut = true; // 标记文本已经淡出
             }
 
             if (playerInput != null)
@@ -427,6 +448,7 @@ private static bool hasPlayedStartSFX = false; // 确保只播放一次开始音
             }
 
             FadeOutImage(framefadeDuration);
+            FadeOutSecondImage(secondImageFadeDuration);
         }
 
         if (UIManager.Instance.hasGameStarted)
@@ -550,8 +572,9 @@ private static bool hasPlayedStartSFX = false; // 确保只播放一次开始音
         currentGameState = GameState.Playing;
         
         // 重置音效标志和闪烁状态
-        hasPlayedStartSFX = false;
-        StopBlinking();
+            hasPlayedStartSFX = false;
+    hasTextFadedOut = false; // 重置文本淡出标志
+    StopBlinking();
         
         if (NarrativeManager.Instance != null)
         {
@@ -694,5 +717,35 @@ private static bool hasPlayedStartSFX = false; // 确保只播放一次开始音
             }
         }
     }
+    public void FadeOutSecondImage(float customDuration)
+{
+    if (secondImageFadeCoroutine != null)
+        StopCoroutine(secondImageFadeCoroutine);
+
+    secondImageFadeCoroutine = StartCoroutine(FadeSecondImageCoroutine(false, customDuration));
+}
+
+private IEnumerator FadeSecondImageCoroutine(bool fadeIn, float duration)
+{
+    if (secondUIFadeImage == null) yield break;
+
+    float startAlpha = secondUIFadeImage.color.a;
+    float targetAlpha = fadeIn ? 1f : 0f;
+
+    for (float t = 0f; t < duration; t += Time.deltaTime)
+    {
+        float normalized = t / duration;
+        float curveT = fadeCurve.Evaluate(normalized);
+        float alpha = Mathf.Lerp(startAlpha, targetAlpha, curveT);
+        Color newColor = secondUIFadeImage.color;
+        newColor.a = alpha;
+        secondUIFadeImage.color = newColor;
+        yield return null;
+    }
+
+    Color finalColor = secondUIFadeImage.color;
+    finalColor.a = targetAlpha;
+    secondUIFadeImage.color = finalColor;
+}
 
 }
