@@ -1134,32 +1134,36 @@ private void OnTriggerExit(Collider other)
         if (animator == null || !animator.enabled)
             return;
 
-        // 检查是否离开存档范围 - 修复这里的逻辑
-        if (enableSaveFunction && saveTriggerCollider != null && playerInSaveRange)
-        {
-            // 检查是否真的离开了存档触发器
-            if (saveTriggerCollider == GetComponent<Collider>())
-            {
-                // 如果当前对象的主碰撞体就是存档触发器
-                playerInSaveRange = false;
-                playerInRange = false; // 存档也需要重置playerInRange
-                Debug.Log("玩家离开存档触发范围");
+if (enableSaveFunction && saveTriggerCollider != null && playerInSaveRange)
+{
+    // 检查触发的碰撞体是否是存档触发器
+    if (other.GetComponent<Collider>() == saveTriggerCollider || GetComponent<Collider>() == saveTriggerCollider)
+    {
+        playerInSaveRange = false;
+        playerInRange = false;
+        Debug.Log("玩家离开存档触发范围");
 
-                if (currentState == InteractionState.Ready)
-                {
-                    events.onPlayerExitRange.Invoke();
-                    StartCoroutine(FadeText("", TextType.Prompt));
-                    
-                    if (dialogueSettings.backgroundImage != null)
-                    {
-                        StartCoroutine(FadeTextBackground(0f));
-                    }
-                }
-                
-                FindAndControlExtraLogic(true);
-                return; // 存档功能专用，直接返回
-            }
+        if (currentState == InteractionState.Ready)
+        {
+            // 停止所有可能正在进行的淡入淡出
+            StopCoroutine(nameof(FadeText));
+            StopCoroutine(nameof(FadeTextBackground));
+            
+            // 重置所有淡入淡出标志
+            isBackgroundFading = false;
+            isTextFading = false;
+            isFading = false;
+            
+            events.onPlayerExitRange.Invoke();
+            
+            // 等待一帧确保协程完全停止
+            StartCoroutine(DelayedPromptExit());
         }
+        
+        FindAndControlExtraLogic(true);
+        return;
+    }
+}
         
         bool wasInCutsceneRange = playerInCutsceneRange;
         bool wasInDialogueRange = playerInRange;
@@ -1224,6 +1228,31 @@ private void OnTriggerExit(Collider other)
         {
             FindAndControlExtraLogic(true);
         }
+    }
+}
+
+private IEnumerator DelayedPromptExit()
+{
+    yield return null; // 等待一帧
+    
+    StartCoroutine(FadeText("", TextType.Prompt));
+    
+    if (dialogueSettings.backgroundImage != null)
+    {
+        StartCoroutine(FadeTextBackground(0f));
+    }
+}
+
+// 辅助方法：延迟更新提示信息
+private IEnumerator DelayedPromptUpdate()
+{
+    yield return null; // 等待一帧
+    
+    UpdatePromptMessage();
+    
+    if (dialogueSettings.backgroundImage != null)
+    {
+        StartCoroutine(FadeTextBackground(1.0f));
     }
 }
 
@@ -1464,8 +1493,34 @@ private void ExecuteSaveLogic()
 }
 
 // 存档流程协程
+// 存档流程协程 - 完整修复版本
 private IEnumerator SaveGameCoroutine()
 {
+    // 停止所有正在进行的文本和背景淡入淡出
+    StopCoroutine(nameof(FadeText));
+    StopCoroutine(nameof(FadeTextBackground));
+    
+    // 重置所有淡入淡出标志
+    isTextFading = false;
+    isBackgroundFading = false;
+    isFading = false;
+    
+    // 强制设置初始状态，确保从正确的透明度开始淡出
+    if (textCanvasGroup != null && !string.IsNullOrEmpty(dialogueSettings.dialogueText.text))
+    {
+        textCanvasGroup.alpha = 1f; // 确保文本从完全不透明开始淡出
+    }
+    
+    if (dialogueSettings.backgroundImage != null)
+    {
+        Color bgColor = dialogueSettings.backgroundImage.color;
+        if (bgColor.a > 0)
+        {
+            bgColor.a = 1f; // 确保背景从完全不透明开始淡出
+            dialogueSettings.backgroundImage.color = bgColor;
+        }
+    }
+    
     // 同时开始文本和背景的淡出动画
     Coroutine textFadeOut = StartCoroutine(FadeText("", TextType.Prompt));
     Coroutine backgroundFadeOut = null;
@@ -1475,16 +1530,26 @@ private IEnumerator SaveGameCoroutine()
         backgroundFadeOut = StartCoroutine(FadeTextBackground(0f));
     }
     
-    // 等待文本淡出完成
+    // 等待两个淡出动画都完成
     yield return textFadeOut;
-    
-    // 等待背景淡出完成（如果有的话）
     if (backgroundFadeOut != null)
     {
         yield return backgroundFadeOut;
     }
     
-    // 移除了强制设置透明度的代码，让淡出动画自然完成
+    // 强制设置最终状态，确保完全透明
+    if (textCanvasGroup != null)
+    {
+        textCanvasGroup.alpha = 0f;
+        dialogueSettings.dialogueText.text = "";
+    }
+    
+    if (dialogueSettings.backgroundImage != null)
+    {
+        Color bgColor = dialogueSettings.backgroundImage.color;
+        bgColor.a = 0f;
+        dialogueSettings.backgroundImage.color = bgColor;
+    }
     
     // 然后继续存档流程
     yield return new WaitForSeconds(saveSettings.delayBeforeBlackScreen);
@@ -1536,7 +1601,11 @@ private IEnumerator SaveGameCoroutine()
         // 玩家仍在范围内且不是完成状态，才显示交互提示
         if (playerInRange && (currentState != InteractionState.Completed))
         {
-            // 同时启动文本和背景淡入，不用yield等待
+            // 重置标志，确保能正常执行
+            isTextFading = false;
+            isBackgroundFading = false;
+            
+            // 同时启动文本和背景淡入
             StartCoroutine(FadeText(promptSettings.promptMessage, TextType.Prompt));
             
             if (!string.IsNullOrEmpty(promptSettings.promptMessage) && dialogueSettings.backgroundImage != null)
@@ -1549,6 +1618,7 @@ private IEnumerator SaveGameCoroutine()
 
 private bool isTextFading = false;
 
+// FadeText - 修复Prompt时间问题的完整版本
 private IEnumerator FadeText(string newText, TextType textType = TextType.Dialogue)
 {
     // 检查CanvasGroup是否存在
@@ -1565,27 +1635,37 @@ private IEnumerator FadeText(string newText, TextType textType = TextType.Dialog
         yield break;
     }
     
-    // 如果已经有淡入淡出效果在进行中，则跳过
+    // 如果已经有淡入淡出效果在进行中，先强制停止
     if (isTextFading)
     {
-        Debug.LogWarning("[FadeText] 跳过: 已有文本正在淡入淡出中. 文本内容: " + newText);
-        yield break;
+        Debug.Log("[FadeText] 强制停止之前的文本淡入淡出");
+        isTextFading = false;
+        StopCoroutine(nameof(FadeText));
+        yield return null; // 等待一帧确保协程完全停止
     }
     
     Debug.Log("[FadeText] 开始执行 - 类型: " + textType + ", 内容: " + newText);
     isTextFading = true;
     isFading = true;
     
-    // 根据文本类型选择淡出时间
+    // 正确根据文本类型选择淡出时间
     float fadeOutDuration = (textType == TextType.Prompt) 
-        ? promptSettings.promptFadeOutDuration 
+        ? promptSettings.promptFadeOutDuration    // ← 修复：使用Prompt的淡出时间
         : dialogueSettings.dialogueFadeOutDuration;
     
-    Debug.Log("[FadeText] 开始淡出 - 持续时间: " + fadeOutDuration);
+    Debug.Log("[FadeText] 开始淡出 - 持续时间: " + fadeOutDuration + " (类型: " + textType + ")");
+    
     // 淡出当前文本
     float startAlpha = textCanvasGroup.alpha;
     for (float t = 0; t < fadeOutDuration; t += Time.deltaTime)
     {
+        // 检查是否被中断
+        if (!isTextFading)
+        {
+            Debug.Log("[FadeText] 淡出被中断");
+            yield break;
+        }
+        
         textCanvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, t / fadeOutDuration);
         yield return null;
     }
@@ -1596,26 +1676,31 @@ private IEnumerator FadeText(string newText, TextType textType = TextType.Dialog
     dialogueSettings.dialogueText.text = newText;
     Debug.Log("[FadeText] 已更新文本内容");
     
-    // 如果新文本为空，不需要淡入，但不要立即结束协程
+    // 如果新文本为空，不需要淡入
     if (string.IsNullOrEmpty(newText))
     {
-        Debug.Log("[FadeText] 文本为空，跳过淡入但保持协程运行");
-        // 不使用yield break，让协程继续到最后
-        // 确保UI状态能够正确更新
+        Debug.Log("[FadeText] 文本为空，跳过淡入");
         textCanvasGroup.alpha = 0f; // 确保文本完全透明
     }
     else
     {
-        // 如果有新文本，正常执行淡入
-        // 根据文本类型选择淡入时间
+        // 正确根据文本类型选择淡入时间
         float fadeInDuration = (textType == TextType.Prompt) 
-            ? promptSettings.promptFadeInDuration 
+            ? promptSettings.promptFadeInDuration     // ← 修复：使用Prompt的淡入时间
             : dialogueSettings.dialogueFadeInDuration;
         
-        Debug.Log("[FadeText] 开始淡入 - 持续时间: " + fadeInDuration);
+        Debug.Log("[FadeText] 开始淡入 - 持续时间: " + fadeInDuration + " (类型: " + textType + ")");
+        
         // 淡入新文本
         for (float t = 0; t < fadeInDuration; t += Time.deltaTime)
         {
+            // 检查是否被中断
+            if (!isTextFading)
+            {
+                Debug.Log("[FadeText] 淡入被中断");
+                yield break;
+            }
+            
             textCanvasGroup.alpha = Mathf.Lerp(0f, 1f, t / fadeInDuration);
             yield return null;
         }
@@ -1635,14 +1720,16 @@ private IEnumerator FadeTextBackground(float targetAlpha)
     if (dialogueSettings.backgroundImage == null)
     {
         Debug.LogWarning("[FadeTextBackground] 跳过: backgroundImage为空");
-        isBackgroundFading = false; // 确保标志被重置
         yield break;
     }
     
+    // 如果已经有背景在淡入淡出中，先强制停止
     if (isBackgroundFading)
     {
-        Debug.LogWarning("[FadeTextBackground] 跳过: 已有背景正在淡入淡出中. 目标透明度: " + targetAlpha);
-        yield break;
+        Debug.Log("[FadeTextBackground] 强制停止之前的背景淡入淡出");
+        isBackgroundFading = false;
+        StopCoroutine(nameof(FadeTextBackground));
+        yield return null; // 等待一帧确保协程完全停止
     }
     
     Debug.Log("[FadeTextBackground] 开始执行 - 目标透明度: " + targetAlpha);
@@ -1655,6 +1742,13 @@ private IEnumerator FadeTextBackground(float targetAlpha)
     
     for (float t = 0; t < duration; t += Time.deltaTime)
     {
+        // 检查是否被中断
+        if (!isBackgroundFading)
+        {
+            Debug.Log("[FadeTextBackground] 背景淡入/淡出被中断");
+            yield break;
+        }
+        
         float newAlpha = Mathf.Lerp(startAlpha, targetAlpha, t / duration);
         Color bgColor = dialogueSettings.backgroundImage.color;
         bgColor.a = newAlpha;
@@ -1702,11 +1796,12 @@ private bool isPromptUpdating = false;
 
 private void UpdatePromptMessage()
 {
-    // 如果已经在更新提示中，则直接返回
+    // 如果已经在更新提示中，先强制停止之前的更新
     if (isPromptUpdating)
     {
-        Debug.LogWarning("[UpdatePromptMessage] 跳过: 已有提示消息正在更新");
-        return;
+        Debug.Log("[UpdatePromptMessage] 强制停止之前的提示更新");
+        isPromptUpdating = false;
+        StopCoroutine(nameof(FadePromptText));
     }
     
     isPromptUpdating = true;
@@ -1719,7 +1814,7 @@ private void UpdatePromptMessage()
     // 显示交互提示并使用协程跟踪完成状态
     StartCoroutine(FadePromptText(updatedPromptMessage));
     
-    // 确保背景也显示 - 添加这部分代码
+    // 确保背景也显示
     if (dialogueSettings.backgroundImage != null)
     {
         // 重置背景淡入淡出标志，确保它可以正常执行
@@ -1728,6 +1823,7 @@ private void UpdatePromptMessage()
         Debug.Log("[UpdatePromptMessage] 已启动背景淡入");
     }
 }
+
 
 private IEnumerator FadePromptText(string promptText)
 {
