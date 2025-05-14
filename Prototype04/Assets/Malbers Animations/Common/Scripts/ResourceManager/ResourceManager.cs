@@ -71,6 +71,13 @@ public float maxFlareIntensity = 1.0f;
 public float dropLightDelay = 0.5f;  // 丢弃后光晕延迟亮起时间
 private bool justDropped = false;    // 标记是否刚被丢弃
 
+private bool suppressDropEffects = false;
+public void SetSuppressDropEffects(bool suppress)
+{
+    suppressDropEffects = suppress;
+}
+
+
 
 
     public enum LightState
@@ -155,14 +162,14 @@ private bool justDropped = false;    // 标记是否刚被丢弃
         UpdateLightIntensity();
     }
 
-   private void UpdateLightIntensity()
+  private void UpdateLightIntensity()
 {
     if (lensFlareSRP == null) return;
 
     float targetIntensity;
 
-    // 如果刚被丢弃或仍在被拾取状态，光晕为0
-    if (isPickedUp || justDropped)
+    // ✅ 添加这行：忽略光强更新
+    if (suppressDropEffects || isPickedUp || justDropped)
     {
         targetIntensity = 0f;
     }
@@ -176,7 +183,6 @@ private bool justDropped = false;    // 标记是否刚被丢弃
         targetIntensity = baseIntensity * (1.0f + flickerFactor);
     }
 
-    // 平滑过渡
     currentFlareIntensity = Mathf.Lerp(currentFlareIntensity, targetIntensity, Time.deltaTime * flareTransitionSpeed);
     lensFlareSRP.intensity = currentFlareIntensity;
 
@@ -279,23 +285,29 @@ private bool justDropped = false;    // 标记是否刚被丢弃
 }
 
 
-    public void AddResource(float amount)
+public void AddResource(float amount)
+{
+    isIncreasing = false;
+    SetSuppressDropEffects(true); // ✅ 添加
+    StartCoroutine(DelayedAddResource(amount));
+}
+
+public IEnumerator DelayedAddResource(float amount)
+{
+    yield return new WaitForSeconds(resourceAddDelay);
+
+    bool wasEmpty = currentValue <= 0;
+    currentValue = Mathf.Min(currentValue + amount, maxValue);
+
+    if (wasEmpty && currentValue > 0)
     {
-        isIncreasing = false;
-        StartCoroutine(DelayedAddResource(amount));
+        SetLightState(LightState.Default);
     }
 
-    public IEnumerator DelayedAddResource(float amount)
-    {
-        yield return new WaitForSeconds(resourceAddDelay);
-        bool wasEmpty = currentValue <= 0;
-        currentValue = Mathf.Min(currentValue + amount, maxValue);
+    // ✅ 添加：恢复亮度控制
+    SetSuppressDropEffects(false);
+}
 
-        if (wasEmpty && currentValue > 0)
-        {
-            SetLightState(LightState.Default);
-        }
-    }
 
     public void ConsumeAllResource()
     {

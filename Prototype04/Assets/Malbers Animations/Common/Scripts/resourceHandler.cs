@@ -223,6 +223,8 @@ public class ResourceHandler : MonoBehaviour
             // 检测拾取状态的变化 - 从未拾取变为已拾取
         if (resourceManager.isPickedUp && !wasPickedUp)
         {
+            resourceManager.SetSuppressDropEffects(false); // ✅ 拾取时确保取消抑制
+
             // ✅ 恢复碰撞体
             Collider col = bottleObject.GetComponent<Collider>();
             if (col != null)
