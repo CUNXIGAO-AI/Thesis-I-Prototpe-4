@@ -175,6 +175,8 @@ MonoBehaviour:
     isPromptOnlyOneTime: 0
     mainInteractionKey: 120
     alternativeInteractionKey: 0
+    customInputValues:
+    - InputValue
   enableDialogue: 0
   dialogueSettings:
     dialogueText: {fileID: 0}
@@ -218,7 +220,7 @@ MonoBehaviour:
   sleepZoneHelper: {fileID: 8568244771197120285}
   saveSettings:
     delayBeforeBlackScreen: 3
-    blackScreenDuration: 5
+    blackScreenDuration: 11
     onSaveCompleted:
       m_PersistentCalls:
         m_Calls: []

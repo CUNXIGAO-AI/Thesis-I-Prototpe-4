@@ -7,7 +7,8 @@ using MalbersAnimations.Controller;
 using Cinemachine; // 添加Cinemachine命名空间
 using UnityEngine.Events;
 using UnityEngine.Playables; // 添加Playable命名空间
-using MalbersAnimations; // 添加UnityEvents命名空间
+using MalbersAnimations;
+using Audio; // 添加UnityEvents命名空间
 
 // 添加Icon以便在Inspector中更容易识别
 [AddComponentMenu("Interaction System")]
@@ -1720,6 +1721,7 @@ private IEnumerator SaveGameCoroutine()
     isTextFading = false;
     isBackgroundFading = false;
     isFading = false;
+
     
     // 强制设置初始状态，确保从正确的透明度开始淡出
     if (textCanvasGroup != null && !string.IsNullOrEmpty(dialogueSettings.dialogueText.text))
@@ -1777,6 +1779,8 @@ private IEnumerator SaveGameCoroutine()
         yield return new WaitForSeconds(fadeSettings.uiFadeInDuration);
     }
     
+        AudioManager.instance.PlayOneShot(FMODEvents.instance.saveSFX, transform.position);
+
     // 保持黑屏一段时间
     yield return new WaitForSeconds(saveSettings.blackScreenDuration);
     
