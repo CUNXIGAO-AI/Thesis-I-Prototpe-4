@@ -1180,42 +1180,31 @@ private void JumpToResourceFailureMessage(DialogueMessage currentMessage)
     }
 
     private void DisplayCurrentMessage()
+{
+    if (!enableDialogue || currentMessageIndex >= dialogueSettings.messages.Count)
+        return;
+
+    DialogueMessage message = dialogueSettings.messages[currentMessageIndex];
+
+    if (message.isChoice)
     {
-        if (!enableDialogue || currentMessageIndex >= dialogueSettings.messages.Count)
-            return;
-                
-        DialogueMessage message = dialogueSettings.messages[currentMessageIndex];
-        
-        if (message.isChoice)
-        {
-            // 构建选择文本 - 选项直接跟在消息后面
-            System.Text.StringBuilder choiceBuilder = new System.Text.StringBuilder();
-            choiceBuilder.Append(message.text);
-            choiceBuilder.Append("\n"); // 添加一个空格
-            
-            // 添加所有选项，用 / 分隔
-            bool isFirst = true;
-            foreach (var choice in message.choices)
-            {
-                if (!isFirst)
-                choiceBuilder.Append(" / ");
-                choiceBuilder.Append(choice.choiceKey.ToString());
-                isFirst = false;
-            }
-            
-            StartCoroutine(FadeText(choiceBuilder.ToString()));
-        }
-        else
-        {
-            StartCoroutine(FadeText(message.text));
-        }
-        
-        // 确保背景图像可见
-        if (dialogueSettings.backgroundImage != null)
-        {
-            StartCoroutine(FadeTextBackground(1f));
-        }
+    StartCoroutine(FadeText(message.text, TextType.Dialogue));
+
     }
+    else
+    {
+        StartCoroutine(FadeText(message.text, TextType.Dialogue));
+
+        // 非choice时才更新Prompt
+        UpdatePromptMessage();
+    }
+
+    // 显示背景图像
+    if (dialogueSettings.backgroundImage != null)
+    {
+        StartCoroutine(FadeTextBackground(1f));
+    }
+}
     
     private IEnumerator DelayedCameraActivation(bool activate)
     {
