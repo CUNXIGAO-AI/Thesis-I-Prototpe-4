@@ -195,6 +195,19 @@ public class DialogueChoice
     
     [Tooltip("选择后是否直接结束对话")]
     public bool endDialogueAfterChoice = false;
+    [Header("相机切换")]
+public Cinemachine.CinemachineVirtualCamera targetCamera;
+public bool switchCameraAfterChoice = true;
+
+    [Header("资源不足处理")]
+    [Tooltip("资源不足时执行的叙事动作")]
+    public List<NarrativeAction> noResourceNarrativeActions = new List<NarrativeAction>();
+    
+    [Tooltip("资源不足时切换到的相机")]
+    public Cinemachine.CinemachineVirtualCamera noResourceTargetCamera;
+    
+    [Tooltip("资源不足时是否切换相机")]
+    public bool switchCameraOnNoResource = false;
     
     /// <summary>
     /// 检查是否按下了此选择的任何输入
@@ -699,9 +712,9 @@ private void ExitInteraction()
     events.onInteractionEnded.Invoke();
 
     if (dialogueSFXObject != null)
-{
-    dialogueSFXObject.SetActive(false);
-}
+    {
+        dialogueSFXObject.SetActive(false);
+    }
 }
 
 
@@ -795,26 +808,88 @@ private void HandleChoice(DialogueChoice choice)
     if (currentMessage.checkResources)
     {
         HandleResourceChoice(choice, currentMessage);
-    }
-    else
-    {
-        // 不需要资源检测，正常处理
-        ExecuteChoiceActions(choice);
-
-                if (choice.endDialogueAfterChoice)
-        {
-            ExitInteraction(); // 立即退出交互
-            return; // 跳过后续流程
-        }
-
-        JumpToNextMessage(choice);
-
-        // ✅ 正常选择后才设置完成
-        pendingCompleteAfterExit = true;
+        return; // ✅ 重要：资源检查后直接返回，不继续执行下面的代码
     }
     
-    // ✅ 注意：不要在最外层一律写 pendingCompleteAfterExit = true；
-    // HandleResourceChoice 内部已经自己控制了成功/失败的处理
+    // ✅ 只有不需要资源检查时才会执行到这里
+    
+    // 执行选择动作
+    ExecuteChoiceActions(choice);
+
+    // 检查是否需要切换到特定相机
+    if (choice.targetCamera != null && choice.switchCameraAfterChoice)
+    {
+        StartCoroutine(SwitchToChoiceCameraThenExit(choice));
+        return; // 防止继续走对话逻辑
+    }
+
+    // 检查是否直接结束对话
+    if (choice.endDialogueAfterChoice)
+    {
+        ExitInteraction(); // 立即退出交互
+        return; // 跳过后续流程
+    }
+
+    // 否则继续正常的对话流程
+    JumpToNextMessage(choice);
+    pendingCompleteAfterExit = true;
+}
+
+private IEnumerator SwitchToChoiceCameraThenExit(DialogueChoice choice)
+{
+    // 1. 淡出当前文本和背景
+    if (enableDialogue)
+    {
+        StartCoroutine(FadeText("", TextType.Dialogue));
+        if (dialogueSettings.backgroundImage != null)
+        {
+            StartCoroutine(FadeTextBackground(0f));
+        }
+        
+        // 等待文本淡出完成
+        float maxFadeOutTime = Mathf.Max(
+            dialogueSettings.dialogueFadeOutDuration,
+            fadeSettings.textBackgroundFadeOutDuration
+        );
+        yield return new WaitForSeconds(maxFadeOutTime);
+    }
+
+    // 2. 使用对话系统的黑屏设置进行淡入
+    if (fadeSettings.uiBackgroundImage != null)
+    {
+        // 使用dialogue的fade设置
+        yield return StartCoroutine(FadeUIBackground(true, dialogueSettings.dialogueFadeInDuration + 1f));
+    }
+
+    // 3. 切换相机
+    if (cameraSettings.virtualCamera != null)
+        cameraSettings.virtualCamera.Priority = 0; // 原始相机降优先级
+
+    if (choice.targetCamera != null)
+        choice.targetCamera.Priority = 20; // 目标相机升优先级
+
+    // 4. 等待一小段时间让相机切换完成，然后淡出黑屏
+    yield return new WaitForSeconds(0.5f);
+    
+    if (fadeSettings.uiBackgroundImage != null)
+    {
+        // 使用dialogue的fade设置
+        yield return StartCoroutine(FadeUIBackground(false, dialogueSettings.dialogueFadeOutDuration + 1f));
+    }
+
+    // 5. 执行叙事动作和事件
+    ExecuteChoiceActions(choice);
+
+    // 6. 直接标记为完成状态，不显示prompt
+    currentState = InteractionState.Completed;
+    events.onInteractionEnded.Invoke();
+    EnablePlayerInput();
+
+    // 7. 关闭音效（如果有）
+    if (dialogueSFXObject != null)
+    {
+        dialogueSFXObject.SetActive(false);
+    }
 }
 
 private void HandleResourceChoice(DialogueChoice choice, DialogueMessage currentMessage)
@@ -825,7 +900,25 @@ private void HandleResourceChoice(DialogueChoice choice, DialogueMessage current
         // 首先检查物品是否被拾取
         if (resourceManager != null && !resourceManager.isPickedUp)
         {
-            Debug.Log("物品未被拾取，无法消耗资源");
+            Debug.Log("物品未被拾取，视为资源不足");
+
+            // 执行资源不足 narrative actions
+            if (choice.noResourceNarrativeActions != null && choice.noResourceNarrativeActions.Count > 0)
+            {
+                foreach (var action in choice.noResourceNarrativeActions)
+                {
+                    if (action != null) action.ExecuteAction();
+                }
+            }
+
+            // 切换相机
+            if (choice.noResourceTargetCamera != null && choice.switchCameraOnNoResource)
+            {
+                StartCoroutine(SwitchToNoResourceCameraThenExit(choice));
+                return;
+            }
+
+            // 跳转到资源不足对话
             JumpToResourceFailureMessage(currentMessage);
             return;
         }
@@ -837,6 +930,13 @@ private void HandleResourceChoice(DialogueChoice choice, DialogueMessage current
 
             // 先消耗资源
             ConsumeResources();
+
+            // 检查是否需要切换到特定相机
+            if (choice.targetCamera != null && choice.switchCameraAfterChoice)
+            {
+                StartCoroutine(SwitchToChoiceCameraThenExit(choice));
+                return; // 防止继续走对话逻辑
+            }
 
             // 消耗资源后，标记为完成状态，防止重新触发
             pendingCompleteAfterExit = true;
@@ -855,8 +955,31 @@ private void HandleResourceChoice(DialogueChoice choice, DialogueMessage current
         }
         else
         {
-            // 资源不足，跳到指定的 noResourceDialogueIndex
-            Debug.Log("资源不足，跳转到资源不足对话");
+            // 资源不足的新处理逻辑
+            Debug.Log("资源不足，执行特定的处理");
+            
+            // 执行资源不足时的叙事动作
+            if (choice.noResourceNarrativeActions != null && choice.noResourceNarrativeActions.Count > 0)
+            {
+                Debug.Log($"执行 {choice.noResourceNarrativeActions.Count} 个资源不足时的叙事动作");
+                foreach (var action in choice.noResourceNarrativeActions)
+                {
+                    if (action != null)
+                    {
+                        action.ExecuteAction();
+                    }
+                }
+            }
+            
+            // 检查是否需要切换到资源不足时的特定相机
+            if (choice.noResourceTargetCamera != null && choice.switchCameraOnNoResource)
+            {
+                // 使用原有的相机切换协程，但传入资源不足时的相机
+                StartCoroutine(SwitchToNoResourceCameraThenExit(choice));
+                return;
+            }
+            
+            // 如果没有相机切换，跳转到资源不足对话（保持原有行为）
             JumpToResourceFailureMessage(currentMessage);
             return;
         }
@@ -865,6 +988,13 @@ private void HandleResourceChoice(DialogueChoice choice, DialogueMessage current
     {
         // 不需要消耗资源的选项，直接执行
         ExecuteChoiceActions(choice);
+
+        // 检查是否需要切换到特定相机
+        if (choice.targetCamera != null && choice.switchCameraAfterChoice)
+        {
+            StartCoroutine(SwitchToChoiceCameraThenExit(choice));
+            return; // 防止继续走对话逻辑
+        }
 
         // 如果勾选了"选择后结束对话"，直接退出
         if (choice.endDialogueAfterChoice)
@@ -879,6 +1009,56 @@ private void HandleResourceChoice(DialogueChoice choice, DialogueMessage current
     // 成功完成交互才标记为一次性
     pendingCompleteAfterExit = true;
 }
+
+private IEnumerator SwitchToNoResourceCameraThenExit(DialogueChoice choice)
+{
+    // 1. 淡出当前文本和背景
+    if (enableDialogue)
+    {
+        StartCoroutine(FadeText("", TextType.Dialogue));
+        if (dialogueSettings.backgroundImage != null)
+        {
+            StartCoroutine(FadeTextBackground(0f));
+        }
+        
+        // 等待文本淡出完成
+        float maxFadeOutTime = Mathf.Max(
+            dialogueSettings.dialogueFadeOutDuration,
+            fadeSettings.textBackgroundFadeOutDuration
+        );
+        yield return new WaitForSeconds(maxFadeOutTime);
+    }
+
+    // 2. 使用对话系统的黑屏设置进行淡入
+    if (fadeSettings.uiBackgroundImage != null)
+    {
+        // 使用dialogue的fade设置
+        yield return StartCoroutine(FadeUIBackground(true, dialogueSettings.dialogueFadeInDuration + 1f));
+    }
+
+    // 3. 切换相机（使用资源不足时的相机）
+    if (cameraSettings.virtualCamera != null)
+        cameraSettings.virtualCamera.Priority = 0; // 原始相机降优先级
+
+    if (choice.noResourceTargetCamera != null)
+        choice.noResourceTargetCamera.Priority = 20; // 目标相机升优先级
+
+    // 4. 等待一小段时间让相机切换完成，然后淡出黑屏
+    yield return new WaitForSeconds(0.5f);
+    
+    if (fadeSettings.uiBackgroundImage != null)
+    {
+        // 使用dialogue的fade设置
+        yield return StartCoroutine(FadeUIBackground(false, dialogueSettings.dialogueFadeOutDuration + 1f));
+    }
+
+    // 5. 完成交互（资源不足不标记为完成，允许再次尝试）
+    currentState = InteractionState.Completed;
+    events.onInteractionEnded.Invoke();
+    EnablePlayerInput();
+
+}
+
 
 // 辅助方法4 - 消耗资源
 private void ConsumeResources()
