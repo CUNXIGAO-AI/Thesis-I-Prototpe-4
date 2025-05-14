@@ -77,6 +77,15 @@ private bool hasTextFadedOut = false; // 跟踪文本是否已经淡出
 [Tooltip("游戏启动/重启后黑屏开始淡出的延迟时间")]
 private float fadeOutDelay = 1f;
 
+[Header("手柄长按重启设置")]
+[Tooltip("长按手柄B键重启游戏的时间（秒）")]
+private float gamepadRestartHoldTime = 5f;
+[Tooltip("是否启用手柄长按重启功能")]
+private bool enableGamepadRestart = true;
+private float gamepadRestartTimer = 0f;
+private bool isHoldingRestartButton = false;
+
+
 
          // 游戏状态枚举
     public enum GameState
@@ -473,103 +482,152 @@ private IEnumerator DelayedGameStartFadeOut()
     StartCoroutine(FadeUIBackground(false));
 }
 
-    void Update()
+void Update()
+{
+    HandleInactivityTimer();
+
+    // 检测交互输入（键盘X键或手柄Interact按钮）
+    if (Input.GetKeyDown(KeyCode.X) || Input.GetButtonDown("Interact"))
     {
-        HandleInactivityTimer();
-
-        if (Input.GetKeyDown(KeyCode.X))
+        UIManager.Instance.hasGameStarted = true;
+        
+        // 停止闪烁并从当前亮度淡出
+        StopBlinking();
+        
+        // 只在第一次按交互键时播放音效
+        if (!hasPlayedStartSFX)
         {
-            UIManager.Instance.hasGameStarted = true;
-            
-            // 停止闪烁并从当前亮度淡出
-            StopBlinking();
-            
-            // 只在第一次按X键时播放音效
-            if (!hasPlayedStartSFX)
-            {
-                AudioManager.instance.PlayOneShot(FMODEvents.instance.startUISFX, transform.position);
-                hasPlayedStartSFX = true;
-                Debug.Log("GameManager: 首次按X键，播放开始音效");
-            }
-            
-            if (startMessageText != null && !hasTextFadedOut)
-            {
-                // 从当前亮度淡出，使用原来的fade out曲线
-                FadeText(startMessageText, false, textFadeDuration);
-                hasTextFadedOut = true; // 标记文本已经淡出
-            }
-
-            if (playerInput != null)
-            {
-                playerInput.enabled = true;
-                Debug.Log("GameManager: 玩家输入已启用");
-            }
-
-            if (cameraFollowTarget != null)
-            {
-                cameraFollowTarget.lockInput = false;
-            }
-
-            FadeOutImage(framefadeDuration);
-            FadeOutSecondImage(secondImageFadeDuration);
+            AudioManager.instance.PlayOneShot(FMODEvents.instance.startUISFX, transform.position);
+            hasPlayedStartSFX = true;
+            Debug.Log("GameManager: 首次按交互键，播放开始音效");
         }
+        
+        if (startMessageText != null && !hasTextFadedOut)
+        {
+            // 从当前亮度淡出，使用原来的fade out曲线
+            FadeText(startMessageText, false, textFadeDuration);
+            hasTextFadedOut = true; // 标记文本已经淡出
+        }
+
+        if (playerInput != null)
+        {
+            playerInput.enabled = true;
+            Debug.Log("GameManager: 玩家输入已启用");
+        }
+
+        if (cameraFollowTarget != null)
+        {
+            cameraFollowTarget.lockInput = false;
+        }
+
+        FadeOutImage(framefadeDuration);
+        FadeOutSecondImage(secondImageFadeDuration);
+    }
 
     if (UIManager.Instance.hasGameStarted)
+    {
+        // 使用Unity Input Manager检测移动输入，同时支持键盘和手柄
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
+        
+        bool hasMovementInput = Mathf.Abs(horizontal) > 0.1f || Mathf.Abs(vertical) > 0.1f;
+
+        // 如果有任何移动输入就触发相机lerp
+        if (hasMovementInput)
         {
-            // 检测键盘输入
-            bool hasKeyboardInput = Input.GetKey(KeyCode.W) ||
-                                Input.GetKey(KeyCode.A) ||
-                                Input.GetKey(KeyCode.S) ||
-                                Input.GetKey(KeyCode.D);
-
-            // 检测手柄左摇杆输入
-            float leftStickHorizontal = Input.GetAxis("Horizontal");
-            float leftStickVertical = Input.GetAxis("Vertical");
-            bool hasGamepadInput = Mathf.Abs(leftStickHorizontal) > 0.1f || Mathf.Abs(leftStickVertical) > 0.1f;
-
-            // 如果有任何移动输入就触发相机lerp
-            if (hasKeyboardInput || hasGamepadInput)
-            {
-                OnPlayerInput();
-            }
+            OnPlayerInput();
         }
+    }
 
-        UpdateCameraSide();
-        HandleBasicControls();
-        HandleTestingControls();
+    UpdateCameraSide();
+    HandleBasicControls();
+    HandleTestingControls();
 
 #if UNITY_EDITOR
-        if (previewCameraRotationInRuntime)
-        {
-            if (cameraFollowTarget != null)
-            {
-                if (cameraFollowTarget.Target.Value == null)
-                {
-                    if (MRespawner.instance != null && MRespawner.instance.player != null)
-                    {
-                        Transform playerTransform = MRespawner.instance.player.transform;
-                        cameraFollowTarget.SetTarget(playerTransform);
-                        Debug.Log("GameManager (Debug): 自动重新绑定 Camera Target 到玩家");
-                    }
-                }
-                cameraFollowTarget.SetCameraRotation(initialYaw, initialPitch);
-            }
-        }
-#endif
-    }
-    
-    private void HandleBasicControls()
+    if (previewCameraRotationInRuntime)
     {
-        if (Input.GetKeyDown(KeyCode.R))
+        if (cameraFollowTarget != null)
         {
-            RestartGame();
-        }
-
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            TogglePause();
+            if (cameraFollowTarget.Target.Value == null)
+            {
+                if (MRespawner.instance != null && MRespawner.instance.player != null)
+                {
+                    Transform playerTransform = MRespawner.instance.player.transform;
+                    cameraFollowTarget.SetTarget(playerTransform);
+                    Debug.Log("GameManager (Debug): 自动重新绑定 Camera Target 到玩家");
+                }
+            }
+            cameraFollowTarget.SetCameraRotation(initialYaw, initialPitch);
         }
     }
+#endif
+}
+private void HandleBasicControls()
+{
+    // 键盘重启（保持原有功能）
+    if (Input.GetKeyDown(KeyCode.R))
+    {
+        RestartGame();
+    }
+
+    // 手柄长按B键重启
+    if (enableGamepadRestart)
+    {
+        HandleGamepadRestart();
+    }
+
+    // ESC暂停（保持原有功能）
+    if (Input.GetKeyDown(KeyCode.Escape))
+    {
+        TogglePause();
+    }
+}
+private void HandleGamepadRestart()
+{
+    // 多种方式检测手柄B键
+    bool isBButtonPressed = Input.GetKey(KeyCode.JoystickButton1) ||  // Xbox B键
+                           Input.GetButton("Cancel") ||                // Unity默认Cancel
+                           Input.GetKeyDown(KeyCode.Joystick1Button1); // 第一个手柄的B键
+
+    if (isBButtonPressed)
+    {
+        if (!isHoldingRestartButton)
+        {
+            // 开始长按
+            isHoldingRestartButton = true;
+            gamepadRestartTimer = 0f;
+            Debug.Log("GameManager: 开始长按手柄B键，继续长按10秒重启游戏");
+        }
+        
+        // 累积长按时间
+        gamepadRestartTimer += Time.unscaledDeltaTime; // 使用unscaledDeltaTime避免暂停影响
+        
+        // 检查是否达到重启时间
+        if (gamepadRestartTimer >= gamepadRestartHoldTime)
+        {
+            Debug.Log("GameManager: 手柄B键长按10秒，重启游戏");
+            RestartGame();
+            ResetGamepadRestartTimer();
+        }
+    }
+    else
+    {
+        // 松开按钮，重置计时器
+        if (isHoldingRestartButton)
+        {
+            Debug.Log($"GameManager: 松开手柄B键，长按时间: {gamepadRestartTimer:F1}秒");
+            ResetGamepadRestartTimer();
+        }
+    }
+}
+
+
+// 重置手柄重启计时器
+private void ResetGamepadRestartTimer()
+{
+    isHoldingRestartButton = false;
+    gamepadRestartTimer = 0f;
+}
     
     private void HandleTestingControls()
     {
@@ -779,23 +837,32 @@ private IEnumerator FadeAndReloadScene()
         uiFadeImage.color = finalColor;
     }
 
-    private void HandleInactivityTimer()
+private void HandleInactivityTimer()
+{
+    // 检测键盘、鼠标和手柄输入
+    bool hasKeyboardMouseInput = Input.anyKey || Input.GetAxis("Mouse X") != 0 || Input.GetAxis("Mouse Y") != 0;
+    
+    // 检测手柄输入（摇杆和按钮）
+    bool hasGamepadInput = Mathf.Abs(Input.GetAxis("Horizontal")) > 0.1f || 
+                          Mathf.Abs(Input.GetAxis("Vertical")) > 0.1f ||
+                          Input.GetButtonDown("Interact");
+    
+    if (hasKeyboardMouseInput || hasGamepadInput)
     {
-        if (Input.anyKey || Input.GetAxis("Mouse X") != 0 || Input.GetAxis("Mouse Y") != 0)
-        {
-            inactivityTimer = 0f;
-        }
-        else
-        {
-            inactivityTimer += Time.deltaTime;
+        inactivityTimer = 0f;
+    }
+    else
+    {
+        inactivityTimer += Time.deltaTime;
 
-            if (inactivityTimer >= inactivityTimeThreshold)
-            {
-                Debug.Log("GameManager: 超过时间未操作，自动重启场景");
-                RestartGame();
-            }
+        if (inactivityTimer >= inactivityTimeThreshold)
+        {
+            Debug.Log("GameManager: 超过时间未操作，自动重启场景");
+            RestartGame();
         }
     }
+}
+
     public void FadeOutSecondImage(float customDuration)
 {
     if (secondImageFadeCoroutine != null)

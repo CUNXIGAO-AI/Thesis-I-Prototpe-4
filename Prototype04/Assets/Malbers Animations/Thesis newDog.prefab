@@ -1105,7 +1105,7 @@ PrefabInstance:
     - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}
       propertyPath: DefaultMap.selectedIndex
-      value: 6
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 7502259731472049162, guid: 27d807dbf4ab4544d887397b00f645a6,
         type: 3}

@@ -107,9 +107,11 @@ private bool playerInSaveRange = false;
     
     [Tooltip("额外交互按键 (可选)")]
     public KeyCode alternativeInteractionKey = KeyCode.None;  // 默认不使用
-
+  [Tooltip("额外交互按键 (可选)")]
+    public string[] customInputValues = new string[] { "InputValue" };  // ← 添加这个数组
 
     }
+    
 
     [Header("交互提示设置 (总是启用)")]
     public PromptSettings promptSettings = new PromptSettings();  // ✅ 加在这里
@@ -167,27 +169,60 @@ private bool playerInSaveRange = false;
     }
 
     [System.Serializable]
-    public class DialogueChoice
-    {
-        [Tooltip("选项文本")]
-        public string choiceText;
-        
-        [Tooltip("选择的按键")]
-        public KeyCode choiceKey = KeyCode.Y;
-        
-        [Tooltip("选择后跳转到的消息索引")]
-        public int jumpToMessageIndex = -1; // -1表示继续到下一条
-        
-        [Tooltip("选择后触发的事件")]
-        public UnityEvent onChoiceSelected = new UnityEvent();
+public class DialogueChoice
+{
+    [Tooltip("选项文本")]
+    public string choiceText;
+    
+    [Tooltip("选择的按键")]
+    public KeyCode choiceKey = KeyCode.Y;
+    
+    [Header("自定义输入设置")]
+    [Tooltip("自定义输入名称列表（来自Unity Input Manager）")]
+    public string[] customChoiceInputs = new string[0];  // ← 添加自定义输入数组
+    
+    [Tooltip("选择后跳转到的消息索引")]
+    public int jumpToMessageIndex = -1; // -1表示继续到下一条
+    
+    [Tooltip("选择后触发的事件")]
+    public UnityEvent onChoiceSelected = new UnityEvent();
 
-        [Tooltip("选择后执行的叙事动作")]
-        public List<NarrativeAction> narrativeActions = new List<NarrativeAction>();
-        [Tooltip("是否消耗资源")]
-    public bool consumeResources = false;  // 新增属性
+    [Tooltip("选择后执行的叙事动作")]
+    public List<NarrativeAction> narrativeActions = new List<NarrativeAction>();
+    
+    [Tooltip("是否消耗资源")]
+    public bool consumeResources = false;
+    
     [Tooltip("选择后是否直接结束对话")]
-public bool endDialogueAfterChoice = false;
+    public bool endDialogueAfterChoice = false;
+    
+    /// <summary>
+    /// 检查是否按下了此选择的任何输入
+    /// </summary>
+    /// <returns>如果按下了选择键或任何自定义输入则返回true</returns>
+    public bool IsInputPressed()
+    {
+        // 检查KeyCode按键
+        if (choiceKey != KeyCode.None && Input.GetKeyDown(choiceKey))
+        {
+            return true;
+        }
+        
+        // 检查自定义输入
+        if (customChoiceInputs != null)
+        {
+            foreach (string inputName in customChoiceInputs)
+            {
+                if (!string.IsNullOrEmpty(inputName) && Input.GetButtonDown(inputName))
+                {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
     }
+}
 
     [System.Serializable]
     public class CameraSettings
@@ -523,7 +558,8 @@ public float dropItemDelay = 0.3f;
         bool interactionKeyPressed = Input.GetKeyDown(dialogueSettings.interactionKey) || 
                                    Input.GetKeyDown(promptSettings.mainInteractionKey) ||
                                    (promptSettings.alternativeInteractionKey != KeyCode.None && 
-                                    Input.GetKeyDown(promptSettings.alternativeInteractionKey));
+                                    Input.GetKeyDown(promptSettings.alternativeInteractionKey)) ||
+                                   Input.GetButtonDown("Interact");  // 手柄支持
         
         // 交互键逻辑
         if (interactionKeyPressed)
@@ -572,12 +608,12 @@ public float dropItemDelay = 0.3f;
             }
         }
         
-        // 检查选择按键 (如果正在显示选择)
+        // 检查选择按键 (如果正在显示选择) - 使用新的检测方法
         if (currentState == InteractionState.Active && enableDialogue && currentMessage != null && currentMessage.isChoice)
         {
             foreach (var choice in currentMessage.choices)
             {
-                if (Input.GetKeyDown(choice.choiceKey))
+                if (choice.IsInputPressed())  // ← 使用新的方法检测输入
                 {
                     HandleChoice(choice);
                     break;
