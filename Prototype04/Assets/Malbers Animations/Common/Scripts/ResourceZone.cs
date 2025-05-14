@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 using Audio;
 
 public class ResourceZone : MonoBehaviour
@@ -17,6 +18,14 @@ public class ResourceZone : MonoBehaviour
     public ResourceEffectsManager effectsManager;
     [Header("水源音效控制")]
 public GameObject waterSFXObject;  // 拖入带 StudioEventEmitter 的 GameObject
+   [Header("敌人激活设置")]
+    [Tooltip("特效完成后要激活的敌人GameObject")]
+    public GameObject enemyToActivate;
+    [Tooltip("是否在特效完成后激活敌人")]
+    public bool activateEnemyAfterEffects = true; // 默认为true
+    [Tooltip("特效完成后多久激活敌人（秒）")]
+    public float enemyActivationDelay = 0.5f;
+
 
     private void Start()
 {
@@ -26,21 +35,94 @@ public GameObject waterSFXObject;  // 拖入带 StudioEventEmitter 的 GameObjec
     }
 }
     
-    public void TriggerEffects(float snapDuration)
+     public void TriggerEffects(float snapDuration)
     {
         if (effectsManager != null)
         {
             effectsManager.TriggerAllEffects(snapDuration);
+            
+            // 默认情况下，如果设置了敌人GameObject就激活它
+            if (activateEnemyAfterEffects && enemyToActivate != null)
+            {
+                StartCoroutine(WaitAndActivateEnemy(snapDuration));
+            }
         }
+        
         if (waterSFXObject != null)
         {
-            waterSFXObject.SetActive(false);  // 停止水声
+            waterSFXObject.SetActive(false);
         }
+    }
+    
+
+        private IEnumerator WaitAndActivateEnemy(float snapDuration)
+    {
+        // 计算所有特效的最大持续时间
+        float maxEffectDuration = CalculateMaxEffectDuration();
+        
+        // 等待snapDuration + 最长特效时间 + 额外延迟
+        yield return new WaitForSeconds(snapDuration + maxEffectDuration + enemyActivationDelay);
+        
+        // 激活敌人
+        if (enemyToActivate != null && !enemyToActivate.activeInHierarchy)
+        {
+            enemyToActivate.SetActive(true);
+            Debug.Log($"敌人已在资源点 {gameObject.name} 激活");
+        }
+    }
+    
+    private float CalculateMaxEffectDuration()
+    {
+        float maxDuration = 0f;
+        
+        if (effectsManager == null) return maxDuration;
+        
+        // 检查所有光源效果
+        foreach (var effect in effectsManager.lightEffects)
+        {
+            float totalDuration = effect.fadeDelay + effect.fadeDuration;
+            maxDuration = Mathf.Max(maxDuration, totalDuration);
+        }
+        
+        // 检查所有水流效果
+        foreach (var effect in effectsManager.waterEffects)
+        {
+            float totalDuration = effect.scaleDelay + effect.scaleDuration;
+            maxDuration = Mathf.Max(maxDuration, totalDuration);
+        }
+        
+        // 检查所有镜头光晕效果
+        foreach (var effect in effectsManager.lensFlareEffects)
+        {
+            float totalDuration = effect.fadeDelay + effect.fadeDuration;
+            maxDuration = Mathf.Max(maxDuration, totalDuration);
+        }
+        
+        // 检查所有雾效果
+        foreach (var effect in effectsManager.fogEffects)
+        {
+            float totalDuration = effect.fadeDelay + effect.fadeDuration;
+            maxDuration = Mathf.Max(maxDuration, totalDuration);
+        }
+        
+        // 检查所有材质渐隐效果
+        foreach (var effect in effectsManager.materialFadeEffects)
+        {
+            maxDuration = Mathf.Max(maxDuration, effect.fadeDuration);
+        }
+        
+        return maxDuration;
     }
     
     public void ResetZone()
     {
         hasTriggered = false;
+        
+        // 重置时也可以选择隐藏敌人
+        if (enemyToActivate != null && enemyToActivate.activeInHierarchy)
+        {
+            enemyToActivate.SetActive(false);
+        }
     }
 
 }
