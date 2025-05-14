@@ -74,6 +74,8 @@ public float blackScreenDuration = 1.0f;
 
 [Tooltip("重生后到黑屏开始淡出的延迟")]
 public float respawnToFadeOutDelay = 0.5f;
+private Vector3 cachedDeathPosition = Vector3.zero;
+
 
 
     private void Start()
@@ -249,12 +251,13 @@ public float respawnToFadeOutDelay = 0.5f;
         /// <summary>Listen to the Animal States</summary>
    public void OnCharacterDead(int StateID)
 {
+    if (activeAnimal != null)
+{
+    cachedDeathPosition = activeAnimal.transform.position;
+}
+
     if (!Respawned || StateID != StateEnum.Death) return;
 
-    if (AudioManager.instance != null)
-    {
-        AudioManager.instance.PlayOneShot(FMODEvents.instance.deathSFX, activeAnimal.transform.position);
-    }
     oldPlayer = activeAnimal.gameObject;
     activeAnimal.OnStateChange.RemoveListener(OnCharacterDead);
 
@@ -398,9 +401,16 @@ private IEnumerator CoordinatedRespawnSequence()
     // 先等待死亡到黑屏的延迟
     yield return new WaitForSeconds(deathToFadeDelay);
     
+    
     // 淡入黑屏
     StartCoroutine(FadeUIBackground(true));
+        if (AudioManager.instance != null)
+{
+    AudioManager.instance.PlayOneShot(FMODEvents.instance.deathSFX, cachedDeathPosition);
+}
+
     yield return new WaitForSeconds(fadeInDuration);
+
     
     // 销毁旧玩家
     if (oldPlayer != null) DestroyDeathPlayer();
