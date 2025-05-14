@@ -147,8 +147,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   resourceManager: {fileID: 0}
+  dialogueSFXObject: {fileID: 0}
+  dialogueSFXDelay: 0
   isOneTimeInteraction: 0
   exitCooldownDuration: 16
+  useSeparateCutsceneTrigger: 0
+  cutsceneTriggerCollider: {fileID: 0}
+  dialogueTriggerCollider: {fileID: 0}
+  saveTriggerCollider: {fileID: 7724980931380755440}
   events:
     onInteractionStarted:
       m_PersistentCalls:
@@ -162,12 +168,13 @@ MonoBehaviour:
     onPlayerExitRange:
       m_PersistentCalls:
         m_Calls: []
-  interactionRadius: 2
   promptSettings:
     promptMessage: Press X to Save
     promptFadeInDuration: 0.3
     promptFadeOutDuration: 0.3
     isPromptOnlyOneTime: 0
+    mainInteractionKey: 120
+    alternativeInteractionKey: 0
   enableDialogue: 0
   dialogueSettings:
     dialogueText: {fileID: 0}
@@ -186,6 +193,27 @@ MonoBehaviour:
     uiFadeInDuration: 0.5
     uiFadeOutDuration: 1
     uiMaxAlpha: 1
+  enableCutscene: 0
+  cutsceneSettings:
+    cutsceneDirector: {fileID: 0}
+    cutsceneDelay: 0.75
+    cutsceneVirtualCameras: []
+    cutsceneCameraPriority: 20
+    resetPriority: 0
+    showPromptAfterCutscene: 1
+    fadeInDuration: 0.5
+    fadeOutDuration: 0.5
+    blackScreenDuration: 1.5
+    endingFadeInDuration: 0.5
+    endingFadeOutDuration: 0.5
+    onCutsceneStarted:
+      m_PersistentCalls:
+        m_Calls: []
+    onCutsceneCompleted:
+      m_PersistentCalls:
+        m_Calls: []
+    enableFadeEffect: 1
+    disablePlayerInput: 1
   enableSaveFunction: 1
   sleepZoneHelper: {fileID: 8568244771197120285}
   saveSettings:
@@ -503,7 +531,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1321718853973134, guid: 3de2ef7384d527c4b945f960643ef6e2, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1744290302511228, guid: 3de2ef7384d527c4b945f960643ef6e2, type: 3}
       propertyPath: m_IsActive
@@ -555,8 +583,38 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 65561434320348912, guid: 3de2ef7384d527c4b945f960643ef6e2,
         type: 3}
+      propertyPath: m_Size.x
+      value: 3.3070505
+      objectReference: {fileID: 0}
+    - target: {fileID: 65561434320348912, guid: 3de2ef7384d527c4b945f960643ef6e2,
+        type: 3}
+      propertyPath: m_Size.y
+      value: 2.5487175
+      objectReference: {fileID: 0}
+    - target: {fileID: 65561434320348912, guid: 3de2ef7384d527c4b945f960643ef6e2,
+        type: 3}
+      propertyPath: m_Size.z
+      value: 4.9209394
+      objectReference: {fileID: 0}
+    - target: {fileID: 65561434320348912, guid: 3de2ef7384d527c4b945f960643ef6e2,
+        type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 65561434320348912, guid: 3de2ef7384d527c4b945f960643ef6e2,
+        type: 3}
+      propertyPath: m_Center.x
+      value: 0.8299075
+      objectReference: {fileID: 0}
+    - target: {fileID: 65561434320348912, guid: 3de2ef7384d527c4b945f960643ef6e2,
+        type: 3}
+      propertyPath: m_Center.y
+      value: 1.2743587
+      objectReference: {fileID: 0}
+    - target: {fileID: 65561434320348912, guid: 3de2ef7384d527c4b945f960643ef6e2,
+        type: 3}
+      propertyPath: m_Center.z
+      value: 0.14971109
       objectReference: {fileID: 0}
     - target: {fileID: 114359934463224302, guid: 3de2ef7384d527c4b945f960643ef6e2,
         type: 3}

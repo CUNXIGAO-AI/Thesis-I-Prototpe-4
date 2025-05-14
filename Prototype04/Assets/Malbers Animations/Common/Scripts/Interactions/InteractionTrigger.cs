@@ -14,6 +14,7 @@ using MalbersAnimations; // 添加UnityEvents命名空间
 [RequireComponent(typeof(Collider))] // 确保对象有碰撞体
 public class InteractionTrigger : MonoBehaviour
 {
+    
     public ResourceManager resourceManager;  // 拖到Inspector
     private GameObject playerExtraLogic;
     [Header("对话音效设置")]
@@ -49,6 +50,9 @@ public class InteractionTrigger : MonoBehaviour
 
     [Tooltip("对话/交互触发碰撞体")]
     public CapsuleCollider dialogueTriggerCollider;
+    [Header("专属存档触发器")]
+public Collider saveTriggerCollider;
+private bool playerInSaveRange = false;
 
     private bool playerInCutsceneRange = false;
 
@@ -1024,34 +1028,56 @@ private void OnTriggerEnter(Collider other)
         if (animator == null || !animator.enabled)
             return;
 
+        // 检查是否进入存档范围 - 修复这里的逻辑
+        if (enableSaveFunction && saveTriggerCollider != null)
+        {
+            // 直接检查是否是存档触发器被触发
+            if (saveTriggerCollider == GetComponent<Collider>())
+            {
+                // 如果当前对象的主碰撞体就是存档触发器
+                playerInSaveRange = true;
+                playerInRange = true; // 存档也需要设置playerInRange
+                Debug.Log("玩家进入存档触发范围");
+
+                if (currentState == InteractionState.Ready)
+                {
+                    events.onPlayerEnterRange.Invoke();
+                    UpdatePromptMessage();
+                    
+                    if (dialogueSettings.backgroundImage != null)
+                    {
+                        StartCoroutine(FadeTextBackground(1.0f));
+                    }
+                }
+                return; // 存档功能专用，直接返回
+            }
+        }
+
         // 检查是哪个碰撞体被触发
         bool inCutsceneRange = false;
         if (useSeparateCutsceneTrigger && cutsceneTriggerCollider != null)
         {
-            inCutsceneRange = cutsceneTriggerCollider.bounds.Intersects(other.bounds);
-            
-            // 玩家进入了过场动画触发范围
-            if (inCutsceneRange && !playerInCutsceneRange)
+            // 检查是否是过场动画触发器
+            if (other.bounds.Intersects(cutsceneTriggerCollider.bounds) || 
+                GetComponent<Collider>() == cutsceneTriggerCollider)
             {
+                inCutsceneRange = true;
                 playerInCutsceneRange = true;
                 Debug.Log("玩家进入过场动画范围");
                 
-                // 对于过场动画也要处理Extra Logic - 之前遗漏的部分
                 FindAndControlExtraLogic(false);
                 
-                        // 检查是否需要播放过场动画
-                        if (enableCutscene && !hasCutscenePlayed)
-        {
-            // 仅当需要禁用输入时才禁用
-            if (cutsceneSettings.disablePlayerInput)
-            {
-                DisablePlayerInput();
-            }
-            
-            // 播放过场动画
-            StartCoroutine(PlayCutsceneSequence());
-            return; // 提前退出，等待过场动画完成
-        }
+                // 检查是否需要播放过场动画
+                if (enableCutscene && !hasCutscenePlayed)
+                {
+                    if (cutsceneSettings.disablePlayerInput)
+                    {
+                        DisablePlayerInput();
+                    }
+                    
+                    StartCoroutine(PlayCutsceneSequence());
+                    return;
+                }
             }
         }
         
@@ -1059,11 +1085,16 @@ private void OnTriggerEnter(Collider other)
         bool inDialogueRange = false;
         if (dialogueTriggerCollider != null)
         {
-            inDialogueRange = dialogueTriggerCollider.bounds.Intersects(other.bounds);
+            // 检查是否是对话触发器
+            if (other.bounds.Intersects(dialogueTriggerCollider.bounds) || 
+                GetComponent<Collider>() == dialogueTriggerCollider)
+            {
+                inDialogueRange = true;
+            }
         }
-        else
+        else if (!useSeparateCutsceneTrigger && !enableSaveFunction)
         {
-            // 如果没有专门的对话碰撞体，就使用默认的检测
+            // 如果没有专门的对话碰撞体，且不是过场动画或存档，就使用默认的检测
             inDialogueRange = true; 
         }
         
@@ -1072,14 +1103,11 @@ private void OnTriggerEnter(Collider other)
             playerInRange = true;
             events.onPlayerEnterRange.Invoke();
             
-            // 只有当玩家没有进入过场动画范围时，才在这里处理Extra Logic
-            // 避免和过场动画的Extra Logic处理冲突
             if (!playerInCutsceneRange)
             {
                 FindAndControlExtraLogic(false);
             }
             
-            // 正常的交互提示逻辑
             if (isOneTimeInteraction && currentState == InteractionState.Completed)
                 return;
                 
@@ -1102,9 +1130,36 @@ private void OnTriggerExit(Collider other)
 {
     if (other.CompareTag(playerTag) && !isPlayerDead)
     {
-            var animator = other.GetComponentInParent<Animator>();
-    if (animator == null || !animator.enabled)
-        return;
+        var animator = other.GetComponentInParent<Animator>();
+        if (animator == null || !animator.enabled)
+            return;
+
+        // 检查是否离开存档范围 - 修复这里的逻辑
+        if (enableSaveFunction && saveTriggerCollider != null && playerInSaveRange)
+        {
+            // 检查是否真的离开了存档触发器
+            if (saveTriggerCollider == GetComponent<Collider>())
+            {
+                // 如果当前对象的主碰撞体就是存档触发器
+                playerInSaveRange = false;
+                playerInRange = false; // 存档也需要重置playerInRange
+                Debug.Log("玩家离开存档触发范围");
+
+                if (currentState == InteractionState.Ready)
+                {
+                    events.onPlayerExitRange.Invoke();
+                    StartCoroutine(FadeText("", TextType.Prompt));
+                    
+                    if (dialogueSettings.backgroundImage != null)
+                    {
+                        StartCoroutine(FadeTextBackground(0f));
+                    }
+                }
+                
+                FindAndControlExtraLogic(true);
+                return; // 存档功能专用，直接返回
+            }
+        }
         
         bool wasInCutsceneRange = playerInCutsceneRange;
         bool wasInDialogueRange = playerInRange;
@@ -1112,13 +1167,12 @@ private void OnTriggerExit(Collider other)
         // 检查是否离开过场动画范围
         if (useSeparateCutsceneTrigger && cutsceneTriggerCollider != null)
         {
-            bool stillInCutsceneRange = cutsceneTriggerCollider.bounds.Intersects(other.bounds);
+            bool stillInCutsceneRange = other.bounds.Intersects(cutsceneTriggerCollider.bounds);
             if (!stillInCutsceneRange && playerInCutsceneRange)
             {
                 playerInCutsceneRange = false;
                 Debug.Log("玩家离开过场动画范围");
                 
-                // 只有当玩家不在对话范围内时，才在这里启用Extra Logic
                 if (!playerInRange)
                 {
                     FindAndControlExtraLogic(true);
@@ -1130,7 +1184,7 @@ private void OnTriggerExit(Collider other)
         bool stillInDialogueRange = false;
         if (dialogueTriggerCollider != null)
         {
-            stillInDialogueRange = dialogueTriggerCollider.bounds.Intersects(other.bounds);
+            stillInDialogueRange = other.bounds.Intersects(dialogueTriggerCollider.bounds);
         }
         
         if (playerInRange && !stillInDialogueRange)
@@ -1138,21 +1192,17 @@ private void OnTriggerExit(Collider other)
             playerInRange = false;
             events.onPlayerExitRange.Invoke();
             
-            // 如果也不在过场动画范围内，才启用Extra Logic
             if (!playerInCutsceneRange)
             {
                 FindAndControlExtraLogic(true);
             }
             
-            hasShownPrompt = false; // 重置提示显示状态
+            hasShownPrompt = false;
 
-            // 如果未开始交互，清除提示
             if (currentState == InteractionState.Ready)
             {
-                // 淡出文本
                 StartCoroutine(FadeText("", TextType.Prompt));
                 
-                // 确保文本背景淡出
                 if (dialogueSettings.backgroundImage != null)
                 {
                     StartCoroutine(FadeTextBackground(0f));
@@ -1160,11 +1210,9 @@ private void OnTriggerExit(Collider other)
             }
             else if (currentState == InteractionState.Active)
             {
-                // 如果正在交互中，退出交互
                 ExitInteraction();
             }
             
-            // 关闭相机
             if (enableCamera && cameraSettings.virtualCamera != null)
             {
                 cameraSettings.virtualCamera.Priority = 0;
@@ -1174,7 +1222,6 @@ private void OnTriggerExit(Collider other)
         // 特殊情况处理：如果玩家同时离开了两个范围
         if (wasInCutsceneRange && wasInDialogueRange && !playerInCutsceneRange && !playerInRange)
         {
-            // 确保Extra Logic被正确启用
             FindAndControlExtraLogic(true);
         }
     }
@@ -1419,22 +1466,25 @@ private void ExecuteSaveLogic()
 // 存档流程协程
 private IEnumerator SaveGameCoroutine()
 {
-
-    yield return StartCoroutine(FadeText("", TextType.Prompt));
+    // 同时开始文本和背景的淡出动画
+    Coroutine textFadeOut = StartCoroutine(FadeText("", TextType.Prompt));
+    Coroutine backgroundFadeOut = null;
     
-    // 确保文本真的淡出了
-    if (textCanvasGroup != null)
-    {
-        textCanvasGroup.alpha = 0f;
-    }
-    
-    // 确保背景也淡出了
     if (dialogueSettings.backgroundImage != null)
     {
-        Color bgColor = dialogueSettings.backgroundImage.color;
-        bgColor.a = 0f;
-        dialogueSettings.backgroundImage.color = bgColor;
+        backgroundFadeOut = StartCoroutine(FadeTextBackground(0f));
     }
+    
+    // 等待文本淡出完成
+    yield return textFadeOut;
+    
+    // 等待背景淡出完成（如果有的话）
+    if (backgroundFadeOut != null)
+    {
+        yield return backgroundFadeOut;
+    }
+    
+    // 移除了强制设置透明度的代码，让淡出动画自然完成
     
     // 然后继续存档流程
     yield return new WaitForSeconds(saveSettings.delayBeforeBlackScreen);
@@ -1460,7 +1510,9 @@ private IEnumerator SaveGameCoroutine()
         StartCoroutine(FadeUIBackground(false));
         yield return new WaitForSeconds(fadeSettings.uiFadeOutDuration);
     }
+    
     EnablePlayerInput();
+    
     // 切换到冷却状态
     currentState = InteractionState.Cooldown;
     
@@ -1660,23 +1712,6 @@ private void UpdatePromptMessage()
     isPromptUpdating = true;
     
     string baseMessage = promptSettings.promptMessage;
-    
-    /* 如果有替代按键，添加到提示中
-    if (promptSettings.alternativeInteractionKey != KeyCode.None)
-    {
-        // 替换默认的"按X交互"格式
-        string mainKey = promptSettings.mainInteractionKey.ToString();
-        string altKey = promptSettings.alternativeInteractionKey.ToString();
-        
-        // 如果提示中包含具体的按键，替换它
-        if (baseMessage.Contains("X") && mainKey != "X")
-        {
-            baseMessage = baseMessage.Replace("X", mainKey);
-        }
-        
-        // 添加替代按键信息
-        baseMessage += $" 或 {altKey}";
-    }*/
     
     // 当显示提示时使用这个更新后的信息
     string updatedPromptMessage = baseMessage;

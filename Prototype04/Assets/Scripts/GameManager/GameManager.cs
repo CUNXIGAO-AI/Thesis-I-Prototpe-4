@@ -50,12 +50,23 @@ public AnimationCurve cameraSideCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 [Tooltip("从初始值 lerp 到目标值的总时间（秒）")]
 public float cameraSideLerpDuration = 1.5f;
 public float cameraDelay = 1f; // 延迟时间（秒）
+private static bool hasPlayedStartSFX = false; // 确保只播放一次开始音效
 
-
-        
-
+   [Header("Start Text Blink Settings")]
+    [Tooltip("文本闪烁频率 (单位: 每秒周期数)")]
+    [Range(0.0f, 10f)]
+    public float blinkFrequency = 1f;
     
-    // 游戏状态枚举
+    [Tooltip("是否启用文本闪烁效果")]
+    public bool enableBlinking = true;
+    
+    // 私有变量用于闪烁
+    private Coroutine blinkCoroutine;
+    private bool isBlinking = false;
+
+
+
+         // 游戏状态枚举
     public enum GameState
     {
         MainMenu,
@@ -64,18 +75,15 @@ public float cameraDelay = 1f; // 延迟时间（秒）
         Ending
     }
     
-    // 当前游戏状态
     private GameState currentGameState = GameState.Playing;
     
     private void Awake()
     {
-        // 单例实现
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-                        SceneManager.sceneLoaded += OnSceneLoaded;
-
+            SceneManager.sceneLoaded += OnSceneLoaded;
         }
         else
         {
@@ -83,56 +91,52 @@ public float cameraDelay = 1f; // 延迟时间（秒）
         }
     }
 
-
-     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         Debug.Log("GameManager: 场景加载完成，重新初始化 UI 引用");
         StartCoroutine(ReinitializeReferences());
     }
-      private IEnumerator ReinitializeReferences()
+
+    private IEnumerator ReinitializeReferences()
     {
-        // 等待一帧，确保场景中的对象已完全加载
         yield return null;
-        
-        // 重新查找 UI 组件
         RefindUIComponents();
-        
-        // 重新设置玩家引用
         RefindPlayerReferences();
-        
-        // 重新初始化游戏状态
         InitializeGameState();
         InitializeCameraSide();
-
     }
-      private void InitializeGameState()
+
+    private void InitializeGameState()
     {
-        // 如果游戏还未开始，显示开始文本
         if (!UIManager.Instance.hasGameStarted && startMessageText != null)
         {
-            var c = startMessageText.color;
-            c.a = 0f;
-            startMessageText.color = c;
-            FadeText(startMessageText, true, textFadeDuration);
+            // 直接开始闪烁，不需要先淡入
+            if (enableBlinking)
+            {
+                StartBlinking();
+            }
+            else
+            {
+                // 如果不启用闪烁，则设置为完全不透明
+                var c = startMessageText.color;
+                c.a = 1f;
+                startMessageText.color = c;
+            }
         }
         
-        // 重新设置相机锁定
         if (cameraFollowTarget != null)
         {
             cameraFollowTarget.lockInput = true;
         }
         
-        // 隐藏鼠标光标并锁定
         SetCursorLock(true);
         
-        // 如果游戏还未开始，进入坐下状态
         if (!UIManager.Instance.hasGameStarted && playerAnimal != null && SitModeID != null)
         {
             playerAnimal.Mode_Activate(SitModeID, 8);
             Debug.Log("GameManager: 重新激活坐下模式");
         }
         
-        // 根据游戏状态设置输入
         if (playerInput != null)
         {
             playerInput.enabled = UIManager.Instance.hasGameStarted;
@@ -140,69 +144,119 @@ public float cameraDelay = 1f; // 延迟时间（秒）
         }
     }
 
-private void InitializeCameraSide()
-{
-    if (cameraFollowTarget != null)
+    // 开始闪烁效果
+    private void StartBlinking()
     {
-        originalCameraSide = cameraFollowTarget.CameraSide;
-        cameraFollowTarget.SetCameraSide(initialCameraSide);
-        targetCameraSide = initialCameraSide;
-        shouldRestoreCameraSide = false;
-        cameraSideLerpTimer = 0f;
-        cameraSideInitialized = true;
-
-        Debug.Log($"GameManager: 相机侧向偏移初始化 - 设置为 {initialCameraSide}，原始值为 {originalCameraSide}");
-    }
-}
-
-
-private bool hasTriggeredCameraLerp = false;
-public void OnPlayerInput()
-{
-    if (!cameraSideInitialized || hasTriggeredCameraLerp) return;
-
-    hasTriggeredCameraLerp = true;
-    StartCoroutine(DelayedCameraSideLerp(cameraDelay));  // 0.5秒后启动
-}
-private IEnumerator DelayedCameraSideLerp(float delay)
-{
-    yield return new WaitForSeconds(delay);
-
-    shouldRestoreCameraSide = true;
-    targetCameraSide = 1.0f;
-    cameraSideLerpTimer = 0f;
-    Debug.Log("GameManager: 延迟结束，相机开始缓慢偏移到右侧");
-}
-
-
-private float cameraSideLerpTimer = 0f;
-
-private void UpdateCameraSide()
-{
-    if (cameraFollowTarget != null && shouldRestoreCameraSide)
-    {
-        cameraSideLerpTimer += Time.deltaTime;
-
-        float t = Mathf.Clamp01(cameraSideLerpTimer / cameraSideLerpDuration);
-        float curveValue = cameraSideCurve.Evaluate(t);
-
-        float newSide = Mathf.Lerp(initialCameraSide, targetCameraSide, curveValue);
-        cameraFollowTarget.SetCameraSide(newSide);
-
-        if (t >= 1f)
+        if (startMessageText != null && !isBlinking)
         {
-            shouldRestoreCameraSide = false;
-            cameraSideLerpTimer = 0f;
-            cameraFollowTarget.SetCameraSide(targetCameraSide);
-            Debug.Log($"GameManager: 相机侧向偏移完成: {targetCameraSide}");
+            isBlinking = true;
+            blinkCoroutine = StartCoroutine(BlinkCoroutine());
         }
     }
-}
-    
 
-       private void RefindUIComponents()
+    // 停止闪烁效果
+    private void StopBlinking()
     {
-        // 查找开始文本
+        if (blinkCoroutine != null)
+        {
+            StopCoroutine(blinkCoroutine);
+            blinkCoroutine = null;
+        }
+        isBlinking = false;
+    }
+
+    // 闪烁协程
+    private IEnumerator BlinkCoroutine()
+    {
+        while (isBlinking && !UIManager.Instance.hasGameStarted)
+        {
+            float cycleDuration = 1f / blinkFrequency;
+            float halfCycle = cycleDuration / 2f;
+            
+            // 淡出到0
+            yield return StartCoroutine(BlinkFade(1f, 0f, halfCycle));
+            
+            // 淡入到1
+            yield return StartCoroutine(BlinkFade(0f, 1f, halfCycle));
+        }
+    }
+
+    // 闪烁时的淡入淡出
+    private IEnumerator BlinkFade(float startAlpha, float targetAlpha, float duration)
+    {
+        if (startMessageText == null) yield break;
+        
+        Color startColor = startMessageText.color;
+        Color targetColor = startColor;
+        startColor.a = startAlpha;
+        targetColor.a = targetAlpha;
+        
+        for (float t = 0f; t < duration; t += Time.deltaTime)
+        {
+            float normalizedTime = t / duration;
+            Color currentColor = Color.Lerp(startColor, targetColor, normalizedTime);
+            startMessageText.color = currentColor;
+            yield return null;
+        }
+        
+        startMessageText.color = targetColor;
+    }
+
+    private void InitializeCameraSide()
+    {
+        if (cameraFollowTarget != null)
+        {
+            originalCameraSide = cameraFollowTarget.CameraSide;
+            cameraFollowTarget.SetCameraSide(initialCameraSide);
+            targetCameraSide = initialCameraSide;
+            shouldRestoreCameraSide = false;
+            cameraSideLerpTimer = 0f;
+            cameraSideInitialized = true;
+            Debug.Log($"GameManager: 相机侧向偏移初始化 - 设置为 {initialCameraSide}，原始值为 {originalCameraSide}");
+        }
+    }
+
+    private bool hasTriggeredCameraLerp = false;
+    public void OnPlayerInput()
+    {
+        if (!cameraSideInitialized || hasTriggeredCameraLerp) return;
+        hasTriggeredCameraLerp = true;
+        StartCoroutine(DelayedCameraSideLerp(cameraDelay));
+    }
+
+    private IEnumerator DelayedCameraSideLerp(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        shouldRestoreCameraSide = true;
+        targetCameraSide = 1.0f;
+        cameraSideLerpTimer = 0f;
+        Debug.Log("GameManager: 延迟结束，相机开始缓慢偏移到右侧");
+    }
+
+    private float cameraSideLerpTimer = 0f;
+
+    private void UpdateCameraSide()
+    {
+        if (cameraFollowTarget != null && shouldRestoreCameraSide)
+        {
+            cameraSideLerpTimer += Time.deltaTime;
+            float t = Mathf.Clamp01(cameraSideLerpTimer / cameraSideLerpDuration);
+            float curveValue = cameraSideCurve.Evaluate(t);
+            float newSide = Mathf.Lerp(initialCameraSide, targetCameraSide, curveValue);
+            cameraFollowTarget.SetCameraSide(newSide);
+
+            if (t >= 1f)
+            {
+                shouldRestoreCameraSide = false;
+                cameraSideLerpTimer = 0f;
+                cameraFollowTarget.SetCameraSide(targetCameraSide);
+                Debug.Log($"GameManager: 相机侧向偏移完成: {targetCameraSide}");
+            }
+        }
+    }
+
+    private void RefindUIComponents()
+    {
         if (startMessageText == null)
         {
             GameObject startGameObj = GameObject.Find("Start Game");
@@ -213,7 +267,6 @@ private void UpdateCameraSide()
             }
         }
         
-        // 查找淡出图片
         if (uiFadeImage == null)
         {
             GameObject startUIObj = GameObject.Find("Start UI");
@@ -224,16 +277,15 @@ private void UpdateCameraSide()
             }
         }
         
-        // 查找相机控制器
         if (cameraFollowTarget == null)
         {
             cameraFollowTarget = FindObjectOfType<ThirdPersonFollowTarget>();
             Debug.Log("GameManager: 重新找到相机控制器");
         }
     }
-       private void RefindPlayerReferences()
+
+    private void RefindPlayerReferences()
     {
-        // 等待 MRespawner 初始化
         if (MRespawner.instance != null)
         {
             GameObject player = MRespawner.instance.player;
@@ -245,11 +297,10 @@ private void UpdateCameraSide()
             }
         }
     }
-    
-        void Start()
-        {
 
-            if (startMessageText == null)
+    void Start()
+    {
+        if (startMessageText == null)
         {
             startMessageText = GameObject.Find("Start Game")?.GetComponent<TextMeshProUGUI>();
         }
@@ -259,32 +310,35 @@ private void UpdateCameraSide()
             uiFadeImage = GameObject.Find("Start UI")?.GetComponent<UnityEngine.UI.Image>();
         }
 
-        // 动态查找 Camera 控制器
         if (cameraFollowTarget == null)
         {
             cameraFollowTarget = FindObjectOfType<ThirdPersonFollowTarget>();
         }
 
-
         if (!UIManager.Instance.hasGameStarted && startMessageText != null)
         {
-            var c = startMessageText.color;
-            c.a = 0f;
-            startMessageText.color = c;
-
-            FadeText(startMessageText, true, textFadeDuration);
+            // 直接开始闪烁，不需要先淡入
+            if (enableBlinking)
+            {
+                StartBlinking();
+            }
+            else
+            {
+                // 如果不启用闪烁，则设置为完全不透明
+                var c = startMessageText.color;
+                c.a = 1f;
+                startMessageText.color = c;
+            }
         }
 
         if (cameraFollowTarget != null)
         {
-            cameraFollowTarget.lockInput = true; // 锁定相机输入
+            cameraFollowTarget.lockInput = true;
         }
 
-
-        // 隐藏鼠标光标并锁定到屏幕中心
         SetCursorLock(true);
 
-                if (MRespawner.instance != null)
+        if (MRespawner.instance != null)
         {
             GameObject player = MRespawner.instance.player;
             if (player != null)
@@ -292,7 +346,7 @@ private void UpdateCameraSide()
                 playerAnimal = player.GetComponent<MAnimal>();
                 if (playerAnimal != null && SitModeID != null)
                 {
-                    playerAnimal.Mode_Activate(SitModeID, 8);  // 激活 SitMode 的 Ability 8
+                    playerAnimal.Mode_Activate(SitModeID, 8);
                     Debug.Log("GameManager: 已请求坐下 (Mode: " + SitModeID.name + ", Ability: 8)");
                 }
                 else
@@ -300,7 +354,7 @@ private void UpdateCameraSide()
                     Debug.LogWarning("GameManager: 玩家对象存在，但未找到 MAnimal 组件");
                 }
 
-                                playerInput = playerAnimal.GetComponent<MInput>();
+                playerInput = playerAnimal.GetComponent<MInput>();
                 if (playerInput != null)
                 {
                     playerInput.enabled = false;
@@ -321,40 +375,46 @@ private void UpdateCameraSide()
             Debug.LogWarning("GameManager: 未找到 MRespawner 实例");
         }
         
-        // 订阅NarrativeManager的结局事件
         if (NarrativeManager.Instance != null)
         {
             NarrativeManager.Instance.OnEndingTriggered += HandleEndingTriggered;
         }
 
-            if (cameraFollowTarget != null)
-    {
-        cameraFollowTarget.SetCameraRotation(initialYaw, initialPitch);
-        Debug.Log($"GameManager: 初始相机视角设定为 Yaw: {initialYaw}, Pitch: {initialPitch}");
-    }
+        if (cameraFollowTarget != null)
+        {
+            cameraFollowTarget.SetCameraRotation(initialYaw, initialPitch);
+            Debug.Log($"GameManager: 初始相机视角设定为 Yaw: {initialYaw}, Pitch: {initialPitch}");
+        }
 
-    InitializeCameraSide();
-
-            
+        InitializeCameraSide();
         Debug.Log("GameManager: 游戏已启动");
-
     }
 
     void Update()
     {
-            HandleInactivityTimer();  // 👈 添加这行
-
+        HandleInactivityTimer();
 
         if (Input.GetKeyDown(KeyCode.X))
         {
             UIManager.Instance.hasGameStarted = true;
-            AudioManager.instance.PlayOneShot(FMODEvents.instance.startUISFX, transform.position);
+            
+            // 停止闪烁并从当前亮度淡出
+            StopBlinking();
+            
+            // 只在第一次按X键时播放音效
+            if (!hasPlayedStartSFX)
+            {
+                AudioManager.instance.PlayOneShot(FMODEvents.instance.startUISFX, transform.position);
+                hasPlayedStartSFX = true;
+                Debug.Log("GameManager: 首次按X键，播放开始音效");
+            }
+            
             if (startMessageText != null)
             {
+                // 从当前亮度淡出，使用原来的fade out曲线
                 FadeText(startMessageText, false, textFadeDuration);
             }
 
-            // 解锁输入
             if (playerInput != null)
             {
                 playerInput.enabled = true;
@@ -367,8 +427,6 @@ private void UpdateCameraSide()
             }
 
             FadeOutImage(framefadeDuration);
-            // 退出当前 Mode（例如坐下）
-            // 你也可以改变游戏状态，例如切换到 GameState.Playing
         }
 
         if (UIManager.Instance.hasGameStarted)
@@ -380,61 +438,49 @@ private void UpdateCameraSide()
 
             if (hasMovementInput)
             {
-                OnPlayerInput();  // 只会触发一次
+                OnPlayerInput();
             }
         }
 
-            UpdateCameraSide    (); // 更新相机侧向偏移
-
-        // 基本控制
+        UpdateCameraSide();
         HandleBasicControls();
-        
-        // 测试功能
         HandleTestingControls();
 
 #if UNITY_EDITOR
-    if (previewCameraRotationInRuntime)
-    {
-        if (cameraFollowTarget != null)
+        if (previewCameraRotationInRuntime)
         {
-            if (cameraFollowTarget.Target.Value == null)
+            if (cameraFollowTarget != null)
             {
-                // 强制重新绑定玩家为 Target
-                if (MRespawner.instance != null && MRespawner.instance.player != null)
+                if (cameraFollowTarget.Target.Value == null)
                 {
-                    Transform playerTransform = MRespawner.instance.player.transform;
-                    cameraFollowTarget.SetTarget(playerTransform);
-                    Debug.Log("GameManager (Debug): 自动重新绑定 Camera Target 到玩家");
+                    if (MRespawner.instance != null && MRespawner.instance.player != null)
+                    {
+                        Transform playerTransform = MRespawner.instance.player.transform;
+                        cameraFollowTarget.SetTarget(playerTransform);
+                        Debug.Log("GameManager (Debug): 自动重新绑定 Camera Target 到玩家");
+                    }
                 }
+                cameraFollowTarget.SetCameraRotation(initialYaw, initialPitch);
             }
-
-            // 持续刷新角度
-            cameraFollowTarget.SetCameraRotation(initialYaw, initialPitch);
         }
-    }
 #endif
     }
     
-    // 处理基本控制输入
     private void HandleBasicControls()
     {
-        // 检测按下 R 键以重新开始游戏
         if (Input.GetKeyDown(KeyCode.R))
         {
             RestartGame();
         }
 
-        // 按下 Esc 键切换鼠标锁定状态
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             TogglePause();
         }
     }
     
-    // 处理测试功能输入
     private void HandleTestingControls()
     {
-        // 测试用，按T键重置叙事系统
         if (Input.GetKeyDown(KeyCode.T))
         {
             if (NarrativeManager.Instance != null)
@@ -444,12 +490,10 @@ private void UpdateCameraSide()
             }
         }
         
-        // 测试用，直接触发不同的交互路径
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
             if (NarrativeManager.Instance != null)
             {
-                // 路径: Yes -> Yes (好结局)
                 NarrativeManager.Instance.HandleFirstInteraction(true);
                 NarrativeManager.Instance.HandleSecondInteraction(true);
                 Debug.Log("GameManager: 测试路径 - 第一次Yes，第二次Yes (好结局)");
@@ -460,7 +504,6 @@ private void UpdateCameraSide()
         {
             if (NarrativeManager.Instance != null)
             {
-                // 路径: Yes -> No (坏结局)
                 NarrativeManager.Instance.HandleFirstInteraction(true);
                 NarrativeManager.Instance.HandleSecondInteraction(false);
                 Debug.Log("GameManager: 测试路径 - 第一次Yes，第二次No (坏结局)");
@@ -471,7 +514,6 @@ private void UpdateCameraSide()
         {
             if (NarrativeManager.Instance != null)
             {
-                // 路径: No -> Yes (最坏结局)
                 NarrativeManager.Instance.HandleFirstInteraction(false);
                 NarrativeManager.Instance.HandleSecondInteraction(true);
                 Debug.Log("GameManager: 测试路径 - 第一次No，第二次Yes (最坏结局)");
@@ -482,14 +524,12 @@ private void UpdateCameraSide()
         {
             if (NarrativeManager.Instance != null)
             {
-                // 路径: No -> No (最坏结局)
                 NarrativeManager.Instance.HandleFirstInteraction(false);
                 NarrativeManager.Instance.HandleSecondInteraction(false);
                 Debug.Log("GameManager: 测试路径 - 第一次No，第二次No (最坏结局)");
             }
         }
         
-        // 打印当前叙事系统状态
         if (Input.GetKeyDown(KeyCode.P))
         {
             if (NarrativeManager.Instance != null)
@@ -499,23 +539,19 @@ private void UpdateCameraSide()
         }
     }
     
-    // 处理结局触发
     private void HandleEndingTriggered(NarrativeManager.EndingType endingType)
     {
         currentGameState = GameState.Ending;
-        
-        // 解锁鼠标，让玩家可以点击UI
-        //SetCursorLock(false);
-        
-        // 可以在这里添加结局UI显示等逻辑
         Debug.Log($"GameManager: 结局已触发 - {endingType}");
     }
     
-    // 重启游戏
-   // 重启游戏（保持原有逻辑）
     public void RestartGame()
     {
         currentGameState = GameState.Playing;
+        
+        // 重置音效标志和闪烁状态
+        hasPlayedStartSFX = false;
+        StopBlinking();
         
         if (NarrativeManager.Instance != null)
         {
@@ -523,8 +559,6 @@ private void UpdateCameraSide()
         }
 
         SetCursorLock(true);
-        
-        // 重置游戏开始状态
         UIManager.Instance.hasGameStarted = false;
         
         string currentSceneName = SceneManager.GetActiveScene().name;
@@ -533,53 +567,49 @@ private void UpdateCameraSide()
         Debug.Log("GameManager: 游戏已重启");
     }
     
-    // 切换暂停状态
     public void TogglePause()
     {
         if (currentGameState == GameState.Playing)
         {
-            // 暂停游戏
             currentGameState = GameState.Paused;
             Time.timeScale = 0f;
             SetCursorLock(false);
+            StopBlinking(); // 暂停时停止闪烁
             Debug.Log("GameManager: 游戏已暂停");
         }
         else if (currentGameState == GameState.Paused)
         {
-            // 恢复游戏
             currentGameState = GameState.Playing;
             Time.timeScale = 1f;
             SetCursorLock(true);
+            // 恢复时重新开始闪烁（如果游戏还没开始）
+            if (!UIManager.Instance.hasGameStarted && enableBlinking)
+            {
+                StartBlinking();
+            }
             Debug.Log("GameManager: 游戏已恢复");
         }
     }
     
-    // 设置鼠标锁定状态
     private void SetCursorLock(bool locked)
     {
         Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
         Cursor.visible = !locked;
     }
     
-    // 添加控制Skybox的方法
     public void SetSkyboxActive(bool active)
     {
-        // 这里可以添加控制Skybox的代码
-        // 例如更改RenderSettings.skybox或激活/停用特定的天空盒游戏对象
         Debug.Log($"GameManager: Skybox状态已设置为 {active}");
     }
     
-    // 添加控制NPC状态的方法
     public void SetNPCState(NarrativeManager.NPCState state)
     {
-        // 这里可以添加控制NPC状态的代码
-        // 例如更改NPC的动画状态、激活/停用特定游戏对象等
         Debug.Log($"GameManager: NPC状态已设置为 {state}");
     }
     
     private void OnDestroy()
     {
-        // 取消订阅事件，防止内存泄漏
+        StopBlinking(); // 销毁时停止闪烁
         if (NarrativeManager.Instance != null)
         {
             NarrativeManager.Instance.OnEndingTriggered -= HandleEndingTriggered;
@@ -587,75 +617,82 @@ private void UpdateCameraSide()
     }
 
     public void FadeText(TextMeshProUGUI text, bool fadeIn, float duration)
-{
-    if (textFadeCoroutine != null)
-        StopCoroutine(textFadeCoroutine);
-
-    textFadeCoroutine = StartCoroutine(FadeTextCoroutine(text, fadeIn, duration));
-}
-
-private IEnumerator FadeTextCoroutine(TextMeshProUGUI text, bool fadeIn, float duration)
-{
-    float startAlpha = text.color.a;
-    float targetAlpha = fadeIn ? 1f : 0f;
-
-    for (float t = 0f; t < duration; t += Time.deltaTime)
     {
-        float normalized = t / duration;
-        float curveT = fadeCurve.Evaluate(normalized);
-        float alpha = Mathf.Lerp(startAlpha, targetAlpha, curveT);
-        text.color = new Color(text.color.r, text.color.g, text.color.b, alpha);
-        yield return null;
+        if (textFadeCoroutine != null)
+            StopCoroutine(textFadeCoroutine);
+
+        textFadeCoroutine = StartCoroutine(FadeTextCoroutine(text, fadeIn, duration));
     }
 
-    text.color = new Color(text.color.r, text.color.g, text.color.b, targetAlpha);
-}
-
-public void FadeOutImage(float customDuration)
-{
-    if (imageFadeCoroutine != null)
-        StopCoroutine(imageFadeCoroutine);
-
-    imageFadeCoroutine = StartCoroutine(FadeImageCoroutine(false, customDuration));
-}
-private IEnumerator FadeImageCoroutine(bool fadeIn, float duration)
-{
-    if (uiFadeImage == null) yield break;
-
-    float startAlpha = uiFadeImage.color.a;
-    float targetAlpha = fadeIn ? 1f : 0f;
-
-    for (float t = 0f; t < duration; t += Time.deltaTime)
+    private IEnumerator FadeTextCoroutine(TextMeshProUGUI text, bool fadeIn, float duration)
     {
-        float normalized = t / duration;
-        float curveT = fadeCurve.Evaluate(normalized);
-        float alpha = Mathf.Lerp(startAlpha, targetAlpha, curveT);
-        Color newColor = uiFadeImage.color;
-        newColor.a = alpha;
-        uiFadeImage.color = newColor;
-        yield return null;
-    }
+        float startAlpha = fadeIn ? 0f : 1f;  // fade in从0开始，fade out从1开始
+        float targetAlpha = fadeIn ? 1f : 0f;
 
-    Color finalColor = uiFadeImage.color;
-    finalColor.a = targetAlpha;
-    uiFadeImage.color = finalColor;
-}
-private void HandleInactivityTimer()
-{
-    if (Input.anyKey || Input.GetAxis("Mouse X") != 0 || Input.GetAxis("Mouse Y") != 0)
-    {
-        inactivityTimer = 0f;  // 有操作，重置计时
-    }
-    else
-    {
-        inactivityTimer += Time.deltaTime;
-
-        if (inactivityTimer >= inactivityTimeThreshold)
+        // 如果是fade out，先立即设置为1（完全不透明）
+        if (!fadeIn)
         {
-            Debug.Log("GameManager: 超过时间未操作，自动重启场景");
-            RestartGame();
+            text.color = new Color(text.color.r, text.color.g, text.color.b, 1f);
+        }
+
+        for (float t = 0f; t < duration; t += Time.deltaTime)
+        {
+            float normalized = t / duration;
+            float curveT = fadeCurve.Evaluate(normalized);
+            float alpha = Mathf.Lerp(startAlpha, targetAlpha, curveT);
+            text.color = new Color(text.color.r, text.color.g, text.color.b, alpha);
+            yield return null;
+        }
+
+        text.color = new Color(text.color.r, text.color.g, text.color.b, targetAlpha);
+    }
+    public void FadeOutImage(float customDuration)
+    {
+        if (imageFadeCoroutine != null)
+            StopCoroutine(imageFadeCoroutine);
+
+        imageFadeCoroutine = StartCoroutine(FadeImageCoroutine(false, customDuration));
+    }
+
+    private IEnumerator FadeImageCoroutine(bool fadeIn, float duration)
+    {
+        if (uiFadeImage == null) yield break;
+
+        float startAlpha = uiFadeImage.color.a;
+        float targetAlpha = fadeIn ? 1f : 0f;
+
+        for (float t = 0f; t < duration; t += Time.deltaTime)
+        {
+            float normalized = t / duration;
+            float curveT = fadeCurve.Evaluate(normalized);
+            float alpha = Mathf.Lerp(startAlpha, targetAlpha, curveT);
+            Color newColor = uiFadeImage.color;
+            newColor.a = alpha;
+            uiFadeImage.color = newColor;
+            yield return null;
+        }
+
+        Color finalColor = uiFadeImage.color;
+        finalColor.a = targetAlpha;
+        uiFadeImage.color = finalColor;
+    }
+
+    private void HandleInactivityTimer()
+    {
+        if (Input.anyKey || Input.GetAxis("Mouse X") != 0 || Input.GetAxis("Mouse Y") != 0)
+        {
+            inactivityTimer = 0f;
+        }
+        else
+        {
+            inactivityTimer += Time.deltaTime;
+
+            if (inactivityTimer >= inactivityTimeThreshold)
+            {
+                Debug.Log("GameManager: 超过时间未操作，自动重启场景");
+                RestartGame();
+            }
         }
     }
-}
 
 }
