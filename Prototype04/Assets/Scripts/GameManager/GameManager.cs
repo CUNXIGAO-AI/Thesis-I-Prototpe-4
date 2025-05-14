@@ -567,28 +567,34 @@ private bool hasTextFadedOut = false; // 跟踪文本是否已经淡出
         Debug.Log($"GameManager: 结局已触发 - {endingType}");
     }
     
-    public void RestartGame()
-    {
-        currentGameState = GameState.Playing;
-        
-        // 重置音效标志和闪烁状态
-            hasPlayedStartSFX = false;
+public void RestartGame()
+{
+    currentGameState = GameState.Playing;
+    
+    // 重置音效标志和闪烁状态
+    hasPlayedStartSFX = false;
     hasTextFadedOut = false; // 重置文本淡出标志
     StopBlinking();
-        
-        if (NarrativeManager.Instance != null)
-        {
-            NarrativeManager.Instance.ResetNarrativeSystem();
-        }
-
-        SetCursorLock(true);
-        UIManager.Instance.hasGameStarted = false;
-        
-        string currentSceneName = SceneManager.GetActiveScene().name;
-        SceneManager.LoadScene(currentSceneName);
-        
-        Debug.Log("GameManager: 游戏已重启");
+    
+    // 重置相机侧向偏移相关的所有状态
+    hasTriggeredCameraLerp = false;
+    shouldRestoreCameraSide = false;
+    cameraSideInitialized = false;
+    cameraSideLerpTimer = 0f;
+    
+    if (NarrativeManager.Instance != null)
+    {
+        NarrativeManager.Instance.ResetNarrativeSystem();
     }
+
+    SetCursorLock(true);
+    UIManager.Instance.hasGameStarted = false;
+    
+    string currentSceneName = SceneManager.GetActiveScene().name;
+    SceneManager.LoadScene(currentSceneName);
+    
+    Debug.Log("GameManager: 游戏已重启");
+}
     
     public void TogglePause()
     {
