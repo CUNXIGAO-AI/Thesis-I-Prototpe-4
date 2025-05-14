@@ -209,6 +209,8 @@ public bool switchCameraAfterChoice = true;
     
     [Tooltip("资源不足时是否切换相机")]
     public bool switchCameraOnNoResource = false;
+    [Tooltip("资源充足时，是否触发相机切换")]
+public bool onlySwitchCameraIfToggled = false;
     
     /// <summary>
     /// 检查是否按下了此选择的任何输入
@@ -818,11 +820,27 @@ private void HandleChoice(DialogueChoice choice)
     ExecuteChoiceActions(choice);
 
     // 检查是否需要切换到特定相机
+// 检查是否需要切换相机（并且用户勾选了 onlySwitchCameraIfToggled）
+if (choice.onlySwitchCameraIfToggled)
+{
     if (choice.targetCamera != null && choice.switchCameraAfterChoice)
     {
         StartCoroutine(SwitchToChoiceCameraThenExit(choice));
-        return; // 防止继续走对话逻辑
+        return;
     }
+    else
+    {
+        // 没勾选相机，正常结束对话
+        currentState = InteractionState.Completed;
+        ExitInteraction();
+        return;
+    }
+}
+else
+{
+    // 没勾选 toggle，相机逻辑跳过，正常走下一句
+    JumpToNextMessage(choice);
+}
 
     // 检查是否直接结束对话
     if (choice.endDialogueAfterChoice)
