@@ -451,14 +451,21 @@ private bool hasTextFadedOut = false; // 跟踪文本是否已经淡出
             FadeOutSecondImage(secondImageFadeDuration);
         }
 
-        if (UIManager.Instance.hasGameStarted)
+    if (UIManager.Instance.hasGameStarted)
         {
-            bool hasMovementInput = Input.GetKey(KeyCode.W) ||
-                                    Input.GetKey(KeyCode.A) ||
-                                    Input.GetKey(KeyCode.S) ||
-                                    Input.GetKey(KeyCode.D);
+            // 检测键盘输入
+            bool hasKeyboardInput = Input.GetKey(KeyCode.W) ||
+                                Input.GetKey(KeyCode.A) ||
+                                Input.GetKey(KeyCode.S) ||
+                                Input.GetKey(KeyCode.D);
 
-            if (hasMovementInput)
+            // 检测手柄左摇杆输入
+            float leftStickHorizontal = Input.GetAxis("Horizontal");
+            float leftStickVertical = Input.GetAxis("Vertical");
+            bool hasGamepadInput = Mathf.Abs(leftStickHorizontal) > 0.1f || Mathf.Abs(leftStickVertical) > 0.1f;
+
+            // 如果有任何移动输入就触发相机lerp
+            if (hasKeyboardInput || hasGamepadInput)
             {
                 OnPlayerInput();
             }
