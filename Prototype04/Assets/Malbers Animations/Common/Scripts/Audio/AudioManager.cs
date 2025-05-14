@@ -15,11 +15,6 @@ public class AudioManager : MonoBehaviour
     private EventInstance onShotSFX;
     private List<EventInstance> eventInstances;
     private List<StudioEventEmitter> eventEmitters;
-    public GameObject girlsroomAmbientTrigger; 
-    public GameObject chainSFXTrigger; 
-    public GameObject platformSFXTrigger; 
-    public GameObject elevatorSFXTrigger;
-    public GameObject glassbrokenSFXTrigger;
     private EventInstance chandelierSFX;
         private bool isChandelierPlaying = false;
         private EventInstance chandelierSFX2;
@@ -160,50 +155,6 @@ private bool isWaterSFXPlaying = false;
         {
             eventEmitter.Stop();  
         }
-    }
-
-    public IEnumerator EnableRoomAmbienceWithDelay(float time) // 延迟启用SoundTrigger
-    {
-        yield return new WaitForSeconds(time); // 延迟 1 秒
-        girlsroomAmbientTrigger.SetActive(true); 
-    }
-
-    /*public IEnumerator EnablewhaleSFXWithDelay(float time) // 延迟启用SoundTrigger
-    {
-        yield return new WaitForSeconds(time); // 延迟 1 秒
-        whaleSFXTrigger.SetActive(true); 
-    }*/
-
-    public IEnumerator DisablechainSFXWithDelay(float time) // 延迟启用SoundTrigger
-    {
-        yield return new WaitForSeconds(time); // 延迟 1 秒
-        chainSFXTrigger.SetActive(false); 
-    }
-
-    public void EnablePlatformSFX()
-    {
-        platformSFXTrigger.SetActive(true);
-    }
-
-    public void DisablePlatformSFX()
-    {
-        platformSFXTrigger.SetActive(false);
-    }
-
-    public void EnableElevatorSFX()
-    {
-        elevatorSFXTrigger.SetActive(true);
-    }
-
-    public void DisableElevatorSFX()
-    {
-        elevatorSFXTrigger.SetActive(false);
-    }
-
-    public IEnumerator EnableGlassBrokenSFXWithDelay(float time)
-    {
-        yield return new WaitForSeconds(time); // 延迟 1 秒
-        glassbrokenSFXTrigger.SetActive(true);
     }
 
     private void OnDestroy()

@@ -70,7 +70,7 @@ public class EndPointUI : MonoBehaviour
             var tempColor = blackScreenImage.color;
             tempColor.a = 1; // 完全不透明
             blackScreenImage.color = tempColor;
-            StartCoroutine(AudioManager.instance.EnableGlassBrokenSFXWithDelay(1f));
+            //StartCoroutine(AudioManager.instance.EnableGlassBrokenSFXWithDelay(1f));
         }
     }
 

@@ -68,7 +68,14 @@ private bool hasTextFadedOut = false; // 跟踪文本是否已经淡出
     // 私有变量用于闪烁
     private Coroutine blinkCoroutine;
     private bool isBlinking = false;
-
+[Header("Start/Restart 黑屏淡入淡出设置")]
+[SerializeField] private UnityEngine.UI.Image fadeUIBackgroundImage;
+[SerializeField] private float fadeInDuration = 0.5f;
+[SerializeField] private float fadeOutDuration = 0.5f;
+[SerializeField, Range(0f, 1f)] private float maxAlpha = 1f;
+[SerializeField]
+[Tooltip("游戏启动/重启后黑屏开始淡出的延迟时间")]
+private float fadeOutDelay = 1f;
 
 
          // 游戏状态枚举
@@ -96,11 +103,36 @@ private bool hasTextFadedOut = false; // 跟踪文本是否已经淡出
         }
     }
 
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+{
+    Debug.Log("GameManager: 场景加载完成，重新初始化 UI 引用");
+    StartCoroutine(ReinitializeReferences());
+    
+    // 场景加载后立即处理黑屏
+    StartCoroutine(HandleSceneLoadBlackScreen());
+}
+
+private IEnumerator HandleSceneLoadBlackScreen()
+{
+    yield return null; // 等待一帧确保UI组件都已加载
+    
+    // 重新查找黑屏组件
+    if (fadeUIBackgroundImage == null)
     {
-        Debug.Log("GameManager: 场景加载完成，重新初始化 UI 引用");
-        StartCoroutine(ReinitializeReferences());
+        fadeUIBackgroundImage = GameObject.Find("Fade Blackscreen")?.GetComponent<UnityEngine.UI.Image>();
     }
+    
+    if (fadeUIBackgroundImage != null)
+    {
+        Color c = fadeUIBackgroundImage.color;
+        c.a = maxAlpha; // 强制设为完全不透明
+        fadeUIBackgroundImage.color = c;
+        
+        // 使用统一的延迟时间
+        yield return new WaitForSeconds(fadeOutDelay);
+        StartCoroutine(FadeUIBackground(false)); // 淡出黑屏
+    }
+}
 
     private IEnumerator ReinitializeReferences()
     {
@@ -297,6 +329,17 @@ private bool hasTextFadedOut = false; // 跟踪文本是否已经淡出
             Debug.Log("GameManager: 重新找到 Second UI 图片组件");
         }
     }
+        if (fadeUIBackgroundImage == null)
+    {
+        GameObject fadeUIObj = GameObject.Find("Fade Blackscreen");
+        if (fadeUIObj != null)
+        {
+            fadeUIBackgroundImage = fadeUIObj.GetComponent<UnityEngine.UI.Image>();
+            Debug.Log("GameManager: 重新找到 Fade UI 图片组件");
+        }
+    }
+
+
     }
 
     private void RefindPlayerReferences()
@@ -334,6 +377,20 @@ private bool hasTextFadedOut = false; // 跟踪文本是否已经淡出
         {
             cameraFollowTarget = FindObjectOfType<ThirdPersonFollowTarget>();
         }
+        if (fadeUIBackgroundImage == null)
+        {
+            fadeUIBackgroundImage = GameObject.Find("Fade Blackscreen")?.GetComponent<UnityEngine.UI.Image>();
+        }
+
+        if (fadeUIBackgroundImage != null)
+        {
+            Color c = fadeUIBackgroundImage.color;
+            c.a = maxAlpha; // 确保初始时是完全不透明
+            fadeUIBackgroundImage.color = c;
+
+            StartCoroutine(DelayedGameStartFadeOut());
+        }
+
 
         if (!UIManager.Instance.hasGameStarted && startMessageText != null)
         {
@@ -409,6 +466,12 @@ private bool hasTextFadedOut = false; // 跟踪文本是否已经淡出
         InitializeCameraSide();
         Debug.Log("GameManager: 游戏已启动");
     }
+    
+private IEnumerator DelayedGameStartFadeOut()
+{
+    yield return new WaitForSeconds(fadeOutDelay);
+    StartCoroutine(FadeUIBackground(false));
+}
 
     void Update()
     {
@@ -577,18 +640,15 @@ private bool hasTextFadedOut = false; // 跟踪文本是否已经淡出
 public void RestartGame()
 {
     currentGameState = GameState.Playing;
-    
-    // 重置音效标志和闪烁状态
+
     hasPlayedStartSFX = false;
-    hasTextFadedOut = false; // 重置文本淡出标志
+    hasTextFadedOut = false;
     StopBlinking();
-    
-    // 重置相机侧向偏移相关的所有状态
     hasTriggeredCameraLerp = false;
     shouldRestoreCameraSide = false;
     cameraSideInitialized = false;
     cameraSideLerpTimer = 0f;
-    
+
     if (NarrativeManager.Instance != null)
     {
         NarrativeManager.Instance.ResetNarrativeSystem();
@@ -596,11 +656,17 @@ public void RestartGame()
 
     SetCursorLock(true);
     UIManager.Instance.hasGameStarted = false;
-    
+
+    StartCoroutine(FadeAndReloadScene());
+}
+
+private IEnumerator FadeAndReloadScene()
+{
+    yield return StartCoroutine(FadeUIBackground(true)); // 先黑屏
+    yield return new WaitForSeconds(0.1f); // 给一点时间以防白闪
+
     string currentSceneName = SceneManager.GetActiveScene().name;
     SceneManager.LoadScene(currentSceneName);
-    
-    Debug.Log("GameManager: 游戏已重启");
 }
     
     public void TogglePause()
@@ -760,5 +826,28 @@ private IEnumerator FadeSecondImageCoroutine(bool fadeIn, float duration)
     finalColor.a = targetAlpha;
     secondUIFadeImage.color = finalColor;
 }
+
+private IEnumerator FadeUIBackground(bool fadeIn)
+{
+    if (fadeUIBackgroundImage == null) yield break;
+    
+    float startAlpha = fadeUIBackgroundImage.color.a;
+    float targetAlpha = fadeIn ? maxAlpha : 0f;
+    float duration = fadeIn ? fadeInDuration : fadeOutDuration;
+    
+    for (float t = 0; t < duration; t += Time.deltaTime)
+    {
+        float newAlpha = Mathf.Lerp(startAlpha, targetAlpha, t / duration);
+        Color bgColor = fadeUIBackgroundImage.color;
+        bgColor.a = newAlpha;
+        fadeUIBackgroundImage.color = bgColor;
+        yield return null;
+    }
+    
+    Color finalColor = fadeUIBackgroundImage.color;
+    finalColor.a = targetAlpha;
+    fadeUIBackgroundImage.color = finalColor;
+}
+
 
 }
