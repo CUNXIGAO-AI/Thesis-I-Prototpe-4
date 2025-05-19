@@ -17,6 +17,7 @@ TagManager:
   - girlAnimator
   - fakeSkybox
   - WaterSoundPlatform
+  - NarrativeEffectTarget
   layers:
   - Default
   - TransparentFX

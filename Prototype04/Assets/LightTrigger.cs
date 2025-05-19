@@ -72,6 +72,7 @@ public class LightTrigger : MonoBehaviour
     // 灯光是否当前已被激活(由触发器或水面效果)
     private bool lightsActivated = false;
 
+
     void Awake()
 {
     // 初始化所有灯光设置

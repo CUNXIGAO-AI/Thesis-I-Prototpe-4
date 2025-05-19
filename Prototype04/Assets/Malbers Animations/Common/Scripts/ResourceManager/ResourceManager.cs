@@ -72,10 +72,56 @@ public float dropLightDelay = 0.5f;  // 丢弃后光晕延迟亮起时间
 private bool justDropped = false;    // 标记是否刚被丢弃
 
 private bool suppressDropEffects = false;
-public void SetSuppressDropEffects(bool suppress)
+
+public bool requireWaterContact = true;
+
+    private bool hasTouchedWater = false;
+private bool isFlareEntering = false;
+    private Coroutine flareEntryCoroutine;
+public float firsttimeDuration = 1.5f; // 首次渐入持续时间
+
+    public void NotifyTouchedWater()
+    {
+        if (!hasTouchedWater)
+        {
+            hasTouchedWater = true;
+
+            // 启动首次渐入协程
+            if (flareEntryCoroutine != null) StopCoroutine(flareEntryCoroutine);
+            flareEntryCoroutine = StartCoroutine(FlareFirstEntryRoutine());
+        }
+    }
+    
+    private IEnumerator FlareFirstEntryRoutine()
 {
-    suppressDropEffects = suppress;
+    isFlareEntering = true;
+
+    float startValue = 0f;
+    float valuePercentage = Mathf.Clamp01(currentDisplayValue / maxValue);
+    float targetValue = Mathf.Lerp(minFlareIntensity, maxFlareIntensity, valuePercentage);
+
+    float elapsed = 0f;
+
+    while (elapsed < firsttimeDuration)
+    {
+        elapsed += Time.deltaTime;
+        float t = Mathf.Clamp01(elapsed / firsttimeDuration);
+        t = t * t * (3f - 2f * t); // 平滑曲线
+
+        currentFlareIntensity = Mathf.Lerp(startValue, targetValue, t);
+        lensFlareSRP.intensity = currentFlareIntensity;
+
+        yield return null;
+    }
+
+    isFlareEntering = false;
 }
+
+
+public void SetSuppressDropEffects(bool suppress)
+    {
+        suppressDropEffects = suppress;
+    }
 
 
 
@@ -166,7 +212,16 @@ public void SetSuppressDropEffects(bool suppress)
 {
     if (lensFlareSRP == null) return;
 
-    float targetIntensity;
+    if (requireWaterContact && !hasTouchedWater)
+    {
+        lensFlareSRP.intensity = 0f;
+        return;
+    }
+
+    if (isFlareEntering) return;
+
+
+        float targetIntensity;
 
     // ✅ 添加这行：忽略光强更新
     if (suppressDropEffects || isPickedUp || justDropped)

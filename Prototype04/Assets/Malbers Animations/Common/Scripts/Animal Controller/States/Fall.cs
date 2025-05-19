@@ -511,10 +511,10 @@ namespace MalbersAnimations.Controller
             // 然后立刻获取 Health 最新数值（不要用之前的引用）- 注意这里的缩进被修正
             var health = animalStats.Stat_Get(1);
 
-        // 检查是否需要播放水声音
+            // 检查是否需要播放水声音
             // 关键条件：确保角色是从空中落下并且落在水面上
-            if (!hasPlayedWaterSound && 
-                animal.Grounded && 
+            if (!hasPlayedWaterSound &&
+                animal.Grounded &&
                 FallCurrentDistance > 0 &&  // 确保确实是从高处落下
                 health != null && health.Value > 0 && health.Active &&
                 FallRayCast.transform != null && FallRayCast.transform.CompareTag("WaterSoundPlatform"))
@@ -522,6 +522,11 @@ namespace MalbersAnimations.Controller
                 AudioManager.instance.PlayOneShot(FMODEvents.instance.onWaterGroundSFX, FallRayCast.point);
                 WaterEffectEventManager.TriggerWaterContact(FallRayCast.point);
                 hasPlayedWaterSound = true;  // 设置标志防止重复触发
+                
+                if (resourceManager != null)
+                {
+                    resourceManager.NotifyTouchedWater(); // 添加资源
+                }
             }
 
 
