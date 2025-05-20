@@ -867,10 +867,19 @@ private void RestoreActionsByIDs(NarrativeAction[] allActions, List<string> idLi
         }
 
         // 冷却结束，检查状态
-        if (currentState == InteractionState.Cooldown)
-        {
-            currentState = InteractionState.Ready; // 重置为准备状态
-        }
+        if (isOneTimeInteraction || promptSettings.isPromptOnlyOneTime)
+            {
+                // 一次性交互，确保状态为 Completed
+                currentState = InteractionState.Completed;
+                Debug.Log("一次性交互完成，状态已设置为 Completed");
+                yield break; // 不再恢复状态或提示
+            }
+            else if (currentState == InteractionState.Cooldown)
+            {
+                // 非一次性交互，冷却结束后恢复为 Ready
+                currentState = InteractionState.Ready;
+                Debug.Log("非一次性交互，冷却结束，状态重置为 Ready");
+            }
 
         // 如果玩家仍在范围内，显示交互提示
         if (playerInRange && (currentState != InteractionState.Completed))
@@ -2186,8 +2195,18 @@ private void JumpToResourceFailureMessage(DialogueMessage currentMessage)
         isPlayerDead = true;
         playerInRange = false;
 
-        InteractionState previousState = currentState;
-        currentState = InteractionState.Cooldown; // 暂时设置为冷却状态防止交互
+        // 关键修复：若是一次性交互且已完成，保持其状态不变
+        if ((isOneTimeInteraction || promptSettings.isPromptOnlyOneTime) &&
+            currentState == InteractionState.Completed)
+        {
+            // 已完成的一次性交互状态不变
+            Debug.Log("玩家死亡：一次性交互已完成，状态保持不变");
+        }
+        else
+        {
+            // 其他情况设为冷却状态
+            currentState = InteractionState.Cooldown;
+        }
 
         // 立即设置文本透明度为0（不使用协程）
         if (enableDialogue && textCanvasGroup != null)
@@ -2228,14 +2247,44 @@ private void JumpToResourceFailureMessage(DialogueMessage currentMessage)
         Debug.Log("Player is dead, disabling interaction UI.");
     }
 
-    public void ResetDeathState()
+public void ResetDeathState()
+{
+    isPlayerDead = false;
+
+    // 完全跳过已完成的一次性交互（检查两种一次性交互标志）
+    if ((isOneTimeInteraction || promptSettings.isPromptOnlyOneTime) && 
+        currentState == InteractionState.Completed)
     {
-        isPlayerDead = false;
-        if (currentState == InteractionState.Cooldown && !isOneTimeInteraction)
+        Debug.Log("这是一次性交互，且已完成。复活后不恢复任何交互状态");
+        return;
+    }
+
+    // 对于非一次性交互或未完成的一次性交互
+    if (currentState == InteractionState.Cooldown)
+    {
+        // 修复：不要将一次性交互设置回Ready状态
+        if (isOneTimeInteraction || promptSettings.isPromptOnlyOneTime)
         {
+            Debug.Log("一次性交互处于冷却状态，保持状态不变");
+            // 不改变状态
+        }
+        else
+        {
+            // 非一次性交互可以重置为Ready
             currentState = InteractionState.Ready;
+
+            if (playerInRange)
+            {
+                UpdatePromptMessage();
+
+                if (dialogueSettings.backgroundImage != null)
+                {
+                    StartCoroutine(FadeTextBackground(1.0f));
+                }
+            }
         }
     }
+}
     private void SaveGameData()
     {
         Debug.Log("正在保存游戏数据...");
