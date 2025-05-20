@@ -211,9 +211,14 @@ public class InteractionTrigger : MonoBehaviour
             [Header("资源不足处理")]
     [Tooltip("资源不足时执行的叙事动作ID列表")]
     public List<string> noResourceNarrativeActionIDs = new List<string>();
+
+        [Header("资源检查设置")]
+    [Tooltip("是否检查资源")]
+    public bool checkResources = false;  // 新增：每个选项单独的资源检查标志
     
-
-
+    [Tooltip("资源不足时跳转的对话索引")]
+    public int noResourceDialogueIndex = -1;  // 新增：每个选项的资源不足跳转索引
+    
 
 
 
@@ -887,10 +892,10 @@ private void RestoreActionsByIDs(NarrativeAction[] allActions, List<string> idLi
         DialogueMessage currentMessage = dialogueSettings.messages[currentMessageIndex];
         pendingCompleteAfterExit = true;
         // 检查当前Message是否需要检查资源
-        if (currentMessage.checkResources)
+        if (choice.checkResources)
         {
-            HandleResourceChoice(choice, currentMessage);
-            return; // ✅ 重要：资源检查后直接返回，不继续执行下面的代码
+            HandleResourceChoice(choice);
+            return; // 重要：资源检查后直接返回，不继续执行下面的代码
         }
 
         // ✅ 只有不需要资源检查时才会执行到这里
@@ -1003,12 +1008,12 @@ private void ExecuteNoResourceActions(DialogueChoice choice)
         events.onInteractionEnded.Invoke();
     }
 
-private void HandleResourceChoice(DialogueChoice choice, DialogueMessage currentMessage)
+private void HandleResourceChoice(DialogueChoice choice)
 {
     // 只在消耗资源的选项时进行资源检查
     if (choice.consumeResources)
     {
-        // ✅ 没有拿到瓶子，视为资源不足
+        // 检查是否拿到瓶子
         if (resourceManager == null || !resourceManager.isPickedUp)
         {
             Debug.Log("物品未被拾取，视为资源不足");
@@ -1023,15 +1028,15 @@ private void HandleResourceChoice(DialogueChoice choice, DialogueMessage current
                 return;
             }
 
-            // ✅ 资源不足跳转对话，不立即退出
-            if (currentMessage.noResourceDialogueIndex >= 0 &&
-                currentMessage.noResourceDialogueIndex < dialogueSettings.messages.Count)
+            // 资源不足跳转对话，使用选项级别的 noResourceDialogueIndex
+            if (choice.noResourceDialogueIndex >= 0 &&
+                choice.noResourceDialogueIndex < dialogueSettings.messages.Count)
             {
-                Debug.Log($"跳转到资源不足对话索引: {currentMessage.noResourceDialogueIndex}");
-                currentMessageIndex = currentMessage.noResourceDialogueIndex;
+                Debug.Log($"跳转到资源不足对话索引: {choice.noResourceDialogueIndex}");
+                currentMessageIndex = choice.noResourceDialogueIndex;
                 DisplayCurrentMessage();
                 pendingCompleteAfterExit = true;  // 标记为将在退出后完成交互
-                currentState = InteractionState.Active; // ✅ 防止 prompt 被顶掉
+                currentState = InteractionState.Active; // 防止 prompt 被顶掉
             }
             else
             {
@@ -1042,12 +1047,12 @@ private void HandleResourceChoice(DialogueChoice choice, DialogueMessage current
                     StartCoroutine(FadeTextBackground(1.0f));
                 }
                 pendingCompleteAfterExit = true;  // 标记为将在退出后完成交互
-                currentState = InteractionState.Active; // ✅ 防止 prompt 被顶掉
+                currentState = InteractionState.Active; // 防止 prompt 被顶掉
             }
             return;
         }
 
-        // ✅ 有瓶子但资源为 0，也算资源不足
+        // 检查资源值是否为0
         if (resourceManager.currentValue <= 0)
         {
             Debug.Log("资源值为0，执行资源不足流程");
@@ -1062,15 +1067,15 @@ private void HandleResourceChoice(DialogueChoice choice, DialogueMessage current
                 return;
             }
 
-            // ✅ 资源不足跳转对话
-            if (currentMessage.noResourceDialogueIndex >= 0 &&
-                currentMessage.noResourceDialogueIndex < dialogueSettings.messages.Count)
+            // 资源不足跳转对话，使用选项级别的 noResourceDialogueIndex
+            if (choice.noResourceDialogueIndex >= 0 &&
+                choice.noResourceDialogueIndex < dialogueSettings.messages.Count)
             {
-                Debug.Log($"跳转到资源不足对话索引: {currentMessage.noResourceDialogueIndex}");
-                currentMessageIndex = currentMessage.noResourceDialogueIndex;
+                Debug.Log($"跳转到资源不足对话索引: {choice.noResourceDialogueIndex}");
+                currentMessageIndex = choice.noResourceDialogueIndex;
                 DisplayCurrentMessage();
                 pendingCompleteAfterExit = true;  // 标记为将在退出后完成交互
-                currentState = InteractionState.Active; // ✅ 防止 prompt 被顶掉
+                currentState = InteractionState.Active; // 防止 prompt 被顶掉
             }
             else
             {
@@ -1081,12 +1086,12 @@ private void HandleResourceChoice(DialogueChoice choice, DialogueMessage current
                     StartCoroutine(FadeTextBackground(1.0f));
                 }
                 pendingCompleteAfterExit = true;  // 标记为将在退出后完成交互
-                currentState = InteractionState.Active; // ✅ 防止 prompt 被顶掉
+                currentState = InteractionState.Active; // 防止 prompt 被顶掉
             }
             return;
         }
 
-        // ✅ 正常资源消耗流程 - 有足够资源
+        // 正常资源消耗流程 - 有足够资源
         ExecuteChoiceActions(choice);
         ConsumeResources();
         
@@ -1113,7 +1118,7 @@ private void HandleResourceChoice(DialogueChoice choice, DialogueMessage current
     }
     else
     {
-        // ✅ 不需要资源消耗的选项，原样处理
+        // 不需要资源消耗的选项，原样处理
         ExecuteChoiceActions(choice);
 
         // 相机切换处理
