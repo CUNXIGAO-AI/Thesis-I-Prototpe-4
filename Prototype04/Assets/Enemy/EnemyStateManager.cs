@@ -315,57 +315,72 @@ public float fadeOutDuration = 3.5f;
 
     // 基于物体当前朝向检测物品
     public bool DetectItem()
+{
+    Vector3 dirToItem = item.position - transform.position;
+    float distanceToItem = dirToItem.magnitude;
+    dirToItem.Normalize();
+
+    float edgeBuffer = 2.5f;  // 视野边缘缓冲区
+
+    //Debug.Log($"[DetectItem] ▶ Checking detection...");
+    //Debug.Log($"[DetectItem] Distance to item: {distanceToItem:F2}, View Radius: {viewRadius}");
+
+    if (distanceToItem <= viewRadius)
     {
-        Vector3 dirToItem = item.position - transform.position;
-        float distanceToItem = dirToItem.magnitude;
-        dirToItem.Normalize();
+        Vector3 horizontalDir = Vector3.ProjectOnPlane(dirToItem, transform.up).normalized;
+        float dotHorizontal = Vector3.Dot(transform.forward, horizontalDir);
+        float horizontalAngle = Mathf.Acos(dotHorizontal) * Mathf.Rad2Deg;
 
-        float edgeBuffer = 2.5f;  // 视野边缘缓冲区
+        float dotVertical = Vector3.Dot(transform.forward, dirToItem);
+        float totalAngle = Mathf.Acos(dotVertical) * Mathf.Rad2Deg;
+        float verticalAngle = totalAngle - horizontalAngle;
 
-        if (distanceToItem <= viewRadius)
+        if (Vector3.Dot(transform.up, dirToItem) < 0)
         {
-            Vector3 horizontalDir = Vector3.ProjectOnPlane(dirToItem, transform.up).normalized;
-            float dotHorizontal = Vector3.Dot(transform.forward, horizontalDir);
-            float horizontalAngle = Mathf.Acos(dotHorizontal) * Mathf.Rad2Deg;
+            verticalAngle = -verticalAngle;
+        }
 
-            float dotVertical = Vector3.Dot(transform.forward, dirToItem);
-            float totalAngle = Mathf.Acos(dotVertical) * Mathf.Rad2Deg;
-            float verticalAngle = totalAngle - horizontalAngle;
+        //Debug.Log($"[DetectItem] Horizontal Angle: {horizontalAngle:F1}°, Limit: {(horizontalViewAngle / 2f) - edgeBuffer:F1}°");
+        //Debug.Log($"[DetectItem] Vertical Angle: {verticalAngle:F1}°, Limit: {(verticalViewAngle / 2f) - edgeBuffer:F1}°");
 
-            if (Vector3.Dot(transform.up, dirToItem) < 0)
+        if (horizontalAngle <= (horizontalViewAngle / 2) - edgeBuffer &&
+            Mathf.Abs(verticalAngle) <= (verticalViewAngle / 2) - edgeBuffer)
+        {
+           // Debug.Log("[DetectItem] ✅ Angle check PASSED. Proceeding to raycast...");
+
+            RaycastHit[] hits = Physics.RaycastAll(transform.position, dirToItem, distanceToItem);
+            //Debug.Log($"[DetectItem] Raycast hit count: {hits.Length}");
+
+            foreach (RaycastHit hit in hits)
             {
-                verticalAngle = -verticalAngle;
-            }
-
-            if (horizontalAngle <= (horizontalViewAngle / 2) - edgeBuffer && 
-                Mathf.Abs(verticalAngle) <= (verticalViewAngle / 2) - edgeBuffer)
-            {
-                RaycastHit[] hits = Physics.RaycastAll(transform.position, dirToItem, distanceToItem);
-                foreach (RaycastHit hit in hits)
+                if (hit.transform != item)
                 {
-                    // 如果射线命中的不是 item 本身，说明被其他物体遮挡了
-                    if (hit.transform != item)
+                    if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Animal"))
                     {
-                            if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Animal"))
-                            // 即使命中玩家 会忽视掉 这样即使玩家拿着物品也可以被发现
-                            continue;
-
-                        return false;  // 有任意物体挡住了视线
+                        //Debug.Log($"[DetectItem] ⚠️ Hit Animal: {hit.collider.name}, ignoring...");
+                        continue;
                     }
 
-                    // 检查碰撞物体是否具有 "Cover" 标签
-                    /*if (hit.collider.CompareTag("Cover"))
-                    {   
-                        return false;  // 被标记为“Cover”的物体阻挡了视线
-                    } */
+                    //Debug.Log($"[DetectItem] ❌ Blocked by: {hit.collider.name}, layer: {hit.collider.gameObject.layer}");
+                    return false;
                 }
-                return true; // 未被阻挡，检测到物品
             }
+
+            //Debug.Log("[DetectItem] ✅ Detection SUCCESS: No obstacles.");
+            return true;
         }
-        return false; // 未检测到物品
+        else
+        {
+            //Debug.Log("[DetectItem] ❌ Angle check FAILED");
+        }
+    }
+    else
+    {
+        //Debug.Log("[DetectItem] ❌ Distance check FAILED");
     }
 
-    void OnDrawGizmos()
+    return false;
+}    void OnDrawGizmos()
     {
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, viewRadius);
