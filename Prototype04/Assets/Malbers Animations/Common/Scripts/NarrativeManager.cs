@@ -13,7 +13,6 @@ public class NarrativeManager : MonoBehaviour
     public Animator npcAnimator;  // 在 Inspector 中拖入 NPC 的 Animator 组件
     public string deadTriggerName = "Dead";
     public string liveTriggerName = "Live";
-    public string resetTriggerName = "Reset";
 
     // ✅ 新增：存储所有同步的Animator实例
     private List<Animator> synchronizedAnimators = new List<Animator>();
@@ -195,8 +194,7 @@ public float endingSFXDelay = 2f;
         foreach (var parameter in animator.parameters)
         {
             if (parameter.name == deadTriggerName || 
-                parameter.name == liveTriggerName || 
-                parameter.name == resetTriggerName)
+                parameter.name == liveTriggerName )
             {
                 return true;
             }
@@ -355,19 +353,17 @@ public float endingSFXDelay = 2f;
     private void SetTriggerForAllAnimators(NPCState state)
     {
         string triggerName = "";
-        
-        switch (state)
-        {
-            case NPCState.Live:
-                triggerName = liveTriggerName;
-                break;
-            case NPCState.Dead:
-                triggerName = deadTriggerName;
-                break;
-            case NPCState.Normal:
-                triggerName = resetTriggerName;
-                break;
-        }
+    switch (state)
+    {
+        case NPCState.Live:
+            triggerName = liveTriggerName;
+            break;
+        case NPCState.Dead:
+            triggerName = deadTriggerName;
+            break;
+        default:
+            return; // Normal 状态不再触发任何 trigger
+    }
         
         foreach (Animator animator in synchronizedAnimators)
         {
@@ -376,7 +372,6 @@ public float endingSFXDelay = 2f;
                 // 重置所有触发器
                 animator.ResetTrigger(deadTriggerName);
                 animator.ResetTrigger(liveTriggerName);
-                animator.ResetTrigger(resetTriggerName);
                 
                 // 设置新的触发器
                 animator.SetTrigger(triggerName);
@@ -414,7 +409,6 @@ public float endingSFXDelay = 2f;
             {
                 animator.ResetTrigger(deadTriggerName);
                 animator.ResetTrigger(liveTriggerName);
-                animator.ResetTrigger(resetTriggerName);
             }
         }
         
@@ -433,7 +427,6 @@ public float endingSFXDelay = 2f;
         // 重置所有触发器
         npcAnimator.ResetTrigger(deadTriggerName);
         npcAnimator.ResetTrigger(liveTriggerName);
-        npcAnimator.ResetTrigger(resetTriggerName);
         
         // 根据当前 NPC 状态设置对应的触发器
         switch (currentNPCState)
@@ -444,10 +437,6 @@ public float endingSFXDelay = 2f;
                 
             case NPCState.Dead:
                 npcAnimator.SetTrigger(deadTriggerName);
-                break;
-                
-            case NPCState.Normal:
-                npcAnimator.SetTrigger(resetTriggerName);
                 break;
         }
     }
