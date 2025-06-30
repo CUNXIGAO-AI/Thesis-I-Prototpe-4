@@ -487,26 +487,25 @@ void Update()
     HandleInactivityTimer();
 
     // 检测交互输入（键盘X键或手柄Interact按钮）
-    if (Input.GetKeyDown(KeyCode.X) || Input.GetButtonDown("Interact"))
+    // 只有在游戏尚未开始时才响应启动输入
+    if (!UIManager.Instance.hasGameStarted && (Input.GetKeyDown(KeyCode.X) || Input.GetButtonDown("Interact")))
     {
         UIManager.Instance.hasGameStarted = true;
-        
-        // 停止闪烁并从当前亮度淡出
+
+        // 停止闪烁
         StopBlinking();
-        
-        // 只在第一次按交互键时播放音效
+
         if (!hasPlayedStartSFX)
         {
             AudioManager.instance.PlayOneShot(FMODEvents.instance.startUISFX, transform.position);
             hasPlayedStartSFX = true;
             Debug.Log("GameManager: 首次按交互键，播放开始音效");
         }
-        
+
         if (startMessageText != null && !hasTextFadedOut)
         {
-            // 从当前亮度淡出，使用原来的fade out曲线
             FadeText(startMessageText, false, textFadeDuration);
-            hasTextFadedOut = true; // 标记文本已经淡出
+            hasTextFadedOut = true;
         }
 
         if (playerInput != null)
