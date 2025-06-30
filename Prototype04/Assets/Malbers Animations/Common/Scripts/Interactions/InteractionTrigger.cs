@@ -654,6 +654,18 @@ private void RestoreActionsByIDs(NarrativeAction[] allActions, List<string> idLi
                                         Input.GetKeyDown(promptSettings.alternativeInteractionKey)) ||
                                        Input.GetButtonDown("Interact");  // 手柄支持
 
+              if (!interactionKeyPressed && promptSettings.customInputValues != null)
+            {
+                foreach (string inputName in promptSettings.customInputValues)
+                {
+                    if (!string.IsNullOrEmpty(inputName) && Input.GetButtonDown(inputName))
+                    {
+                        interactionKeyPressed = true;
+                        break;
+                    }
+                }
+            }
+
             // 交互键逻辑
             if (interactionKeyPressed)
             {
