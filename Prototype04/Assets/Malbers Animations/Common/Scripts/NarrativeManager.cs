@@ -13,6 +13,12 @@ public class NarrativeManager : MonoBehaviour
     public Animator npcAnimator;  // 在 Inspector 中拖入 NPC 的 Animator 组件
     public string deadTriggerName = "Dead";
     public string liveTriggerName = "Live";
+    [Tooltip("好结局 Animator 状态名（对应 Live）")]
+    public string liveStateName = "metarig|Light";
+    [Tooltip("坏结局 Animator 状态名（对应 Dead）")]
+    public string deadStateName = "metarig|Death";
+    [Tooltip("默认待机状态名（GM 重置时使用）")]
+    public string idleStateName = "metarig|Idle";
 
     // ✅ 新增：存储所有同步的Animator实例
     private List<Animator> synchronizedAnimators = new List<Animator>();
@@ -153,7 +159,7 @@ public float endingSFXDelay = 2f;
         if (npcAnimator != null && npcAnimator.runtimeAnimatorController != null)
         {
             RuntimeAnimatorController targetController = npcAnimator.runtimeAnimatorController;
-            Animator[] allAnimators = FindObjectsOfType<Animator>();
+            Animator[] allAnimators = FindObjectsOfType<Animator>(true);
             
             foreach (Animator animator in allAnimators)
             {
@@ -169,7 +175,7 @@ public float endingSFXDelay = 2f;
         // 方法3：如果还没找到，查找所有包含目标触发器的Animator
         if (synchronizedAnimators.Count == 0)
         {
-            Animator[] allAnimators = FindObjectsOfType<Animator>();
+            Animator[] allAnimators = FindObjectsOfType<Animator>(true);
             foreach (Animator animator in allAnimators)
             {
                 if (HasRequiredAnimatorParameters(animator))
@@ -293,7 +299,8 @@ public float endingSFXDelay = 2f;
             Debug.Log($"结局确定: 最坏结局 (Skybox关闭, NPC死亡, 第二次给予礼物={secondInteractionGift})");
         }
         
-        // 使用新的方法更新所有Animator状态
+        // 结局当下重新收集 Animator，避免引用失效或漏掉实例
+        FindAllSynchronizedAnimators();
         UpdateAllNPCAnimators();
         
         // 触发结局
@@ -316,11 +323,15 @@ public float endingSFXDelay = 2f;
             Debug.Log($"[NarrativeManager] 开始触发结局: {endingType}");
             Debug.Log($"[NarrativeManager] 将同步 {synchronizedAnimators.Count} 个Animator");
         }
-        
-        // ✅ 修改：对所有同步的Animator设置状态
-        SetTriggerForAllAnimators(currentNPCState);
+
+        if (endingType == EndingType.GoodEnding && fakeSkybox != null)
+        {
+            fakeSkybox.SetActive(true);
+            skyboxActive = true;
+        }
         
         Debug.Log($"触发结局: {endingType}, NPC状态: {currentNPCState}, Skybox状态: {skyboxActive}");
+        OnEndingTriggered?.Invoke(endingType);
         
         if (AudioManager.instance != null)
         {
@@ -352,40 +363,131 @@ public float endingSFXDelay = 2f;
     // ✅ 新增：对所有Animator设置触发器的方法
     private void SetTriggerForAllAnimators(NPCState state)
     {
-        string triggerName = "";
-    switch (state)
-    {
-        case NPCState.Live:
-            triggerName = liveTriggerName;
-            break;
-        case NPCState.Dead:
-            triggerName = deadTriggerName;
-            break;
-        default:
-            return; // Normal 状态不再触发任何 trigger
-    }
-        
+        if (state == NPCState.Normal)
+        {
+            foreach (Animator animator in synchronizedAnimators)
+                PlayIdle(animator);
+            PlayIdle(npcAnimator);
+            return;
+        }
+
+        string triggerName = state == NPCState.Live ? liveTriggerName : deadTriggerName;
+        string stateName = state == NPCState.Live ? liveStateName : deadStateName;
+
         foreach (Animator animator in synchronizedAnimators)
         {
-            if (animator != null)
-            {
-                // 重置所有触发器
-                animator.ResetTrigger(deadTriggerName);
-                animator.ResetTrigger(liveTriggerName);
-                
-                // 设置新的触发器
-                animator.SetTrigger(triggerName);
-                
-                if (showDebugMessages)
-                    Debug.Log($"[NarrativeManager] 设置 {animator.gameObject.name} 触发器: {triggerName}");
-            }
+            ApplyAnimatorEnding(animator, triggerName, stateName);
+        }
+
+        ApplyAnimatorEnding(npcAnimator, triggerName, stateName);
+    }
+
+    private void ApplyAnimatorEnding(Animator animator, string triggerName, string stateName)
+    {
+        if (animator == null) return;
+
+        if (!animator.enabled)
+            animator.enabled = true;
+
+        animator.ResetTrigger(deadTriggerName);
+        animator.ResetTrigger(liveTriggerName);
+        animator.SetTrigger(triggerName);
+
+        if (!string.IsNullOrEmpty(stateName))
+        {
+            animator.Play(stateName, 0, 0f);
+        }
+
+        if (showDebugMessages)
+            Debug.Log($"[NarrativeManager] 设置 {animator.gameObject.name} 触发器: {triggerName}, 状态: {stateName}");
+    }
+
+    private void PlayIdle(Animator animator)
+    {
+        if (animator == null) return;
+        animator.ResetTrigger(deadTriggerName);
+        animator.ResetTrigger(liveTriggerName);
+        if (!string.IsNullOrEmpty(idleStateName))
+            animator.Play(idleStateName, 0, 0f);
+    }
+
+    public bool FirstGiftGiven => firstInteractionGift;
+    public bool FirstInteractionDone => firstInteractionCompleted;
+    public bool SecondGiftGiven => secondInteractionGift;
+    public bool SecondInteractionDone => secondInteractionCompleted;
+    public bool EndingAlreadyTriggered => endingTriggered;
+    public NPCState CurrentNpcState => currentNPCState;
+
+    public void DebugSetFirstGift(bool gaveGift)
+    {
+        endingTriggered = false;
+        secondInteractionCompleted = false;
+        secondInteractionGift = false;
+        currentNPCState = NPCState.Normal;
+        HandleFirstInteractionOverride(gaveGift);
+        PlayIdle(npcAnimator);
+        foreach (Animator animator in synchronizedAnimators)
+            PlayIdle(animator);
+        Debug.Log($"[GM] 第一次给水 = {gaveGift}");
+    }
+
+    private void HandleFirstInteractionOverride(bool gaveGift)
+    {
+        firstInteractionGift = gaveGift;
+        firstInteractionCompleted = true;
+        if (gaveGift)
+        {
+            if (fakeSkybox != null) fakeSkybox.SetActive(true);
+            skyboxActive = true;
+        }
+        else
+        {
+            if (fakeSkybox != null) fakeSkybox.SetActive(false);
+            skyboxActive = false;
+        }
+    }
+
+    public void DebugSetSecondGift(bool gaveGift, bool triggerEndingNow)
+    {
+        if (!firstInteractionCompleted)
+            HandleFirstInteractionOverride(false);
+
+        secondInteractionGift = gaveGift;
+        secondInteractionCompleted = true;
+        endingTriggered = false;
+
+        if (triggerEndingNow)
+            DetermineOutcome();
+
+        Debug.Log($"[GM] 第二次给水 = {gaveGift}, 立即触发结局 = {triggerEndingNow}");
+    }
+
+    public void DebugForceEnding(EndingType endingType)
+    {
+        endingTriggered = false;
+        secondInteractionCompleted = false;
+
+        switch (endingType)
+        {
+            case EndingType.GoodEnding:
+                HandleFirstInteractionOverride(true);
+                DebugSetSecondGift(true, true);
+                break;
+            case EndingType.BadEnding:
+                HandleFirstInteractionOverride(true);
+                DebugSetSecondGift(false, true);
+                break;
+            case EndingType.WorstEnding:
+                HandleFirstInteractionOverride(false);
+                DebugSetSecondGift(false, true);
+                break;
         }
     }
 
     // ✅ 修改：更新所有NPC Animator的方法
     private void UpdateAllNPCAnimators()
     {
-        if (synchronizedAnimators.Count == 0)
+        if (synchronizedAnimators.Count == 0 && npcAnimator == null)
         {
             if (showDebugMessages)
                 Debug.LogWarning("[NarrativeManager] 没有找到需要同步的Animator");
@@ -395,7 +497,6 @@ public float endingSFXDelay = 2f;
         if (showDebugMessages)
             Debug.Log($"[NarrativeManager] 开始更新所有NPC Animator状态: {currentNPCState}");
         
-        // 使用协程来延迟设置触发器，确保ResetTrigger完成
         StartCoroutine(UpdateAnimatorsWithDelay());
     }
     

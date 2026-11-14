@@ -55,6 +55,7 @@ public class InteractionTrigger : MonoBehaviour
     [Header("专属存档触发器")]
     public Collider saveTriggerCollider;
     private bool playerInSaveRange = false;
+    private int playerOverlapCount = 0;
 
     private bool playerInCutsceneRange = false;
 
@@ -638,7 +639,11 @@ private void RestoreActionsByIDs(NarrativeAction[] allActions, List<string> idLi
         if (isPlayerDead || currentState == InteractionState.Cooldown || currentState == InteractionState.Completed)
             return;
 
-        if (playerInRange && !isFading)
+        TryCompletePickupPrompt();
+
+        // Ready 状态允许在提示淡入期间按键，避免存档/提示 UI 要按两次才消失
+        bool canAcceptInput = !isFading || currentState == InteractionState.Ready || enableSaveFunction;
+        if (playerInRange && canAcceptInput)
         {
             // 获取当前消息（如果在交互中）
             DialogueMessage currentMessage = null;
@@ -676,6 +681,11 @@ private void RestoreActionsByIDs(NarrativeAction[] allActions, List<string> idLi
                 // 如果正在交互中
                 if (currentState == InteractionState.Active)
                 {
+                    if (enableSaveFunction)
+                    {
+                        return;
+                    }
+
                     // 检查当前消息是否是选择消息
                     if (enableDialogue && currentMessage != null && currentMessage.isChoice)
                     {
@@ -783,7 +793,7 @@ private void RestoreActionsByIDs(NarrativeAction[] allActions, List<string> idLi
             }
 
             // 关键逻辑更新：
-            if (promptSettings.isPromptOnlyOneTime)
+            if (promptSettings.isPromptOnlyOneTime && !ShouldKeepPromptUntilPickup())
             {
                 currentState = InteractionState.Completed;
             }
@@ -879,19 +889,16 @@ private void RestoreActionsByIDs(NarrativeAction[] allActions, List<string> idLi
         }
 
         // 冷却结束，检查状态
-        if (isOneTimeInteraction || promptSettings.isPromptOnlyOneTime)
+        if (currentState == InteractionState.Completed ||
+            ((isOneTimeInteraction || promptSettings.isPromptOnlyOneTime) && !ShouldKeepPromptUntilPickup()))
             {
-                // 一次性交互，确保状态为 Completed
                 currentState = InteractionState.Completed;
                 Debug.Log("一次性交互完成，状态已设置为 Completed");
-                yield break; // 不再恢复状态或提示
+                yield break;
             }
-            else if (currentState == InteractionState.Cooldown)
-            {
-                // 非一次性交互，冷却结束后恢复为 Ready
-                currentState = InteractionState.Ready;
-                Debug.Log("非一次性交互，冷却结束，状态重置为 Ready");
-            }
+
+        currentState = InteractionState.Ready;
+        Debug.Log("冷却结束，状态重置为 Ready");
 
         // 如果玩家仍在范围内，显示交互提示
         if (playerInRange && (currentState != InteractionState.Completed))
@@ -1404,12 +1411,13 @@ private void JumpToResourceFailureMessage(DialogueMessage currentMessage)
                 // 直接检查是否是存档触发器被触发
                 if (saveTriggerCollider == GetComponent<Collider>())
                 {
-                    // 如果当前对象的主碰撞体就是存档触发器
+                    playerOverlapCount++;
+                    bool wasInRange = playerInSaveRange;
                     playerInSaveRange = true;
-                    playerInRange = true; // 存档也需要设置playerInRange
+                    playerInRange = true;
                     Debug.Log("玩家进入存档触发范围");
 
-                    if (currentState == InteractionState.Ready)
+                    if (!wasInRange && (currentState == InteractionState.Ready || currentState == InteractionState.Cooldown))
                     {
                         events.onPlayerEnterRange.Invoke();
                         UpdatePromptMessage();
@@ -1473,8 +1481,12 @@ private void JumpToResourceFailureMessage(DialogueMessage currentMessage)
                 return; // ✅ 如果已完成，不再响应碰撞进入
             }
 
-            if (inDialogueRange && !playerInRange)
+            if (inDialogueRange)
             {
+                playerOverlapCount++;
+                if (playerInRange)
+                    return;
+
                 playerInRange = true;
                 events.onPlayerEnterRange.Invoke();
 
@@ -1514,24 +1526,20 @@ private void JumpToResourceFailureMessage(DialogueMessage currentMessage)
                 // 检查触发的碰撞体是否是存档触发器
                 if (other.GetComponent<Collider>() == saveTriggerCollider || GetComponent<Collider>() == saveTriggerCollider)
                 {
+                    playerOverlapCount = Mathf.Max(0, playerOverlapCount - 1);
+                    if (playerOverlapCount > 0)
+                    {
+                        return;
+                    }
+
                     playerInSaveRange = false;
                     playerInRange = false;
                     Debug.Log("玩家离开存档触发范围");
 
-                    if (currentState == InteractionState.Ready)
+                    if (currentState != InteractionState.Active)
                     {
-                        // 停止所有可能正在进行的淡入淡出
-                        StopCoroutine(nameof(FadeText));
-                        StopCoroutine(nameof(FadeTextBackground));
-
-                        // 重置所有淡入淡出标志
-                        isBackgroundFading = false;
-                        isTextFading = false;
-                        isFading = false;
-
+                        StopFadeCoroutines();
                         events.onPlayerExitRange.Invoke();
-
-                        // 等待一帧确保协程完全停止
                         StartCoroutine(DelayedPromptExit());
                     }
 
@@ -1568,6 +1576,10 @@ private void JumpToResourceFailureMessage(DialogueMessage currentMessage)
 
             if (playerInRange && !stillInDialogueRange)
             {
+                playerOverlapCount = Mathf.Max(0, playerOverlapCount - 1);
+                if (playerOverlapCount > 0)
+                    return;
+
                 playerInRange = false;
                 events.onPlayerExitRange.Invoke();
 
@@ -1998,13 +2010,12 @@ private void JumpToResourceFailureMessage(DialogueMessage currentMessage)
             yield break;
         }
 
-        // 如果已经有淡入淡出效果在进行中，先强制停止
         if (isTextFading)
         {
             Debug.Log("[FadeText] 强制停止之前的文本淡入淡出");
             isTextFading = false;
-            StopCoroutine(nameof(FadeText));
-            yield return null; // 等待一帧确保协程完全停止
+            isFading = false;
+            yield return null;
         }
 
         Debug.Log("[FadeText] 开始执行 - 类型: " + textType + ", 内容: " + newText);
@@ -2157,6 +2168,40 @@ private void JumpToResourceFailureMessage(DialogueMessage currentMessage)
 
     private bool isPromptUpdating = false;
 
+    private bool ShouldKeepPromptUntilPickup()
+    {
+        return isOneTimeInteraction
+            && promptSettings.isPromptOnlyOneTime
+            && resourceManager != null
+            && !resourceManager.isPickedUp;
+    }
+
+    private void TryCompletePickupPrompt()
+    {
+        if (!isOneTimeInteraction || !promptSettings.isPromptOnlyOneTime)
+            return;
+        if (resourceManager == null || !resourceManager.isPickedUp)
+            return;
+        if (currentState == InteractionState.Completed)
+            return;
+
+        currentState = InteractionState.Completed;
+        StopFadeCoroutines();
+        StartCoroutine(FadeText("", TextType.Prompt));
+        if (dialogueSettings.backgroundImage != null)
+        {
+            StartCoroutine(FadeTextBackground(0f));
+        }
+    }
+
+    private void StopFadeCoroutines()
+    {
+        isBackgroundFading = false;
+        isTextFading = false;
+        isFading = false;
+        isPromptUpdating = false;
+    }
+
     private void UpdatePromptMessage()
     {
             if (currentState == InteractionState.Completed) return; // ✅ 禁止已完成状态下提示出现
@@ -2206,6 +2251,8 @@ private void JumpToResourceFailureMessage(DialogueMessage currentMessage)
         // 先设置死亡状态
         isPlayerDead = true;
         playerInRange = false;
+        playerInSaveRange = false;
+        playerOverlapCount = 0;
 
         // 关键修复：若是一次性交互且已完成，保持其状态不变
         if ((isOneTimeInteraction || promptSettings.isPromptOnlyOneTime) &&
@@ -2265,7 +2312,8 @@ public void ResetDeathState()
 
     // 完全跳过已完成的一次性交互（检查两种一次性交互标志）
     if ((isOneTimeInteraction || promptSettings.isPromptOnlyOneTime) && 
-        currentState == InteractionState.Completed)
+        currentState == InteractionState.Completed &&
+        !ShouldKeepPromptUntilPickup())
     {
         Debug.Log("这是一次性交互，且已完成。复活后不恢复任何交互状态");
         return;

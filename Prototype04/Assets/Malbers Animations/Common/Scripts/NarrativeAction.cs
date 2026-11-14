@@ -56,6 +56,9 @@ public class NarrativeAction : MonoBehaviour
             case ActionType.SecondInteractionYes:
                 Debug.Log("执行动作：第二次交互-给予礼物");
                 NarrativeManager.Instance.HandleSecondInteraction(true);
+
+                if (resourceEffectsManager != null)
+                    resourceEffectsManager.TriggerAllEffects(0f);
                 break;
 
             case ActionType.SecondInteractionNo:

@@ -105,6 +105,8 @@ private bool isHoldingRestartButton = false;
             Instance = this;
             DontDestroyOnLoad(gameObject);
             SceneManager.sceneLoaded += OnSceneLoaded;
+            if (GetComponent<DevCheatConsole>() == null)
+                gameObject.AddComponent<DevCheatConsole>();
         }
         else
         {
@@ -563,8 +565,8 @@ void Update()
 }
 private void HandleBasicControls()
 {
-    // 键盘重启（保持原有功能）
-    if (Input.GetKeyDown(KeyCode.R))
+    // 键盘 R 重启；手柄长按 B 约 3 秒重启。GM 窗口打开时不抢 R。
+    if (!DevCheatConsole.IsOpen && Input.GetKeyDown(KeyCode.R))
     {
         RestartGame();
     }
@@ -630,6 +632,8 @@ private void ResetGamepadRestartTimer()
     
     private void HandleTestingControls()
     {
+        if (DevCheatConsole.IsOpen) return;
+
         if (Input.GetKeyDown(KeyCode.T))
         {
             if (NarrativeManager.Instance != null)
