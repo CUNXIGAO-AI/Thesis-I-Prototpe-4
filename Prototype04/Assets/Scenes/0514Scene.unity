@@ -7013,6 +7013,7 @@ MonoBehaviour:
   liveTriggerName: Live
   liveStateName: metarig|Light
   deadStateName: metarig|Death
+  idleStateName: metarig|Idle
   giveFirstGiftKey: 282
   denyFirstGiftKey: 283
   giveSecondGiftKey: 284
@@ -15254,7 +15255,7 @@ MonoBehaviour:
     invertFade: 0
     distanceFadeStart: 10000
     distanceFadeEnd: 10000
-    textureOffset: {x: -253.64099, y: -253.64099, z: -253.64099}
+    textureOffset: {x: -6667.374, y: -6667.374, z: -6667.374}
     falloffMode: 0
     maskMode: 1
     materialMask: {fileID: 2100000, guid: ea08c89eb603b6f4b9fc07633d54a76b, type: 2}
@@ -16996,7 +16997,7 @@ MonoBehaviour:
     invertFade: 0
     distanceFadeStart: 10000
     distanceFadeEnd: 10000
-    textureOffset: {x: -12.68205, y: -0, z: -12.68205}
+    textureOffset: {x: -333.3687, y: -0, z: -333.3687}
     falloffMode: 1
     maskMode: 0
     materialMask: {fileID: 0}
@@ -34326,7 +34327,7 @@ MonoBehaviour:
     invertFade: 0
     distanceFadeStart: 10000
     distanceFadeEnd: 10000
-    textureOffset: {x: -12.68205, y: -0, z: -12.68205}
+    textureOffset: {x: -333.3687, y: -0, z: -333.3687}
     falloffMode: 1
     maskMode: 0
     materialMask: {fileID: 0}
@@ -44134,7 +44135,7 @@ MonoBehaviour:
     invertFade: 0
     distanceFadeStart: 10000
     distanceFadeEnd: 10000
-    textureOffset: {x: -12.68205, y: -0, z: -12.68205}
+    textureOffset: {x: -333.3687, y: -0, z: -333.3687}
     falloffMode: 1
     maskMode: 0
     materialMask: {fileID: 0}
@@ -55434,7 +55435,7 @@ MonoBehaviour:
     invertFade: 0
     distanceFadeStart: 10000
     distanceFadeEnd: 10000
-    textureOffset: {x: -12.68205, y: -0, z: -12.68205}
+    textureOffset: {x: -333.3687, y: -0, z: -333.3687}
     falloffMode: 1
     maskMode: 0
     materialMask: {fileID: 0}
@@ -56609,7 +56610,7 @@ MonoBehaviour:
     invertFade: 0
     distanceFadeStart: 10000
     distanceFadeEnd: 10000
-    textureOffset: {x: -12.68205, y: -0, z: -12.68205}
+    textureOffset: {x: -333.3687, y: -0, z: -333.3687}
     falloffMode: 1
     maskMode: 0
     materialMask: {fileID: 0}
@@ -120778,7 +120779,7 @@ MonoBehaviour:
   Damping: {x: 0.1, y: 0.2, z: 0.1}
   ShoulderOffset: {x: 0.5, y: 0, z: 0}
   VerticalArmLength: 0.4
-  CameraSide: 1
+  CameraSide: 0.5
   CameraDistance: 3
   CameraCollisionFilter:
     serializedVersion: 2

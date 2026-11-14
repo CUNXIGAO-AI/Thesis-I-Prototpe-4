@@ -105,8 +105,10 @@ private bool isHoldingRestartButton = false;
             Instance = this;
             DontDestroyOnLoad(gameObject);
             SceneManager.sceneLoaded += OnSceneLoaded;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (GetComponent<DevCheatConsole>() == null)
                 gameObject.AddComponent<DevCheatConsole>();
+#endif
         }
         else
         {
@@ -542,7 +544,9 @@ void Update()
 
     UpdateCameraSide();
     HandleBasicControls();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
     HandleTestingControls();
+#endif
 
 #if UNITY_EDITOR
     if (previewCameraRotationInRuntime)
@@ -566,7 +570,11 @@ void Update()
 private void HandleBasicControls()
 {
     // 键盘 R 重启；手柄长按 B 约 3 秒重启。GM 窗口打开时不抢 R。
-    if (!DevCheatConsole.IsOpen && Input.GetKeyDown(KeyCode.R))
+    if (
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        !DevCheatConsole.IsOpen &&
+#endif
+        Input.GetKeyDown(KeyCode.R))
     {
         RestartGame();
     }

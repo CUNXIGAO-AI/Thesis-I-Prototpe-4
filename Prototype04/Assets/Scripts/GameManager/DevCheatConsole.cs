@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 
 public class DevCheatConsole : MonoBehaviour
 {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
     public static bool IsOpen { get; private set; }
 
     [SerializeField] private bool enableConsole = true;
@@ -352,4 +353,7 @@ public class DevCheatConsole : MonoBehaviour
         RestoreCameraToPlayer();
         lastLog = "叙事已重置，相机已回到玩家";
     }
+#else
+    public static bool IsOpen => false;
+#endif
 }
