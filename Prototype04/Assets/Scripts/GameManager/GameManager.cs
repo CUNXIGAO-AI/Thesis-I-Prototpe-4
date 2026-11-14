@@ -105,6 +105,8 @@ private bool isHoldingRestartButton = false;
             Instance = this;
             DontDestroyOnLoad(gameObject);
             SceneManager.sceneLoaded += OnSceneLoaded;
+            if (GetComponent<ForceSixteenNineAspect>() == null)
+                gameObject.AddComponent<ForceSixteenNineAspect>();
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (GetComponent<DevCheatConsole>() == null)
                 gameObject.AddComponent<DevCheatConsole>();
